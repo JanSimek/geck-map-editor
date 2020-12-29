@@ -1,10 +1,22 @@
 #pragma once
 
+namespace sf {
+    class Window;
+    class RenderTarget;
+    class Event;
+}
+
 class State {
 public:
 
-    // TODO: ? on_create, on_exit
+    virtual ~State() = default;
 
-    virtual void update(float dt) = 0;
-    virtual void render(float dt) = 0;
+    virtual void init() = 0;
+    virtual void handleEvent(const sf::Event&) = 0;
+    virtual void update(const float &dt) = 0;
+    virtual void render(const float &dt) = 0;
+
+    virtual bool quit() const {
+        return false;
+    }
 };
