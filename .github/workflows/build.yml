@@ -40,8 +40,8 @@ jobs:
         - {
             os: ubuntu-latest,
             name: "Linux GCC",
-            cc: gcc,
-            cxx: g++,
+            cc: gcc-10,
+            cxx: g++-10,
           }
         # - {
         #     os: macos-latest,
