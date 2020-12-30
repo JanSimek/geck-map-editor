@@ -11,6 +11,7 @@
 #include "../../editor/Tile.h"
 #include "../../editor/MapObject.h"
 
+#include "../../util/FileHelper.h"
 #include "../../util/io.h"
 #include "../../format/map/Map.h"
 #include "../../format/pro/Pro.h"
@@ -44,8 +45,8 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
 
     unsigned int typeId = PID >> 24;
 
-    // FIXME: data path
-    std::string listFile = "resources/";
+    const std::string data_path = FileHelper::getInstance().path();
+    std::string listFile = data_path;
 
     switch ((MapObject::OBJECT_TYPE)typeId)
     {
@@ -68,7 +69,7 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
             listFile += "proto/misc/misc.lst";
             break;
         default:
-            throw std::runtime_error{"loadPro(unsigned int PID) - wrong PID: " + std::to_string(PID)};
+            throw std::runtime_error{"Wrong PID: " + std::to_string(PID)};
     }
 
     LstReader lst_reader;
@@ -78,7 +79,7 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
 
     if (index > lst->list().size())
     {
-        throw std::runtime_error{"loadPro(unsigned int PID) - LST size < PID: " + std::to_string(PID)};
+        throw std::runtime_error{"LST size < PID: " + std::to_string(PID)};
     }
 
     std::string protoName = lst->list().at(index-1); // FIXME ? is it -1?
@@ -108,8 +109,7 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
     if (!proFilename.empty()) {
 
         ProReader pro_reader;
-        // FIXME: data path
-        return pro_reader.read("resources/" + proFilename);
+        return pro_reader.read(data_path + proFilename);
     } else {
         throw std::runtime_error{"Couldn't load PRO file " + protoName};
     }
@@ -137,13 +137,12 @@ std::string FIDtoFrmName(unsigned int FID)
         type = static_cast<FRM_TYPE>((FID & 0x0F000000) >> 24); // FIXME: WTF?
     }
 
-    // TODO: _showScrlBlk
+    // TODO: EditorState::_showScrlBlk
     if (type == FRM_TYPE::MISC && baseId == 1)
     {
         static const std::string SCROLL_BLOCKERS_PATH("art/misc/scrblk.frm");
         // Map scroll blockers
-//        return SCROLL_BLOCKERS_PATH;
-        return std::string();
+        return SCROLL_BLOCKERS_PATH;
     }
 
     static struct TypeArtListDecription
@@ -168,9 +167,10 @@ std::string FIDtoFrmName(unsigned int FID)
 
     const auto& typeArtDescription = frmTypeDescription[static_cast<size_t>(type)];
 
+    const std::string data_path = FileHelper::getInstance().path();
+
     LstReader lst_reader;
-    // FIXME data path
-    auto lst = lst_reader.read("resources/" + typeArtDescription.lstFilePath);
+    auto lst = lst_reader.read(data_path + typeArtDescription.lstFilePath);
 
     if (baseId >= lst->list().size())
     {
@@ -179,7 +179,6 @@ std::string FIDtoFrmName(unsigned int FID)
 
     std::string frmName = lst->list().at(baseId);
 
-    // FIXME: resources prefix
     if (type == FRM_TYPE::CRITTER) {
         // TODO: correct direction and posture
         return typeArtDescription.prefixPath + frmName.substr(0, 6) + "aa.frm";

@@ -7,6 +7,8 @@ add_executable (geck-mapper
     util/io.h
     util/TextureManager.h
     util/TextureManager.cpp
+    util/FileHelper.h
+    util/FileHelper.cpp
 
     # States
     state/StateMachine.h

@@ -16,6 +16,9 @@ std::unique_ptr<geck::Pal> geck::PalReader::read(std::istream &stream)
 
     auto pal = std::make_unique<Pal>();
 
+    // TODO: static colors, e.g. monitors, slime, fire,...
+    // https://github.com/falltergeist/falltergeist/blob/39a6cee826c4588cac10919786c939f222684b94/src/Format/Pal/File.cpp
+
     size_t offset = 0;
     for (Rgb& rgb : pal->palette()) {
       rgb.r = buf[offset++];

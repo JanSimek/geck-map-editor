@@ -38,7 +38,7 @@ private:
     bool _showCritters = true;
     bool _showRoof = true;
     bool _showWalls = true;
-    bool _showScrollBlk = true;
+    bool _showScrollBlk = false;
 
     bool _quit = false;
 

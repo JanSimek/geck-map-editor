@@ -27,13 +27,15 @@
 #include "../format/frm/Frame.h"
 #include "../format/frm/Direction.h"
 
+#include "../util/FileHelper.h"
+
 namespace geck {
 
 EditorState::EditorState(const std::shared_ptr<AppData>& appData)
     : _appData(appData),
       _view({0.f, 0.f}, sf::Vector2f(appData->window->getSize()))
 {
-    _textureManager.setDataPath(appData->dataPath);
+    _textureManager.setDataPath(FileHelper::getInstance().path());
     centerViewOnMap();
 }
 
@@ -69,14 +71,21 @@ void EditorState::renderMainMenu()
 
             if (_map) {
                 ImGui::Separator();
+                ImGui::Tooltip("Currently visible map elevation"); ImGui::SameLine();
                 if (ImGui::BeginMenu("Elevation"))
                 {
                     if (_map->elevations() == 1) {
                         ImGui::Text("Map has only 1 elevation");
-                    } else if (ImGui::SliderInt("select elevation", &_currentElevation, 0, _map->elevations()-1)) {
-                        loadMap();
+                    } else {
+                        for (int i = 0; i < _map->elevations(); i++) {
+                            std::string text = std::to_string(i) + (i == _currentElevation ? " " ICON_FA_CHECK_CIRCLE : "");
+                            if (ImGui::MenuItem(text.c_str()) && _currentElevation != i) {
+                                _currentElevation = i;
+                                spdlog::info("Loading elevation " + std::to_string(_currentElevation));
+                                loadMap();
+                            }
+                        }
                     }
-                    ImGui::SameLine(); ImGui::Tooltip("Currently visible map elevation");
                     ImGui::EndMenu();
                 }
             }
@@ -88,7 +97,11 @@ void EditorState::renderMainMenu()
 
 void geck::EditorState::loadMap()
 {
-    const std::string data_path = _appData->dataPath;
+    const std::string data_path = FileHelper::getInstance().path();
+
+    _floorSprites.clear();
+    _roofSprites.clear();
+    _objectSprites.clear();
 
     // Data
 
@@ -139,12 +152,12 @@ void geck::EditorState::loadMap()
     for (const auto& object : map->objects().at(_currentElevation)) {
 
         if (object->hexPosition() == -1)
-            continue;
+            continue; // object inside an inventory/container
 
         if (object->frm().empty())
         {
             spdlog::error("Empty FRM file path on hex number " + std::to_string(object->hexPosition()));
-            continue;
+            continue; // this should probably never happen
         }
 
         sf::Sprite object_sprite;
@@ -159,8 +172,9 @@ void geck::EditorState::loadMap()
 
         const geck::Hex* hex = hexgrid.grid().at(object->hexPosition()).get();
 
-        auto frm = frm_reader.read(_appData->dataPath + object->frm());
+        auto frm = frm_reader.read(data_path + object->frm());
 
+        // center on the hex
         object_sprite.setPosition(
             // X
             (float)hex->x()
@@ -183,6 +197,9 @@ void EditorState::handleEvent(const sf::Event &event)
 {
     if (event.type == sf::Event::KeyPressed) {
         switch(event.key.code) {
+        case sf::Keyboard::Q: // Ctrl+Q
+            if(event.key.control)
+                _quit = true;
         case sf::Keyboard::Escape:
             _quit = true;
             break;
@@ -265,10 +282,10 @@ void EditorState::render(const float &dt)
 //    auto boldFont = io.Fonts->Fonts[0];
 //    ImGui::PushFont(0);
 
-    ImGui::Begin("Torr Buckner");
-    ImGui::Text(ICON_FA_FILE_IMAGE " NMWARRAA.FRM" );
+//    ImGui::Begin("Torr Buckner");
+//    ImGui::Text(ICON_FA_FILE_IMAGE " NMWARRAA.FRM" );
 
-    ImGui::End();
+//    ImGui::End();
 //    ImGui::PopFont();
 }
 

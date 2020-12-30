@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <string>
 
 #include "../../editor/Tile.h"
 #include "../../editor/MapObject.h"

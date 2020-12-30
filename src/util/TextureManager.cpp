@@ -75,12 +75,13 @@ std::unique_ptr<sf::Texture> TextureManager::loadTextureFRM(const std::string& f
     const auto& colors = pal->palette();
     const auto& colorIndexes = frame.data();
 
-    size_t pixelCount = frame.width() * frame.height() * 4U; // 4 = RGBA of SFML texture
+    constexpr int RGBA = 4; // RGBA of SFML texture
+    size_t pixelCount = frame.width() * frame.height() * RGBA;
     std::vector<sf::Uint8> pixels(pixelCount);
 
-    for (size_t i = 0; i < pixelCount; i += 4) {
+    for (size_t i = 0; i < pixelCount; i += RGBA) {
 
-        uint8_t paletteIndex = colorIndexes[i / 4];
+        uint8_t paletteIndex = colorIndexes[i / RGBA];
 
         geck::Rgb color = colors[paletteIndex];
 

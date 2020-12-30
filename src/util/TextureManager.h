@@ -21,7 +21,6 @@ public:
     bool exists(const std::string& filename);
     void insert(const std::string& filename);
     const sf::Texture& get(const std::string &filename) const;
-//    Resource& get(Identifier id);
 
     void setDataPath(const std::string& path);
 

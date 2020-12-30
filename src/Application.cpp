@@ -6,17 +6,20 @@
 #include <SFML/Window/Event.hpp>
 
 #include "ui/util.h"
+#include "util/FileHelper.h"
 #include "state/StateMachine.h"
 #include "state/EditorState.h"
 
 namespace geck {
 
-Application::Application(std::string dataPath, std::string mapName)
+Application::Application(const std::string& dataPath, const std::string& mapName)
     : _running(false), 
     _window(std::make_unique<sf::RenderWindow>(sf::VideoMode(1280, 960), "GECK::Mapper")),
     _stateMachine(std::make_shared<StateMachine>()),
-    _appData(std::make_shared<AppData>(AppData{_window, _stateMachine, dataPath, mapName }))
+    _appData(std::make_shared<AppData>(AppData{_window, _stateMachine, mapName }))
 {
+    FileHelper::getInstance().setPath(dataPath);
+
     initUI();
 
     _stateMachine->push(std::make_unique<EditorState>(_appData));
@@ -35,8 +38,10 @@ void Application::initUI()
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
 
+    const std::string data_path = FileHelper::getInstance().path();
+
     // default UI font
-    std::string main_font = _appData->dataPath + FONT_MAIN;
+    std::string main_font = data_path + FONT_MAIN;
     io.Fonts->AddFontFromFileTTF(main_font.c_str(), 18.0f);
 
     // icon font - merge in icons from Font Awesome
@@ -46,7 +51,7 @@ void Application::initUI()
     icons_config.PixelSnapH = true;
     icons_config.GlyphOffset = ImVec2(0,1);
 
-    std::string icon_font = _appData->dataPath + FONT_ICON;
+    std::string icon_font = data_path + FONT_ICON;
     io.Fonts->AddFontFromFileTTF(icon_font.c_str(), 16.0f, &icons_config, icons_ranges );
 
     ImGui::SFML::UpdateFontTexture();

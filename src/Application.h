@@ -13,7 +13,6 @@ class StateMachine;
 struct AppData {
     std::shared_ptr<sf::RenderWindow> window;
     std::shared_ptr<StateMachine> stateMachine;
-    std::string dataPath;
     std::string mapName;
 };
 
@@ -32,7 +31,7 @@ private:
     std::shared_ptr<StateMachine> _stateMachine;
     std::shared_ptr<AppData> _appData;
 public:
-    Application(std::string dataPath, std::string mapName);
+    Application(const std::string &dataPath, const std::string &mapName);
     ~Application();
 
     bool isRunning() const;
@@ -40,6 +39,7 @@ public:
     void run();
     void update(float dt);
     void render(float dt);
+
 };
 
 }

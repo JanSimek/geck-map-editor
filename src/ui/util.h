@@ -92,11 +92,10 @@ namespace ImGui
     inline bool MenuItemCheckbox( const char* name_, bool* pB_, bool disabled = false )
     {
         if (disabled) {
-//            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true); <- TODO: requires newer version of IMGUI
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
         }
 
-        bool retval = ImGui::MenuItem( name_ );
+        bool retval = ImGui::MenuItem(name_, NULL, false, !disabled);
         ImGui::SameLine();
 
         if( *pB_ )
@@ -114,7 +113,6 @@ namespace ImGui
 
         if (disabled)
         {
-//            ImGui::PopItemFlag(); <- TODO: requires newer version of IMGUI
             ImGui::PopStyleVar();
         }
         return retval;
