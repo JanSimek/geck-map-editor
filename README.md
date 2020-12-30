@@ -1,14 +1,20 @@
 # GECK::Mapper - Fallout 2 map editor
 
-At the current stage this is nothing more than a map viewer but one day it will hopefully become a fully-featured map editor.
+![](https://github.com/JanSimek/geck-map-editor/workflows/Build/badge.svg)
 
-Any help is appreciated.
+At the current stage this is nothing more than a map viewer but one day it will hopefully become a fully-featured map editor. Any help is appreciated.
 
 ![Screenshot](https://github.com/JanSimek/geck-map-editor/blob/master/screenshot.jpg "Screenshot")
 
 ## Known issues
 
 The application will hang for several seconds when loading a new map or changing map elevation. Loading screen should be implemented in the future.
+
+## Usage
+
+It's currently not possible to load assets directly from master.dat and critter.dat. You must extract these archives using [dat-unpacker](https://github.com/falltergeist/dat-unpacker), for example. By default GECK::Mapper will load files from the `resources` subdirectory.
+
+Use arrow keys or right-click and drag to pan the view.
 
 ## Credits
 

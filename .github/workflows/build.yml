@@ -1,0 +1,77 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+    # TODO: paths: ['.github/workflows/*', 'src/*'] #only when these files are modifed
+  pull_request:
+    branches: [ master ]
+    # TODO: paths: ['.github/workflows/*', 'src/*'] #only when these files are modifed
+
+jobs:
+  build:
+
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            os: windows-latest,
+            name: "Windows MSVC",
+            cc: cl,
+            cxx: cl,
+            cflags: ""
+          }
+        - {
+            os: windows-latest,
+            name: "Windows Clang",
+            cc: clang-cl,
+            cxx: clang-cl,
+          }
+        - {
+            os: ubuntu-latest,
+            name: "Linux Clang",
+            cc: clang,
+            cxx: clang++,
+          }
+        - {
+            os: ubuntu-latest,
+            name: "Linux GCC",
+            cc: gcc,
+            cxx: g++,
+          }
+       - {
+           os: macos-latest,
+           name: "OS X GCC",
+           cc: clang,
+           cxx: clang++,
+         }
+
+    steps:
+    - uses: actions/checkout@v2
+
+    # - name: Install dependencies via apt
+    #   if: runner.os == 'Linux'
+    #   shell: bash
+    #   run: |
+    #     set -e
+    #     sudo apt-get update
+    #     sudo apt-get install gcc-multilib
+
+    - name: Configure CMake
+      # Use a bash shell so we can use the same syntax for environment variable
+      # access regardless of the host operating system
+      shell: bash
+      # working-directory: ${{runner.workspace}}/build
+      run: cmake -B build -DCMAKE_C_COMPILER=${{matrix.config.cc}} -DCMAKE_CXX_COMPILER=${{matrix.config.cxx}}
+
+    - name: Build
+      shell: bash
+      # working-directory: ${{runner.workspace}}/build
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: cmake --build build -j 3
+
+# TODO: release and publish artifacts: https://github.com/cristianadam/HelloWorld/blob/master/.github/workflows/build_cmake.yml

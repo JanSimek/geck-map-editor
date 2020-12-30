@@ -5,6 +5,14 @@ project (geck-mapper
     VERSION 0.1
 )
 
+if(NOT CMAKE_BUILD_TYPE)
+  message(STATUS "Setting build type to Release as none was specified.")
+  set(CMAKE_BUILD_TYPE "Release" CACHE
+      STRING "Choose the type of build." FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
 set(CONAN_EXTRA_REQUIRES ${CONAN_EXTRA_REQUIRES} 
     imgui-sfml/2.1@bincrafters/stable
     cxxopts/2.2.1
