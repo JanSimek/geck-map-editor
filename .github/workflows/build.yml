@@ -18,19 +18,19 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - {
-            os: windows-latest,
-            name: "Windows MSVC",
-            cc: cl,
-            cxx: cl,
-            cflags: ""
-          }
-        - {
-            os: windows-latest,
-            name: "Windows Clang",
-            cc: clang-cl,
-            cxx: clang-cl,
-          }
+        # - {
+        #     os: windows-latest,
+        #     name: "Windows MSVC",
+        #     cc: cl,
+        #     cxx: cl,
+        #     cflags: ""
+        #   }
+        # - {
+        #     os: windows-latest,
+        #     name: "Windows Clang",
+        #     cc: clang-cl,
+        #     cxx: clang-cl,
+        #   }
         - {
             os: ubuntu-latest,
             name: "Linux Clang",
@@ -43,12 +43,12 @@ jobs:
             cc: gcc,
             cxx: g++,
           }
-        - {
-            os: macos-latest,
-            name: "OS X GCC",
-            cc: clang,
-            cxx: clang++,
-          }
+        # - {
+        #     os: macos-latest,
+        #     name: "OS X GCC",
+        #     cc: clang,
+        #     cxx: clang++,
+        #   }
 
     steps:
     - uses: actions/checkout@v2
@@ -60,17 +60,24 @@ jobs:
     #     set -e
     #     sudo apt-get update
     #     sudo apt-get install gcc-multilib
+    - name: Install conan
+      shell: bash
+      run: |
+        python3 -m pip install --upgrade pip setuptools
+        python3 -m pip install conan
+        source ~/.profile
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
       # access regardless of the host operating system
       shell: bash
-      # working-directory: ${{runner.workspace}}/build
-      run: cmake -B build -DCMAKE_C_COMPILER=${{matrix.config.cc}} -DCMAKE_CXX_COMPILER=${{matrix.config.cxx}}
+      # We need to source the profile file to make sure conan is in PATH
+      run: |
+        source ~/.profile
+        cmake -B build -DCMAKE_C_COMPILER=${{matrix.config.cc}} -DCMAKE_CXX_COMPILER=${{matrix.config.cxx}}
 
     - name: Build
       shell: bash
-      # working-directory: ${{runner.workspace}}/build
       # Execute the build.  You can specify a specific target with "--target <NAME>"
       run: cmake --build build -j 3
 
