@@ -9,7 +9,7 @@
 
 namespace geck {
 
-void Map::setTiles(const std::map<int, std::vector<Tile> > tiles) {
+void Map::setTiles(const std::map<int, std::vector<Tile> >& tiles) {
     _tiles = std::move(tiles);
 }
 

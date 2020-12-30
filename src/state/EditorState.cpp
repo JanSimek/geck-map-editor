@@ -185,6 +185,7 @@ void EditorState::handleEvent(const sf::Event& event) {
             case sf::Keyboard::Q:  // Ctrl+Q
                 if (event.key.control)
                     _quit = true;
+                break;
             case sf::Keyboard::Escape:
                 _quit = true;
                 break;

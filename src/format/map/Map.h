@@ -26,7 +26,7 @@ public:
     static constexpr unsigned TILES_PER_ELEVATION = ROWS * COLS;
 
     const std::map<int, std::vector<Tile> >& tiles() const;
-    void setTiles(const std::map<int, std::vector<Tile> > tiles);
+    void setTiles(const std::map<int, std::vector<Tile> >& tiles);
 
     const std::unordered_map<int, std::vector<std::unique_ptr<MapObject> > >& objects() const;
     void setObjects(std::unordered_map<int, std::vector<std::unique_ptr<MapObject> > > objects);
