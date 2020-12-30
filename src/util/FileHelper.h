@@ -2,8 +2,7 @@
 
 #include <string>
 
-class FileHelper
-{
+class FileHelper {
 private:
     FileHelper() {}
 
@@ -14,13 +13,11 @@ public:
     FileHelper(FileHelper const&) = delete;
     void operator=(FileHelper const&) = delete;
 
-    static FileHelper& getInstance()
-    {
-        static FileHelper instance; // Guaranteed to be destroyed.
+    static FileHelper& getInstance() {
+        static FileHelper instance;  // Guaranteed to be destroyed.
         return instance;
     }
 
     std::string path() const;
-    void setPath(const std::string &path);
+    void setPath(const std::string& path);
 };
-

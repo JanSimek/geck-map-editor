@@ -8,28 +8,18 @@ class Map;
 class MapObject;
 class Pro;
 
-class MapReader : FileReader<Map>
-{
+class MapReader : FileReader<Map> {
 public:
-
-    enum class ScriptType {
-      system,
-      spatial,
-      timer,
-      item,
-      critter,
-      unknown
-    };
+    enum class ScriptType { system, spatial, timer, item, critter, unknown };
 
 private:
-
     std::unique_ptr<MapObject> readObject(std::istream& stream);
     std::unique_ptr<Pro> loadPro(unsigned int PID);
     ScriptType fromPid(uint32_t val);
 
 public:
-    using FileReader::read; // shadowed method
+    using FileReader::read;  // shadowed method
     std::unique_ptr<Map> read(std::istream& stream) override;
 };
 
-}
+}  // namespace geck

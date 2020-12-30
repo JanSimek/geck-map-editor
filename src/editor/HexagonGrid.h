@@ -1,14 +1,13 @@
 #pragma once
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "Hex.h"
 
 namespace geck {
 
-class HexagonGrid
-{
+class HexagonGrid {
 private:
     std::vector<std::unique_ptr<Hex> > _grid;
 
@@ -21,4 +20,4 @@ public:
     const std::vector<std::unique_ptr<Hex> >& grid() const;
 };
 
-}
+}  // namespace geck

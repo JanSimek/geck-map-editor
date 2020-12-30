@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stack>
 #include <memory>
+#include <stack>
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include "ui/IconsFontAwesome5.h"
@@ -25,13 +25,14 @@ private:
     void initUI();
 
     bool _running;
-	sf::Clock _deltaClock;
+    sf::Clock _deltaClock;
 
     std::shared_ptr<sf::RenderWindow> _window;
     std::shared_ptr<StateMachine> _stateMachine;
     std::shared_ptr<AppData> _appData;
+
 public:
-    Application(const std::string &dataPath, const std::string &mapName);
+    Application(const std::string& dataPath, const std::string& mapName);
     ~Application();
 
     bool isRunning() const;
@@ -39,7 +40,6 @@ public:
     void run();
     void update(float dt);
     void render(float dt);
-
 };
 
-}
+}  // namespace geck

@@ -5,8 +5,7 @@
 
 namespace geck {
 
-class Frame
-{
+class Frame {
 private:
     uint16_t _width = 0;
     uint16_t _height = 0;
@@ -18,21 +17,20 @@ public:
     Frame(uint16_t width, uint16_t height);
 
     uint16_t width() const;
-    void setWidth(const uint16_t &width);
+    void setWidth(const uint16_t& width);
 
     uint16_t height() const;
-    void setHeight(const uint16_t &height);
+    void setHeight(const uint16_t& height);
 
     int16_t offsetX() const;
-    void setOffsetX(const int16_t &offsetX);
+    void setOffsetX(const int16_t& offsetX);
 
     int16_t offsetY() const;
-    void setOffsetY(const int16_t &offsetY);
+    void setOffsetY(const int16_t& offsetY);
 
     uint8_t index(uint16_t x, uint16_t y) const;
 
     uint8_t* data();
 };
 
-}
-
+}  // namespace geck

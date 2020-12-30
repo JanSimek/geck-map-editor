@@ -14,6 +14,18 @@ set(CONAN_EXTRA_REQUIRES ${CONAN_EXTRA_REQUIRES}
 include(cmake/Conan.cmake)
 run_conan()
 
+include(cmake/CPM.cmake)
+
+CPMAddPackage(
+  NAME Format.cmake
+  VERSION 1.6
+  GITHUB_REPOSITORY TheLartians/Format.cmake
+  OPTIONS # enable cmake formatting (optional)
+          "FORMAT_CHECK_CMAKE OFF"
+          # path to exclude (optional, supports regular expressions)
+          "CMAKE_FORMAT_EXCLUDE cmake/CPM.cmake"
+)
+
 add_subdirectory(src)
 
 file(COPY resources DESTINATION ${CMAKE_BINARY_DIR}/bin)

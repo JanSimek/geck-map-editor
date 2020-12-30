@@ -1,11 +1,10 @@
 #pragma once
 
-#include <memory>
 #include <fstream>
+#include <memory>
 
 template <typename T>
-class FileReader
-{
+class FileReader {
 public:
     std::unique_ptr<T> read(const std::string& filename) {
         std::ifstream stream{filename, std::ifstream::in};
@@ -19,4 +18,3 @@ public:
 
     virtual std::unique_ptr<T> read(std::istream& stream) = 0;
 };
-

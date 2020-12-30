@@ -1,10 +1,10 @@
 #pragma once
 
-#include <memory>
 #include <SFML/Graphics.hpp>
+#include <memory>
 
-#include "State.h"
 #include "../util/TextureManager.h"
+#include "State.h"
 
 #include "../format/map/Map.h"
 
@@ -15,7 +15,6 @@ class Map;
 
 class EditorState : public State {
 private:
-
     enum class EditorAction { NONE, PANNING };
 
     void renderMainMenu();
@@ -42,19 +41,18 @@ private:
 
     bool _quit = false;
 
-    sf::Vector2i _lastMousePos{0, 0}; // panning
+    sf::Vector2i _lastMousePos{0, 0};  // panning
     EditorAction _currentAction = EditorAction::NONE;
 
 public:
-
-    EditorState(const std::shared_ptr<AppData> &appData);
+    EditorState(const std::shared_ptr<AppData>& appData);
 
     void init() override;
     void handleEvent(const sf::Event& event) override;
-    void update(const float &dt) override;
-    void render(const float &dt) override;
+    void update(const float& dt) override;
+    void render(const float& dt) override;
 
     bool quit() const override;
 };
 
-}
+}  // namespace geck

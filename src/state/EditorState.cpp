@@ -1,46 +1,43 @@
 #include "EditorState.h"
 
-#include <cmath> // ceil
-#include <fstream>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
+#include <cmath>  // ceil
+#include <fstream>
 
 #include "../Application.h"
-#include "../util/TextureManager.h"
-#include "../ui/util.h"
 #include "../ui/IconsFontAwesome5.h"
+#include "../ui/util.h"
+#include "../util/TextureManager.h"
 
-#include "StateMachine.h"
 #include "../editor/HexagonGrid.h"
-#include "../editor/Tile.h"
 #include "../editor/MapObject.h"
+#include "../editor/Tile.h"
+#include "StateMachine.h"
 
-#include "../reader/map/MapReader.h"
 #include "../reader/dat/DatReader.h"
 #include "../reader/frm/FrmReader.h"
 #include "../reader/lst/LstReader.h"
+#include "../reader/map/MapReader.h"
 
-#include "../format/pal/Pal.h"
-#include "../format/map/Map.h"
-#include "../format/lst/Lst.h"
-#include "../format/frm/Frm.h"
-#include "../format/frm/Frame.h"
 #include "../format/frm/Direction.h"
+#include "../format/frm/Frame.h"
+#include "../format/frm/Frm.h"
+#include "../format/lst/Lst.h"
+#include "../format/map/Map.h"
+#include "../format/pal/Pal.h"
 
 #include "../util/FileHelper.h"
 
 namespace geck {
 
 EditorState::EditorState(const std::shared_ptr<AppData>& appData)
-    : _appData(appData),
-      _view({0.f, 0.f}, sf::Vector2f(appData->window->getSize()))
-{
+    : _appData(appData), _view({0.f, 0.f}, sf::Vector2f(appData->window->getSize())) {
     _textureManager.setDataPath(FileHelper::getInstance().path());
     centerViewOnMap();
 }
 
-void EditorState::init()
-{
+void EditorState::init() {
     // FIXME:   Figure out how to load textures in another thread.
     //          sf::Texture cannot be created outside of the main thread
     //          https://www.sfml-dev.org/tutorials/2.5/window-opengl.php#rendering-from-threads
@@ -48,37 +45,34 @@ void EditorState::init()
     loadMap();
 }
 
-void EditorState::renderMainMenu()
-{
-    if (ImGui::BeginMainMenuBar())
-    {
-        if (ImGui::BeginMenu(ICON_FA_FILE_ALT " File"))
-        {
+void EditorState::renderMainMenu() {
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu(ICON_FA_FILE_ALT " File")) {
             if (ImGui::MenuItem("Exit", "Ctrl+Q")) {
                 _quit = true;
             }
 
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu(ICON_FA_EYE " View"))
-        {
+        if (ImGui::BeginMenu(ICON_FA_EYE " View")) {
             bool disabled = true;
-            ImGui::MenuItemCheckbox("Show objects",         &_showObjects);
-            ImGui::MenuItemCheckbox("Show critters",        &_showCritters,     disabled);
-            ImGui::MenuItemCheckbox("Show walls",           &_showWalls,        disabled);
-            ImGui::MenuItemCheckbox("Show roofs",           &_showRoof);
-            ImGui::MenuItemCheckbox("Show scroll block",    &_showScrollBlk,    disabled);
+            ImGui::MenuItemCheckbox("Show objects", &_showObjects);
+            ImGui::MenuItemCheckbox("Show critters", &_showCritters, disabled);
+            ImGui::MenuItemCheckbox("Show walls", &_showWalls, disabled);
+            ImGui::MenuItemCheckbox("Show roofs", &_showRoof);
+            ImGui::MenuItemCheckbox("Show scroll block", &_showScrollBlk, disabled);
 
             if (_map) {
                 ImGui::Separator();
-                ImGui::Tooltip("Currently visible map elevation"); ImGui::SameLine();
-                if (ImGui::BeginMenu("Elevation"))
-                {
+                ImGui::Tooltip("Currently visible map elevation");
+                ImGui::SameLine();
+                if (ImGui::BeginMenu("Elevation")) {
                     if (_map->elevations() == 1) {
                         ImGui::Text("Map has only 1 elevation");
                     } else {
                         for (int i = 0; i < _map->elevations(); i++) {
-                            std::string text = std::to_string(i) + (i == _currentElevation ? " " ICON_FA_CHECK_CIRCLE : "");
+                            std::string text =
+                                std::to_string(i) + (i == _currentElevation ? " " ICON_FA_CHECK_CIRCLE : "");
                             if (ImGui::MenuItem(text.c_str()) && _currentElevation != i) {
                                 _currentElevation = i;
                                 spdlog::info("Loading elevation " + std::to_string(_currentElevation));
@@ -95,8 +89,7 @@ void EditorState::renderMainMenu()
     }
 }
 
-void geck::EditorState::loadMap()
-{
+void geck::EditorState::loadMap() {
     const std::string data_path = FileHelper::getInstance().path();
 
     _floorSprites.clear();
@@ -107,7 +100,6 @@ void geck::EditorState::loadMap()
 
     MapReader map_reader;
     auto map = map_reader.read(data_path + "maps/" + _appData->mapName);
-
 
     LstReader lst_reader;
     auto lst = lst_reader.read(data_path + "art/tiles/tiles.lst");
@@ -129,7 +121,7 @@ void geck::EditorState::loadMap()
 
         // Positioning
 
-        unsigned int tileX = static_cast<unsigned>(ceil(((double) i) / 100));
+        unsigned int tileX = static_cast<unsigned>(ceil(((double)i) / 100));
         unsigned int tileY = i % 100;
         unsigned int x = (100 - tileY - 1) * 48 + 32 * (tileX - 1);
         unsigned int y = tileX * 24 + (tileY - 1) * 12 + 1;
@@ -150,25 +142,23 @@ void geck::EditorState::loadMap()
     FrmReader frm_reader;
 
     for (const auto& object : map->objects().at(_currentElevation)) {
-
         if (object->hexPosition() == -1)
-            continue; // object inside an inventory/container
+            continue;  // object inside an inventory/container
 
-        if (object->frm().empty())
-        {
+        if (object->frm().empty()) {
             spdlog::error("Empty FRM file path on hex number " + std::to_string(object->hexPosition()));
-            continue; // this should probably never happen
+            continue;  // this should probably never happen
         }
 
         sf::Sprite object_sprite;
         _textureManager.insert(object->frm());
         object_sprite.setTexture(_textureManager.get(object->frm()));
 
-//        int hexPos = object->hexPosition();
-//        float x = hexPos % 200;
-//        float y = hexPos / 200;
+        //        int hexPos = object->hexPosition();
+        //        float x = hexPos % 200;
+        //        float y = hexPos / 200;
 
-//        Point point = hexToScreen(x, y);
+        //        Point point = hexToScreen(x, y);
 
         const geck::Hex* hex = hexgrid.grid().at(object->hexPosition()).get();
 
@@ -177,14 +167,10 @@ void geck::EditorState::loadMap()
         // center on the hex
         object_sprite.setPosition(
             // X
-            (float)hex->x()
-            + frm->directions().front().shiftX()
-            - (object_sprite.getTexture()->getSize().x / 2),
+            (float)hex->x() + frm->directions().front().shiftX() - (object_sprite.getTexture()->getSize().x / 2),
 
             // Y
-            (float)hex->y()
-            + frm->directions().front().shiftY()
-            - object_sprite.getTexture()->getSize().y);
+            (float)hex->y() + frm->directions().front().shiftY() - object_sprite.getTexture()->getSize().y);
 
         _objectSprites.push_back(std::move(object_sprite));
     }
@@ -193,48 +179,45 @@ void geck::EditorState::loadMap()
     spdlog::info("Map loaded");
 }
 
-void EditorState::handleEvent(const sf::Event &event)
-{
+void EditorState::handleEvent(const sf::Event& event) {
     if (event.type == sf::Event::KeyPressed) {
-        switch(event.key.code) {
-        case sf::Keyboard::Q: // Ctrl+Q
-            if(event.key.control)
+        switch (event.key.code) {
+            case sf::Keyboard::Q:  // Ctrl+Q
+                if (event.key.control)
+                    _quit = true;
+            case sf::Keyboard::Escape:
                 _quit = true;
-        case sf::Keyboard::Escape:
-            _quit = true;
-            break;
-        case sf::Keyboard::Left:
-            _view.move(-50.f, 0.f);
-            break;
-        case sf::Keyboard::Right:
-            _view.move(50.f, 0.f);
-            break;
-        case sf::Keyboard::Up:
-            _view.move(0.f, -50.f);
-            break;
-        case sf::Keyboard::Down:
-            _view.move(0.f, 50.f);
-            break;
-        default:
-            break;
+                break;
+            case sf::Keyboard::Left:
+                _view.move(-50.f, 0.f);
+                break;
+            case sf::Keyboard::Right:
+                _view.move(50.f, 0.f);
+                break;
+            case sf::Keyboard::Up:
+                _view.move(0.f, -50.f);
+                break;
+            case sf::Keyboard::Down:
+                _view.move(0.f, 50.f);
+                break;
+            default:
+                break;
         }
     }
 
     // Zoom
-    if (event.type == sf::Event::MouseWheelScrolled
-            && event.mouseWheelScroll.wheel == sf::Mouse::Wheel::VerticalWheel) {
+    if (event.type == sf::Event::MouseWheelScrolled &&
+        event.mouseWheelScroll.wheel == sf::Mouse::Wheel::VerticalWheel) {
         float delta = event.mouseWheelScroll.delta;
         _view.zoom(1.0f - delta * 0.1f);
     }
 
     // Panning
-    if (event.type == sf::Event::MouseButtonPressed
-            && event.mouseButton.button == sf::Mouse::Button::Right) {
+    if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Right) {
         _currentAction = EditorAction::PANNING;
         _lastMousePos = sf::Mouse::getPosition(*_appData->window);
     }
-    if (event.type == sf::Event::MouseButtonReleased
-            && event.mouseButton.button == sf::Mouse::Button::Right) {
+    if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Button::Right) {
         _currentAction = EditorAction::NONE;
     }
     if (_currentAction == EditorAction::PANNING) {
@@ -244,8 +227,7 @@ void EditorState::handleEvent(const sf::Event &event)
     }
 
     // Window resizing
-    if (event.type == sf::Event::Resized)
-    {
+    if (event.type == sf::Event::Resized) {
         // update the view to the new size of the window
         sf::FloatRect visibleArea(0.f, 0.f, event.size.width, event.size.height);
         _view.reset(visibleArea);
@@ -253,12 +235,9 @@ void EditorState::handleEvent(const sf::Event &event)
     }
 }
 
-void EditorState::update(const float &dt)
-{
-}
+void EditorState::update(const float& dt) {}
 
-void EditorState::render(const float &dt)
-{
+void EditorState::render(const float& dt) {
     renderMainMenu();
 
     _appData->window->setView(_view);
@@ -279,26 +258,24 @@ void EditorState::render(const float &dt)
         }
     }
 
-//    auto boldFont = io.Fonts->Fonts[0];
-//    ImGui::PushFont(0);
+    //    auto boldFont = io.Fonts->Fonts[0];
+    //    ImGui::PushFont(0);
 
-//    ImGui::Begin("Torr Buckner");
-//    ImGui::Text(ICON_FA_FILE_IMAGE " NMWARRAA.FRM" );
+    //    ImGui::Begin("Torr Buckner");
+    //    ImGui::Text(ICON_FA_FILE_IMAGE " NMWARRAA.FRM" );
 
-//    ImGui::End();
-//    ImGui::PopFont();
+    //    ImGui::End();
+    //    ImGui::PopFont();
 }
 
-void EditorState::centerViewOnMap()
-{
+void EditorState::centerViewOnMap() {
     float center_x = Tile::TILE_WIDTH * 50;
     float center_y = Tile::TILE_HEIGHT * 50;
     _view.setCenter(center_x, center_y);
 }
 
-bool EditorState::quit() const
-{
+bool EditorState::quit() const {
     return _quit;
 }
 
-}
+}  // namespace geck

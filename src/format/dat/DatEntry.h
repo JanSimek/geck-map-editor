@@ -4,8 +4,7 @@
 
 namespace geck {
 
-class DatEntry
-{
+class DatEntry {
 private:
     std::string filename;
 
@@ -19,20 +18,19 @@ public:
     virtual ~DatEntry() = default;
 
     std::string getFilename() const;
-    void setFilename(const std::string &value);
+    void setFilename(const std::string& value);
 
     bool getCompressed() const;
     void setCompressed(bool value);
 
     uint32_t getDecompressedSize() const;
-    void setDecompressedSize(const uint32_t &value);
+    void setDecompressedSize(const uint32_t& value);
 
     uint32_t getPackedSize() const;
-    void setPackedSize(const uint32_t &value);
+    void setPackedSize(const uint32_t& value);
 
     uint32_t getOffset() const;
-    void setOffset(const uint32_t &value);
+    void setOffset(const uint32_t& value);
 };
 
-}
-
+}  // namespace geck

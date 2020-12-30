@@ -6,11 +6,10 @@ namespace geck {
 
 class Pro;
 
-class ProReader : public FileReader<Pro>
-{
+class ProReader : public FileReader<Pro> {
 public:
-    using FileReader::read; // shadowed method
+    using FileReader::read;  // shadowed method
     std::unique_ptr<Pro> read(std::istream& stream) override;
 };
 
-}
+}  // namespace geck

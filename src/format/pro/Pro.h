@@ -4,13 +4,13 @@
 
 namespace geck {
 
-class Pro
-{
+class Pro {
 private:
     unsigned int _objectSubtypeId;
+
 public:
     unsigned int objectSubtypeId();
     void setObjectSubtypeId(unsigned int objectSubtypeId);
 };
 
-}
+}  // namespace geck

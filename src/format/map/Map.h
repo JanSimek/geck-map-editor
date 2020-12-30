@@ -1,22 +1,21 @@
 #pragma once
 
-#include <sstream>
 #include <map>
-#include <vector>
-#include <unordered_map>
 #include <memory>
+#include <sstream>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
-#include "../../editor/Tile.h"
 #include "../../editor/MapObject.h"
+#include "../../editor/Tile.h"
 
 namespace geck {
 
-//class Tile;
-//class MapObject;
+// class Tile;
+// class MapObject;
 
-class Map
-{
+class Map {
 private:
     std::map<int, std::vector<Tile> > _tiles;
     std::unordered_map<int, std::vector<std::unique_ptr<MapObject> > > _objects;
@@ -26,7 +25,7 @@ public:
     static constexpr unsigned COLS = 100;
     static constexpr unsigned TILES_PER_ELEVATION = ROWS * COLS;
 
-    const std::map<int, std::vector<Tile> > &tiles() const;
+    const std::map<int, std::vector<Tile> >& tiles() const;
     void setTiles(const std::map<int, std::vector<Tile> > tiles);
 
     const std::unordered_map<int, std::vector<std::unique_ptr<MapObject> > >& objects() const;
@@ -35,5 +34,4 @@ public:
     int elevations() const;
 };
 
-}
-
+}  // namespace geck

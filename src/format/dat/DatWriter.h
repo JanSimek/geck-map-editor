@@ -1,9 +1,6 @@
 #pragma once
 
-
-class DatWriter
-{
+class DatWriter {
 public:
     DatWriter();
 };
-

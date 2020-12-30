@@ -1,9 +1,9 @@
 #pragma once
 
+#include <array>
 #include <istream>
 #include <stdexcept>
 #include <vector>
-#include <array>
 
 /**
  * @author Adam Kewley @ https://github.com/adamkewley/klamath
@@ -20,7 +20,7 @@ inline uint32_t read_u8(std::istream& file) {
     uint32_t val = buf[0];
 
     if (static_cast<size_t>(file.gcount()) != sizeof(buf)) {
-      throw std::runtime_error("ran out of data when trying to read a stream");
+        throw std::runtime_error("ran out of data when trying to read a stream");
     }
 
     return val;
@@ -36,7 +36,7 @@ inline uint32_t read_le_u32(std::istream& file) {
     val |= static_cast<uint32_t>(buf[3]) << 24;
 
     if (static_cast<size_t>(file.gcount()) != sizeof(buf)) {
-      throw std::runtime_error("ran out of data when trying to read a stream");
+        throw std::runtime_error("ran out of data when trying to read a stream");
     }
 
     return val;
@@ -49,7 +49,7 @@ inline uint8_t read_be_u8(std::istream& file) {
     uint16_t val = buf[0];
 
     if (static_cast<size_t>(file.gcount()) != sizeof(buf)) {
-      throw std::runtime_error("ran out of data when trying to read a stream");
+        throw std::runtime_error("ran out of data when trying to read a stream");
     }
 
     return val;
@@ -63,7 +63,7 @@ inline uint16_t read_be_u16(std::istream& file) {
     val |= static_cast<uint16_t>(buf[0]) << 8;
 
     if (static_cast<size_t>(file.gcount()) != sizeof(buf)) {
-      throw std::runtime_error("ran out of data when trying to read a stream");
+        throw std::runtime_error("ran out of data when trying to read a stream");
     }
 
     return val;
@@ -79,7 +79,7 @@ inline uint32_t read_be_u32(std::istream& file) {
     val |= static_cast<uint32_t>(buf[0]) << 24;
 
     if (static_cast<size_t>(file.gcount()) != sizeof(buf)) {
-      throw std::runtime_error("ran out of data when trying to read a stream");
+        throw std::runtime_error("ran out of data when trying to read a stream");
     }
 
     return val;
@@ -96,19 +96,19 @@ inline std::string read_str(std::istream& file, size_t len) {
 }
 
 inline void read(std::istream& file, uint8_t* buf, size_t n) {
-  file.read(reinterpret_cast<char*>(buf), static_cast<long int>(n));
+    file.read(reinterpret_cast<char*>(buf), static_cast<long int>(n));
 
-  if (static_cast<size_t>(file.gcount()) != n) {
-    throw std::runtime_error("ran out of data when trying to read a stream");
-  }
+    if (static_cast<size_t>(file.gcount()) != n) {
+        throw std::runtime_error("ran out of data when trying to read a stream");
+    }
 }
 
-template<size_t N>
+template <size_t N>
 inline void skip(std::istream& file) {
-  std::array<uint8_t, N> buf;
-  read(file, buf.data(), buf.size());
+    std::array<uint8_t, N> buf;
+    read(file, buf.data(), buf.size());
 }
 
-}
+}  // namespace io
 
-}
+}  // namespace geck

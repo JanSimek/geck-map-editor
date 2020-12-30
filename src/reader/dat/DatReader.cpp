@@ -3,14 +3,13 @@
 #include <fstream>
 #include <stdexcept>
 
-#include "../../util/io.h"
 #include "../../format/dat/Dat.h"
 #include "../../format/dat/DatEntry.h"
+#include "../../util/io.h"
 
 namespace geck {
 
 std::unique_ptr<Dat> DatReader::read(std::istream& stream) {
-
     using namespace io;
 
     stream.seekg(-FOOTER_SIZE, stream.end);
@@ -36,7 +35,6 @@ std::unique_ptr<Dat> DatReader::read(std::istream& stream) {
 
     // Read DAT entry information
     for (size_t i = 0; i < file_count; ++i) {
-
         std::unique_ptr<DatEntry> entry = std::make_unique<DatEntry>();
 
         uint32_t filename_size = read_le_u32(stream);
@@ -61,4 +59,4 @@ std::unique_ptr<Dat> DatReader::read(std::istream& stream) {
     return dat;
 }
 
-}
+}  // namespace geck

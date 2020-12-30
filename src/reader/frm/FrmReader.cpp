@@ -1,16 +1,15 @@
 #include "FrmReader.h"
 
-#include "../../util/io.h"
-#include "../../format/frm/Frm.h"
-#include "../../format/frm/Frame.h"
 #include "../../format/frm/Direction.h"
+#include "../../format/frm/Frame.h"
+#include "../../format/frm/Frm.h"
+#include "../../util/io.h"
 
 namespace geck {
 
 using namespace io;
 
-std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream &stream)
-{
+std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream& stream) {
     auto frm = std::make_unique<Frm>();
     frm->setVersion(read_be_u32(stream));
     frm->setFps(read_be_u16(stream));
@@ -20,13 +19,13 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream &stream)
     uint16_t shiftX[Frm::DIRECTIONS];
     uint16_t shiftY[Frm::DIRECTIONS];
     uint32_t dataOffset[Frm::DIRECTIONS];
-    for (unsigned int i = 0; i != Frm::DIRECTIONS; ++i) shiftX[i] = read_be_u16(stream);
-    for (unsigned int i = 0; i != Frm::DIRECTIONS; ++i) shiftY[i] = read_be_u16(stream);
     for (unsigned int i = 0; i != Frm::DIRECTIONS; ++i)
-    {
+        shiftX[i] = read_be_u16(stream);
+    for (unsigned int i = 0; i != Frm::DIRECTIONS; ++i)
+        shiftY[i] = read_be_u16(stream);
+    for (unsigned int i = 0; i != Frm::DIRECTIONS; ++i) {
         dataOffset[i] = read_be_u32(stream);
-        if (i > 0 && dataOffset[i-1] == dataOffset[i])
-        {
+        if (i > 0 && dataOffset[i - 1] == dataOffset[i]) {
             continue;
         }
 
@@ -44,26 +43,25 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream &stream)
     auto data_end = stream.tellg();
 
     if (data_end - data_start < size_of_frame_data) {
-        throw std::runtime_error{"invalid frm data: the size of the frame data (indicated in header) is smaller than the provided data"};
+        throw std::runtime_error{
+            "invalid frm data: the size of the frame data (indicated in header) is smaller than the provided data"};
     }
 
     // for each direction
-    for (auto& direction : frm->directions())
-    {
+    for (auto& direction : frm->directions()) {
         // jump to frames data at frames area
         std::streamoff frame_data_offset = data_start + static_cast<std::streamoff>(direction.dataOffset());
 
         stream.seekg(frame_data_offset, std::ios_base::beg);
 
         // read all frames
-        for (unsigned i = 0; i != frm->framesPerDirection(); ++i)
-        {
+        for (unsigned i = 0; i != frm->framesPerDirection(); ++i) {
             uint16_t width = read_be_u16(stream);
             uint16_t height = read_be_u16(stream);
 
             Frame frame(width, height);
 
-//            auto& frame = direction.frames().back();
+            //            auto& frame = direction.frames().back();
 
             // Number of pixels for this frame
             // We don't need this, because we already have width*height
@@ -73,7 +71,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream &stream)
             frame.setOffsetY(read_be_u16(stream));
 
             // Pixels data
-            stream.read((char *)frame.data(), frame.width() * frame.height());
+            stream.read((char*)frame.data(), frame.width() * frame.height());
 
             direction.frames().emplace_back(frame);
         }
@@ -82,4 +80,4 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream &stream)
     return frm;
 }
 
-}
+}  // namespace geck

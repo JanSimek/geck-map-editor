@@ -2,12 +2,12 @@
 
 namespace geck {
 
-class Hex
-{
+class Hex {
 private:
     int _x;
     int _y;
     int _number;
+
 public:
     static constexpr int HEX_WIDTH = 16;
     static constexpr int HEX_HEIGHT = 12;
@@ -22,4 +22,4 @@ public:
     void setY(int y);
 };
 
-}
+}  // namespace geck

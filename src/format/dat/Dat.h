@@ -1,15 +1,14 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace geck {
 
 class DatEntry;
 
-class Dat
-{
+class Dat {
 private:
     std::string filename;
 
@@ -24,9 +23,8 @@ private:
 public:
     virtual ~Dat() = default;
 
-    const std::vector<std::unique_ptr<DatEntry> > &getEntries() const;
+    const std::vector<std::unique_ptr<DatEntry>>& getEntries() const;
     void addEntry(std::unique_ptr<DatEntry> entry);
 };
 
-}
-
+}  // namespace geck
