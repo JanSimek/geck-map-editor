@@ -53,13 +53,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # - name: Install dependencies via apt
-    #   if: runner.os == 'Linux'
-    #   shell: bash
-    #   run: |
-    #     set -e
-    #     sudo apt-get update
-    #     sudo apt-get install gcc-multilib
+    - name: Install dependencies via apt
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        set -e
+        sudo apt-get update
+        sudo apt-get install libsfml-dev
+
     - name: Install conan
       shell: bash
       run: |
