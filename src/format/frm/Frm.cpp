@@ -8,11 +8,11 @@
 
 namespace geck {
 
-std::vector<Direction>& Frm::directions() {
+std::vector<Direction>& Frm::orientations() {
     return _directions;
 }
 
-void Frm::setDirections(const std::vector<Direction>& directions) {
+void Frm::setOrientations(const std::vector<Direction>& directions) {
     _directions = directions;
 }
 

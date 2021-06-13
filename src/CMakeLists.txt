@@ -59,6 +59,10 @@ add_executable (geck-mapper
     format/map/Map.h
     format/map/Map.cpp
 
+    # MSG
+    format/msg/Msg.h
+    format/msg/Msg.cpp
+
     # LST
     format/lst/Lst.h
     format/lst/Lst.cpp
@@ -89,17 +93,26 @@ add_executable (geck-mapper
     reader/map/MapReader.h
     reader/map/MapReader.cpp
 
+    reader/msg/MsgReader.h
+    reader/msg/MsgReader.cpp
+
     reader/lst/LstReader.h
     reader/lst/LstReader.cpp
 
     reader/pro/ProReader.h
     reader/pro/ProReader.cpp
 )
+find_package(ImGui-SFML REQUIRED)
 
 target_link_libraries(geck-mapper PRIVATE
-    CONAN_PKG::imgui-sfml
-    CONAN_PKG::cxxopts
-    CONAN_PKG::spdlog
+#    CONAN_PKG::imgui-sfml
+#    CONAN_PKG::cxxopts
+#    CONAN_PKG::spdlog
+
+    ImGui-SFML::ImGui-SFML
+    cxxopts
+    spdlog
 )
 
-target_compile_features(geck-mapper PUBLIC cxx_std_17)
+target_compile_features(geck-mapper PRIVATE cxx_std_17)
+set_target_properties(geck-mapper PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")

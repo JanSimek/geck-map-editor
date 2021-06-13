@@ -39,7 +39,7 @@ uint8_t Frame::index(uint16_t x, uint16_t y) const {
         return 0;
 
     // FIXME: stupid cast to silence compiler error
-    return _indexes.at(static_cast<size_t>(_width * y + x));
+    return _indexes.at(static_cast<std::size_t>(_width * y + x));
 }
 
 uint8_t* Frame::data() {

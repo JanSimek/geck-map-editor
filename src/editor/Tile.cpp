@@ -2,13 +2,13 @@
 
 namespace geck {
 
-Tile::Tile(int floor, int roof) : _floor(floor), _roof(roof) {}
+Tile::Tile(uint16_t floor, uint16_t roof) : _floor(floor), _roof(roof) {}
 
-int Tile::getFloor() const {
+uint16_t Tile::getFloor() const {
     return _floor;
 }
 
-int Tile::getRoof() const {
+uint16_t Tile::getRoof() const {
     return _roof;
 }
 

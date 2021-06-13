@@ -4,11 +4,11 @@
 #include <istream>
 #include <stdexcept>
 #include <vector>
+#include <spdlog/spdlog.h>
 
 /**
  * @author Adam Kewley @ https://github.com/adamkewley/klamath
  */
-
 namespace geck {
 
 namespace io {
@@ -79,7 +79,9 @@ inline uint32_t read_be_u32(std::istream& file) {
     val |= static_cast<uint32_t>(buf[0]) << 24;
 
     if (static_cast<size_t>(file.gcount()) != sizeof(buf)) {
-        throw std::runtime_error("ran out of data when trying to read a stream");
+        // FIXME: pro file 0..14.pro in kladwntn.map doesn't have the last critter field "damage type"
+        spdlog::error("ran out of data when trying to read a stream");
+//        throw std::runtime_error("ran out of data when trying to read a stream");
     }
 
     return val;

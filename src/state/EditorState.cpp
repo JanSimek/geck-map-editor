@@ -104,6 +104,7 @@ void geck::EditorState::loadMap() {
     LstReader lst_reader;
     auto lst = lst_reader.read(data_path + "art/tiles/tiles.lst");
 
+    // Tiles
     for (auto i = 0U; i < geck::Map::ROWS * geck::Map::COLS; ++i) {
         auto tile = map->tiles().at(_currentElevation).at(i);
 
@@ -141,6 +142,7 @@ void geck::EditorState::loadMap() {
 
     FrmReader frm_reader;
 
+    // Objects
     for (const auto& object : map->objects().at(_currentElevation)) {
         if (object->hexPosition() == -1)
             continue;  // object inside an inventory/container
@@ -151,7 +153,7 @@ void geck::EditorState::loadMap() {
         }
 
         sf::Sprite object_sprite;
-        _textureManager.insert(object->frm());
+        _textureManager.insert(object->frm(), object->orientation());
         object_sprite.setTexture(_textureManager.get(object->frm()));
 
         //        int hexPos = object->hexPosition();
@@ -162,15 +164,28 @@ void geck::EditorState::loadMap() {
 
         const geck::Hex* hex = hexgrid.grid().at(object->hexPosition()).get();
 
-        auto frm = frm_reader.read(data_path + object->frm());
+        // TODO: orientation
+        auto frmPath = data_path + object->frm();
+        auto frm = frm_reader.read(frmPath);
+
+        spdlog::info("Loading sprite {}", frmPath);
+
+        // center on the hex
+        auto orientation = object->orientation();
+
+        // FIXME: ??? one scrblk on arcaves.map
+        if (frm->orientations().size() < orientation) {
+            spdlog::error("Object has orienation {} but the FRM has only {}", orientation, frm->orientations().size());
+            orientation = 0;
+        }
 
         // center on the hex
         object_sprite.setPosition(
             // X
-            (float)hex->x() + frm->directions().front().shiftX() - (object_sprite.getTexture()->getSize().x / 2),
+            (float)hex->x() + frm->orientations().at(orientation).shiftX() - (object_sprite.getTexture()->getSize().x / 2),
 
             // Y
-            (float)hex->y() + frm->directions().front().shiftY() - object_sprite.getTexture()->getSize().y);
+            (float)hex->y() + frm->orientations().at(orientation).shiftY() - object_sprite.getTexture()->getSize().y);
 
         _objectSprites.push_back(std::move(object_sprite));
     }

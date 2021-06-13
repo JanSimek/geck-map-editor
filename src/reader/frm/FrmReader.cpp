@@ -16,21 +16,21 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream& stream) {
     frm->setActionFrame(read_be_u16(stream));
     frm->setFramesPerDirection(read_be_u16(stream));
 
-    uint16_t shiftX[Frm::DIRECTIONS];
-    uint16_t shiftY[Frm::DIRECTIONS];
-    uint32_t dataOffset[Frm::DIRECTIONS];
-    for (unsigned int i = 0; i != Frm::DIRECTIONS; ++i)
+    uint16_t shiftX[Frm::ORIENTATIONS];
+    uint16_t shiftY[Frm::ORIENTATIONS];
+    uint32_t dataOffset[Frm::ORIENTATIONS];
+    for (unsigned int i = 0; i != Frm::ORIENTATIONS; ++i)
         shiftX[i] = read_be_u16(stream);
-    for (unsigned int i = 0; i != Frm::DIRECTIONS; ++i)
+    for (unsigned int i = 0; i != Frm::ORIENTATIONS; ++i)
         shiftY[i] = read_be_u16(stream);
-    for (unsigned int i = 0; i != Frm::DIRECTIONS; ++i) {
+    for (unsigned int i = 0; i != Frm::ORIENTATIONS; ++i) {
         dataOffset[i] = read_be_u32(stream);
         if (i > 0 && dataOffset[i - 1] == dataOffset[i]) {
             continue;
         }
 
-        frm->directions().emplace_back();
-        auto& direction = frm->directions().back();
+        frm->orientations().emplace_back();
+        auto& direction = frm->orientations().back();
         direction.setDataOffset(dataOffset[i]);
         direction.setShiftX(shiftX[i]);
         direction.setShiftY(shiftY[i]);
@@ -48,7 +48,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream& stream) {
     }
 
     // for each direction
-    for (auto& direction : frm->directions()) {
+    for (auto& direction : frm->orientations()) {
         // jump to frames data at frames area
         std::streamoff frame_data_offset = data_start + static_cast<std::streamoff>(direction.dataOffset());
 

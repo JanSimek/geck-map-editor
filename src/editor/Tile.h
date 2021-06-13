@@ -1,20 +1,22 @@
 #pragma once
 
+#include <inttypes.h>
+
 namespace geck {
 
 class Tile {
 private:
-    int _floor;
-    int _roof;
+    uint16_t _floor;
+    uint16_t _roof;
 
 public:
     static constexpr unsigned TILE_WIDTH = 80;
     static constexpr unsigned TILE_HEIGHT = 36;
 
-    Tile(int floor, int roof);
+    Tile(uint16_t floor, uint16_t roof);
 
-    int getFloor() const;
-    int getRoof() const;
+    uint16_t getFloor() const;
+    uint16_t getRoof() const;
 };
 
 }  // namespace geck

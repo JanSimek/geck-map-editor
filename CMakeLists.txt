@@ -13,26 +13,19 @@ if(NOT CMAKE_BUILD_TYPE)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-set(CONAN_EXTRA_REQUIRES ${CONAN_EXTRA_REQUIRES} 
-    imgui-sfml/2.1@bincrafters/stable
-    cxxopts/2.2.1
-#    spdlog/1.8.2
-)
+#set(CONAN_EXTRA_REQUIRES ${CONAN_EXTRA_REQUIRES}
+#    imgui-sfml/2.1@bincrafters/stable
+#    cxxopts/2.2.1
+#)
 
-include(cmake/Conan.cmake)
-run_conan()
+#include(cmake/Conan.cmake)
+#run_conan()
 
 include(cmake/CPM.cmake)
 
-CPMAddPackage(
-  NAME Format.cmake
-  VERSION 1.6
-  GITHUB_REPOSITORY TheLartians/Format.cmake
-  OPTIONS # enable cmake formatting (optional)
-          "FORMAT_CHECK_CMAKE OFF"
-          # path to exclude (optional, supports regular expressions)
-          "CMAKE_FORMAT_EXCLUDE cmake/CPM.cmake"
-)
+CPMAddPackage("gh:gabime/spdlog@1.8.2")
+CPMAddPackage("gh:jarro2783/cxxopts@2.2.1")
+
 
 add_subdirectory(src)
 

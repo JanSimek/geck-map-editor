@@ -23,16 +23,17 @@ private:
     std::string _path;
 
 public:
+    // TODO : enum
     //    north_east,
     //    east,
     //    south_east,
     //    south_west,
     //    west,
     //    north_west,
-    constexpr static int DIRECTIONS = 6;
+    constexpr static int ORIENTATIONS = 6;
 
-    std::vector<Direction>& directions();
-    void setDirections(const std::vector<Direction>& directions);
+    std::vector<Direction>& orientations();
+    void setOrientations(const std::vector<Direction>& orientations);
 
     std::string path() const;
 

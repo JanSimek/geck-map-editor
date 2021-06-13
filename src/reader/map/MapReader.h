@@ -12,9 +12,14 @@ class MapReader : FileReader<Map> {
 public:
     enum class ScriptType { system, spatial, timer, item, critter, unknown };
 
+    static constexpr int SCRIPT_SECTIONS = 5;
+
+
+    std::unique_ptr<Pro> loadPro(unsigned int PID);
+
+
 private:
     std::unique_ptr<MapObject> readObject(std::istream& stream);
-    std::unique_ptr<Pro> loadPro(unsigned int PID);
     ScriptType fromPid(uint32_t val);
 
 public:

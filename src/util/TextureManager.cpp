@@ -17,7 +17,7 @@ bool TextureManager::exists(const std::string& filename) {
     return _resources.find(filename) != _resources.end();
 }
 
-void TextureManager::insert(const std::string& filename) {
+void TextureManager::insert(const std::string& filename, uint32_t orientation) {
     if (exists(_dataPath + filename)) {
         return;
     }
@@ -31,7 +31,7 @@ void TextureManager::insert(const std::string& filename) {
 
     auto texture = std::make_unique<sf::Texture>();
     if (extension.rfind(".frm", 0) == 0) {  // frm, frm0, frmX..
-        texture = loadTextureFRM(_dataPath + filename);
+        texture = loadTextureFRM(_dataPath + filename, orientation);
     } else {
         if (!texture->loadFromFile(_dataPath + filename)) {  // default to SFML's implementation
             throw std::runtime_error{"Failed to load texture " + _dataPath + filename + ", extension: " + extension};
@@ -55,12 +55,13 @@ void TextureManager::setDataPath(const std::string& path) {
     _dataPath = path;
 }
 
-std::unique_ptr<sf::Texture> TextureManager::loadTextureFRM(const std::string& filename) {
+std::unique_ptr<sf::Texture> TextureManager::loadTextureFRM(const std::string& filename, uint32_t orientation) {
     FrmReader frm_reader;
     auto frm = frm_reader.read(filename);
 
     // FIXME: using just the first frame for now
-    geck::Frame frame = frm->directions().front().frames().front();
+//    geck::Frame frame = frm->orientations().front().frames().front();
+    geck::Frame frame = frm->orientations().at(orientation).frames().front();
 
     PalReader pal_reader;
     auto pal = pal_reader.read(_dataPath + "color.pal");  // TODO: custom .pal

@@ -16,6 +16,7 @@ private:
     uint32_t _PID;
     unsigned int _objectSubtypeId;
     int32_t _hexPosition;  // -1 = not on the map
+    uint32_t _orientation;
 
     uint32_t _frmTypeId;
     uint32_t _frmId;
@@ -50,6 +51,9 @@ public:
 
     uint32_t FID() const;
     void setFID(const uint32_t& FID);
+
+    uint32_t orientation() const;
+    void setOrientation(const uint32_t &value);
 };
 
 }  // namespace geck

@@ -14,7 +14,8 @@ std::unique_ptr<Pro> ProReader::read(std::istream& stream) {
     int32_t PID = read_be_u32(stream);
     int32_t type = (PID & 0x0F000000) >> 24;
 
-    read_be_u32(stream);  //    _messageId      = stream.uint32();
+    int32_t messageId = read_be_u32(stream);
+    pro->setMessageId(messageId);
 
     read_be_u32(stream);  //    _FID            = stream.int32();
 
@@ -46,7 +47,7 @@ std::unique_ptr<Pro> ProReader::read(std::istream& stream) {
     switch ((MapObject::OBJECT_TYPE)type) {
             //    {
         case MapObject::OBJECT_TYPE::ITEM: {
-            uint32_t subtypeId = read_be_u32(stream);  //            _subtypeId     = stream.uint32();
+            uint32_t subtypeId = read_be_u32(stream);
             pro->setObjectSubtypeId(subtypeId);
 
             read_be_u32(stream);  //            _materialId    = stream.uint32();
@@ -130,12 +131,13 @@ std::unique_ptr<Pro> ProReader::read(std::istream& stream) {
             break;
         }
         case MapObject::OBJECT_TYPE::CRITTER: {
-            read_be_u32(stream);  //_critterHeadFID = stream.int32();
+            read_be_i32(stream);  //_critterHeadFID = stream.int32();
 
             read_be_u32(stream);  // stream.uint32(); // ai packet number
             read_be_u32(stream);  // stream.uint32(); // team number
             read_be_u32(stream);  //_critterFlags = stream.uint32();
 
+            // S P E C I A L
             for (unsigned int i = 0; i != 7; ++i) {
                 read_be_u32(stream);  //_critterStats.at(i) = stream.uint32();
             }

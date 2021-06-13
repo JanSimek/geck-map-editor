@@ -54,6 +54,16 @@ void MapObject::setFID(const uint32_t& FID) {
     _FID = FID;
 }
 
+uint32_t MapObject::orientation() const
+{
+    return _orientation;
+}
+
+void MapObject::setOrientation(const uint32_t &value)
+{
+    _orientation = value;
+}
+
 size_t MapObject::inventory_size() const {
     return _inventory_size;
 }
