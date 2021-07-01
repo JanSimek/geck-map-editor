@@ -1,15 +1,14 @@
 #pragma once
 
-#include "../FileReader.h"
+#include "../FileParser.h"
 
 namespace geck {
 
 class Pro;
 
-class ProReader : public FileReader<Pro> {
+class ProReader : public FileParser<Pro> {
 public:
-    using FileReader::read;  // shadowed method
-    std::unique_ptr<Pro> read(std::istream& stream) override;
+    std::unique_ptr<Pro> read() override;
 };
 
 }  // namespace geck

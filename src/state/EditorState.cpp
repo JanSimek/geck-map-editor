@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 #include <spdlog/spdlog.h>
+#include <spdlog/stopwatch.h>
 #include <cmath>  // ceil
 #include <fstream>
 
@@ -11,14 +12,18 @@
 #include "../util/TextureManager.h"
 
 #include "../editor/HexagonGrid.h"
-#include "../editor/MapObject.h"
 #include "../editor/Tile.h"
 #include "StateMachine.h"
+
+// FIXME: Object
+#include "../format/map/MapObject.h"
 
 #include "../reader/dat/DatReader.h"
 #include "../reader/frm/FrmReader.h"
 #include "../reader/lst/LstReader.h"
 #include "../reader/map/MapReader.h"
+
+#include "../writer/map/MapWriter.h"
 
 #include "../format/frm/Direction.h"
 #include "../format/frm/Frame.h"
@@ -48,6 +53,12 @@ void EditorState::init() {
 void EditorState::renderMainMenu() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(ICON_FA_FILE_ALT " File")) {
+            if (ImGui::MenuItem(ICON_FA_SAVE " Save", "Ctrl+S")) {
+                MapWriter map_writer;
+                map_writer.openFile("test.map");
+                map_writer.write(_map->getMapFile());
+            }
+            ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Ctrl+Q")) {
                 _quit = true;
             }
@@ -90,6 +101,9 @@ void EditorState::renderMainMenu() {
 }
 
 void geck::EditorState::loadMap() {
+
+    spdlog::stopwatch sw;
+
     const std::string data_path = FileHelper::getInstance().path();
 
     _floorSprites.clear();
@@ -99,13 +113,13 @@ void geck::EditorState::loadMap() {
     // Data
 
     MapReader map_reader;
-    auto map = map_reader.read(data_path + "maps/" + _appData->mapName);
+    auto map = map_reader.openFile(data_path + "maps/" + _appData->mapName);
 
     LstReader lst_reader;
-    auto lst = lst_reader.read(data_path + "art/tiles/tiles.lst");
+    auto lst = lst_reader.openFile(data_path + "art/tiles/tiles.lst");
 
     // Tiles
-    for (auto i = 0U; i < geck::Map::ROWS * geck::Map::COLS; ++i) {
+    for (auto i = 0U; i < geck::Map::TILES_PER_ELEVATION; ++i) {
         auto tile = map->tiles().at(_currentElevation).at(i);
 
         // floor
@@ -144,17 +158,19 @@ void geck::EditorState::loadMap() {
 
     // Objects
     for (const auto& object : map->objects().at(_currentElevation)) {
-        if (object->hexPosition() == -1)
+        if (object->position == -1)
             continue;  // object inside an inventory/container
 
-        if (object->frm().empty()) {
-            spdlog::error("Empty FRM file path on hex number " + std::to_string(object->hexPosition()));
+        const std::string frmName = map_reader.FIDtoFrmName(object->frm_pid);
+
+        if (frmName.empty()) {
+            spdlog::error("Empty FRM file path on hex number " + std::to_string(object->position));
             continue;  // this should probably never happen
         }
 
         sf::Sprite object_sprite;
-        _textureManager.insert(object->frm(), object->orientation());
-        object_sprite.setTexture(_textureManager.get(object->frm()));
+        _textureManager.insert(frmName, object->orientation);
+        object_sprite.setTexture(_textureManager.get(frmName));
 
         //        int hexPos = object->hexPosition();
         //        float x = hexPos % 200;
@@ -162,20 +178,20 @@ void geck::EditorState::loadMap() {
 
         //        Point point = hexToScreen(x, y);
 
-        const geck::Hex* hex = hexgrid.grid().at(object->hexPosition()).get();
+        const geck::Hex* hex = hexgrid.grid().at(object->position).get();
 
         // TODO: orientation
-        auto frmPath = data_path + object->frm();
-        auto frm = frm_reader.read(frmPath);
+        auto frmPath = data_path + frmName;
+        auto frm = frm_reader.openFile(frmPath);
 
         spdlog::info("Loading sprite {}", frmPath);
 
         // center on the hex
-        auto orientation = object->orientation();
+        auto orientation = object->orientation;
 
         // FIXME: ??? one scrblk on arcaves.map
         if (frm->orientations().size() < orientation) {
-            spdlog::error("Object has orienation {} but the FRM has only {}", orientation, frm->orientations().size());
+            spdlog::error("Object has orienation {} but the FRM has only {} orientations", orientation, frm->orientations().size());
             orientation = 0;
         }
 
@@ -187,11 +203,17 @@ void geck::EditorState::loadMap() {
             // Y
             (float)hex->y() + frm->orientations().at(orientation).shiftY() - object_sprite.getTexture()->getSize().y);
 
-        _objectSprites.push_back(std::move(object_sprite));
+//        _objectSprites.push_back(std::move(object_sprite));
+
+        Object entity;
+        entity.setSprite(std::move(object_sprite));
+        entity.setMapObject(object);
+
+        _objects.push_back(std::move(entity));
     }
 
     _map = std::move(map);
-    spdlog::info("Map loaded");
+    spdlog::info("Map loaded in {:.3} seconds", sw);
 }
 
 void EditorState::handleEvent(const sf::Event& event) {
@@ -262,9 +284,14 @@ void EditorState::render(const float& dt) {
         _appData->window->draw(sprite);
     }
 
+//    if (_showObjects) {
+//        for (const auto& sprite : _objectSprites) {
+//            _appData->window->draw(sprite);
+//        }
+//    }
     if (_showObjects) {
-        for (const auto& sprite : _objectSprites) {
-            _appData->window->draw(sprite);
+        for (const auto& obj : _objects) {
+            _appData->window->draw(obj.getSprite());
         }
     }
 
@@ -273,15 +300,6 @@ void EditorState::render(const float& dt) {
             _appData->window->draw(sprite);
         }
     }
-
-    //    auto boldFont = io.Fonts->Fonts[0];
-    //    ImGui::PushFont(0);
-
-    //    ImGui::Begin("Torr Buckner");
-    //    ImGui::Text(ICON_FA_FILE_IMAGE " NMWARRAA.FRM" );
-
-    //    ImGui::End();
-    //    ImGui::PopFont();
 }
 
 void EditorState::centerViewOnMap() {

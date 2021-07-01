@@ -25,6 +25,8 @@ private:
     std::vector<sf::Sprite> _roofSprites;
     std::vector<sf::Sprite> _objectSprites;
 
+    std::vector<Object> _objects;
+
     std::shared_ptr<AppData> _appData;
     sf::View _view;
 

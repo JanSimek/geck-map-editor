@@ -7,7 +7,7 @@
 
 namespace geck {
 
-std::unique_ptr<geck::Pal> geck::PalReader::read(std::istream& stream) {
+std::unique_ptr<geck::Pal> geck::PalReader::read() {
     constexpr size_t filesize = 0x00008300;  // KLAMATH: up to "additional table #1"
 
     std::array<uint8_t, filesize> buf;

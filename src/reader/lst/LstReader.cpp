@@ -7,7 +7,7 @@
 
 namespace geck {
 
-std::unique_ptr<Lst> LstReader::read(std::istream& stream) {
+std::unique_ptr<Lst> LstReader::read() {
     enum class State {
         start,
         content,

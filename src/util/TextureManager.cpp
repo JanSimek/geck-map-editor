@@ -57,14 +57,14 @@ void TextureManager::setDataPath(const std::string& path) {
 
 std::unique_ptr<sf::Texture> TextureManager::loadTextureFRM(const std::string& filename, uint32_t orientation) {
     FrmReader frm_reader;
-    auto frm = frm_reader.read(filename);
+    auto frm = frm_reader.openFile(filename);
 
     // FIXME: using just the first frame for now
 //    geck::Frame frame = frm->orientations().front().frames().front();
     geck::Frame frame = frm->orientations().at(orientation).frames().front();
 
     PalReader pal_reader;
-    auto pal = pal_reader.read(_dataPath + "color.pal");  // TODO: custom .pal
+    auto pal = pal_reader.openFile(_dataPath + "color.pal");  // TODO: custom .pal
 
     const auto& colors = pal->palette();
     const auto& colorIndexes = frame.data();

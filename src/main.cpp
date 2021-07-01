@@ -6,6 +6,8 @@
 int main(int argc, char** argv) {
     cxxopts::Options options{"GECK::Mapper", "Fallout 2 map editor"};
 
+    spdlog::set_pattern("[%^%l%$] [thread %t] %v");
+
     options.add_options()(
         "d,data", "path to the directory where master.dat was extracted", cxxopts::value<std::string>()->default_value("resources"))(
         "m,map", "name of the map to load", cxxopts::value<std::string>()->default_value("kladwtwn.map"))(

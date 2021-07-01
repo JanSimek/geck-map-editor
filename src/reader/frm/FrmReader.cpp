@@ -3,28 +3,25 @@
 #include "../../format/frm/Direction.h"
 #include "../../format/frm/Frame.h"
 #include "../../format/frm/Frm.h"
-#include "../../util/io.h"
 
 namespace geck {
 
-using namespace io;
-
-std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream& stream) {
+std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
     auto frm = std::make_unique<Frm>();
-    frm->setVersion(read_be_u32(stream));
-    frm->setFps(read_be_u16(stream));
-    frm->setActionFrame(read_be_u16(stream));
-    frm->setFramesPerDirection(read_be_u16(stream));
+    frm->setVersion(read_be_u32());
+    frm->setFps(read_be_u16());
+    frm->setActionFrame(read_be_u16());
+    frm->setFramesPerDirection(read_be_u16());
 
     uint16_t shiftX[Frm::ORIENTATIONS];
     uint16_t shiftY[Frm::ORIENTATIONS];
     uint32_t dataOffset[Frm::ORIENTATIONS];
     for (unsigned int i = 0; i != Frm::ORIENTATIONS; ++i)
-        shiftX[i] = read_be_u16(stream);
+        shiftX[i] = read_be_u16();
     for (unsigned int i = 0; i != Frm::ORIENTATIONS; ++i)
-        shiftY[i] = read_be_u16(stream);
+        shiftY[i] = read_be_u16();
     for (unsigned int i = 0; i != Frm::ORIENTATIONS; ++i) {
-        dataOffset[i] = read_be_u32(stream);
+        dataOffset[i] = read_be_u32();
         if (i > 0 && dataOffset[i - 1] == dataOffset[i]) {
             continue;
         }
@@ -36,7 +33,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream& stream) {
         direction.setShiftY(shiftY[i]);
     }
 
-    uint32_t size_of_frame_data = read_be_u32(stream);
+    uint32_t size_of_frame_data = read_be_u32();
 
     auto data_start = stream.tellg();
     stream.seekg(size_of_frame_data, std::ios_base::cur);
@@ -56,8 +53,8 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream& stream) {
 
         // read all frames
         for (unsigned i = 0; i != frm->framesPerDirection(); ++i) {
-            uint16_t width = read_be_u16(stream);
-            uint16_t height = read_be_u16(stream);
+            uint16_t width = read_be_u16();
+            uint16_t height = read_be_u16();
 
             Frame frame(width, height);
 
@@ -65,10 +62,10 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(std::istream& stream) {
 
             // Number of pixels for this frame
             // We don't need this, because we already have width*height
-            read_be_u32(stream);
+            read_be_u32();
 
-            frame.setOffsetX(read_be_u16(stream));
-            frame.setOffsetY(read_be_u16(stream));
+            frame.setOffsetX(read_be_u16());
+            frame.setOffsetY(read_be_u16());
 
             // Pixels data
             stream.read((char*)frame.data(), frame.width() * frame.height());

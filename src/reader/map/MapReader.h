@@ -1,30 +1,30 @@
 #pragma once
 
-#include "../FileReader.h"
+#include <map>
+
+#include "../FileParser.h"
+#include "../../format/map/MapObject.h"
+#include "../../format/map/MapScript.h"
 
 namespace geck {
 
 class Map;
-class MapObject;
 class Pro;
+class Tile;
 
-class MapReader : FileReader<Map> {
+class MapReader : public FileParser<Map> {
 public:
     enum class ScriptType { system, spatial, timer, item, critter, unknown };
 
-    static constexpr int SCRIPT_SECTIONS = 5;
-
-
     std::unique_ptr<Pro> loadPro(unsigned int PID);
 
-
+    std::string FIDtoFrmName(unsigned int FID);
 private:
-    std::unique_ptr<MapObject> readObject(std::istream& stream);
+    std::unique_ptr<MapObject> readMapObject();
     ScriptType fromPid(uint32_t val);
 
 public:
-    using FileReader::read;  // shadowed method
-    std::unique_ptr<Map> read(std::istream& stream) override;
+    std::unique_ptr<Map> read() override;
 };
 
 }  // namespace geck

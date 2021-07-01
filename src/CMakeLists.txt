@@ -24,8 +24,10 @@ add_executable (geck-mapper
     editor/Tile.h
     editor/Tile.cpp
 
-    editor/MapObject.h
-    editor/MapObject.cpp
+    editor/Object.h
+    editor/Object.cpp
+
+    editor/helper/ObjectHelper.h
 
     editor/HexagonGrid.h
     editor/HexagonGrid.cpp
@@ -58,6 +60,8 @@ add_executable (geck-mapper
     # MAP
     format/map/Map.h
     format/map/Map.cpp
+    format/map/MapScript.h
+    format/map/MapObject.h
 
     # MSG
     format/msg/Msg.h
@@ -72,11 +76,21 @@ add_executable (geck-mapper
     format/pro/Pro.cpp
 
     #
+    # FILE WRITERS
+    #
+
+    # Writer superclass
+    writer/FileWriter.h
+
+    writer/map/MapWriter.h
+    writer/map/MapWriter.cpp
+
+    #
     # FILE LOADERS
     #
 
-    reader/FileReader.h
-#    writer/FileWriter.h
+    # Parser superclass
+    reader/FileParser.h
 
     reader/dat/DatReader.h
     reader/dat/DatReader.cpp

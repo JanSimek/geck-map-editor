@@ -3,16 +3,15 @@
 #include <istream>
 #include <string>
 
-#include "../FileReader.h"
+#include "../FileParser.h"
 
 namespace geck {
 
 class Frm;
 
-class FrmReader : FileReader<Frm> {
+class FrmReader : public FileParser<Frm> {
 public:
-    using FileReader::read;  // shadowed method
-    std::unique_ptr<Frm> read(std::istream& stream) override;
+    std::unique_ptr<Frm> read() override;
 };
 
 }  // namespace geck

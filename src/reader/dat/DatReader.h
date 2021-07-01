@@ -2,13 +2,13 @@
 
 #include <string>
 
-#include "../FileReader.h"
+#include "../FileParser.h"
 
 namespace geck {
 
 class Dat;
 
-class DatReader : FileReader<Dat> {
+class DatReader : public FileParser<Dat> {
 private:
     std::string _file;
 
@@ -19,8 +19,7 @@ private:
     static constexpr int FOOTER_SIZE = TREE_SIZE_FIELD + DATA_SIZE_FIELD;
 
 public:
-    using FileReader::read;  // shadowed method
-    std::unique_ptr<Dat> read(std::istream& stream) override;
+    std::unique_ptr<Dat> read() override;
 };
 
 }  // namespace geck
