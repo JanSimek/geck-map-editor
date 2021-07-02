@@ -116,13 +116,8 @@ add_executable (geck-mapper
     reader/pro/ProReader.h
     reader/pro/ProReader.cpp
 )
-find_package(ImGui-SFML REQUIRED)
 
 target_link_libraries(geck-mapper PRIVATE
-#    CONAN_PKG::imgui-sfml
-#    CONAN_PKG::cxxopts
-#    CONAN_PKG::spdlog
-
     ImGui-SFML::ImGui-SFML
     cxxopts
     spdlog

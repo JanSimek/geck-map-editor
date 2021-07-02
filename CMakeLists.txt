@@ -13,19 +13,18 @@ if(NOT CMAKE_BUILD_TYPE)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-#set(CONAN_EXTRA_REQUIRES ${CONAN_EXTRA_REQUIRES}
-#    imgui-sfml/2.1@bincrafters/stable
-#    cxxopts/2.2.1
-#)
-
-#include(cmake/Conan.cmake)
-#run_conan()
-
 include(cmake/CPM.cmake)
 
 CPMAddPackage("gh:gabime/spdlog@1.8.2")
 CPMAddPackage("gh:jarro2783/cxxopts@2.2.1")
-
+CPMAddPackage("gh:SFML/SFML#2.5.1")
+CPMAddPackage("gh:ocornut/imgui#docking")
+CPMAddPackage(
+    GITHUB_REPOSITORY "eliasdaler/imgui-sfml"
+    VERSION "2.3"
+    OPTIONS "IMGUI_DIR ${imgui_SOURCE_DIR}"
+    OPTIONS "IMGUI_SFML_IMGUI_DEMO ON" # not including demo breaks build
+)
 
 add_subdirectory(src)
 
