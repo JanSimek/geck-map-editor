@@ -48,7 +48,9 @@ jobs:
         run: |
           set -e
           sudo apt-get update
-          sudo apt-get build-dep libsfml-window2.5 libsfml-system2.5 libsfml-graphics2.5
+          sudo apt-get install xorg-dev
+
+      # sudo apt-get build-dep libsfml-window2.5 libsfml-system2.5 libsfml-graphics2.5
 
       # - name: Install conan
       #   shell: bash
