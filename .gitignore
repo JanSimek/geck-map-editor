@@ -33,3 +33,16 @@
 
 CMakeLists.txt.user
 build/
+
+# All the stuff that running cmake adds
+CMakeCache.txt
+CMakeFiles/
+CPM_modules/
+_deps/
+cmake/CPM_*.cmake
+cpm-package-lock.cmake
+bin/
+Makefile
+cmake_install.cmake
+src/Makefile
+src/cmake_install.cmake

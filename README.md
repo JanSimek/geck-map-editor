@@ -10,6 +10,17 @@ At the current stage this is nothing more than a map viewer but one day it will 
 
 The application will hang for several seconds when loading a new map or changing map elevation. Loading screen should be implemented in the future.
 
+## Building from source
+
+```
+# Install dependencies (Ubuntu)
+sudo apt install libopenal-dev libogg-dev libflac-dev
+
+# Enter the cloned git repo folder
+cd geck-map-editor
+cmake .
+```
+
 ## Usage
 
 It's currently not possible to load assets directly from master.dat and critter.dat. You must extract these archives using [dat-unpacker](https://github.com/falltergeist/dat-unpacker), for example. By default GECK::Mapper will load files from the `resources` subdirectory.
