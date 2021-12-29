@@ -49,27 +49,27 @@ MapReader::ScriptType MapReader::fromPid(uint32_t val) {
 std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
     unsigned int typeId = PID >> 24;
 
-    const std::string data_path = FileHelper::getInstance().path();
-    std::string listFile = data_path;
+    const auto data_path = FileHelper::getInstance().fallout2DataPath();
+    auto listFile = data_path;
 
     switch ((Object::OBJECT_TYPE)typeId) {
         case Object::OBJECT_TYPE::ITEM:
-            listFile += "proto/items/items.lst";
+            listFile /= "proto/items/items.lst";
             break;
         case Object::OBJECT_TYPE::CRITTER:
-            listFile += "proto/critters/critters.lst";
+            listFile /= "proto/critters/critters.lst";
             break;
         case Object::OBJECT_TYPE::SCENERY:
-            listFile += "proto/scenery/scenery.lst";
+            listFile /= "proto/scenery/scenery.lst";
             break;
         case Object::OBJECT_TYPE::WALL:
-            listFile += "proto/walls/walls.lst";
+            listFile /= "proto/walls/walls.lst";
             break;
         case Object::OBJECT_TYPE::TILE:
-            listFile += "proto/tiles/tiles.lst";
+            listFile /= "proto/tiles/tiles.lst";
             break;
         case Object::OBJECT_TYPE::MISC:
-            listFile += "proto/misc/misc.lst";
+            listFile /= "proto/misc/misc.lst";
             break;
         default:
             throw std::runtime_error{"Wrong PID: " + std::to_string(PID)};
@@ -86,30 +86,33 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
 
     std::string protoName = lst->list().at(index - 1); // - 1);  // FIXME ? is it -1?
 
-    std::string proFilename;
+    std::filesystem::path proFilename;
     switch ((Object::OBJECT_TYPE)typeId) {
         case Object::OBJECT_TYPE::ITEM:
-            proFilename += "proto/items/" + protoName;
+            proFilename /= "proto/items";
             break;
         case Object::OBJECT_TYPE::CRITTER:
-            proFilename += "proto/critters/" + protoName;
+            proFilename /= "proto/critters";
             break;
         case Object::OBJECT_TYPE::SCENERY:
-            proFilename += "proto/scenery/" + protoName;
+            proFilename /= "proto/scenery";
             break;
         case Object::OBJECT_TYPE::WALL:
-            proFilename += "proto/walls/" + protoName;
+            proFilename /= "proto/walls";
             break;
         case Object::OBJECT_TYPE::TILE:
-            proFilename += "proto/tiles/" + protoName;
+            proFilename /= "proto/tiles";
             break;
         case Object::OBJECT_TYPE::MISC:
-            proFilename += "proto/misc/" + protoName;
+            proFilename /= "proto/misc";
             break;
-    }
+    };
+
+    proFilename /= protoName;
+
     if (!proFilename.empty()) {
         ProReader pro_reader;
-        return pro_reader.openFile(data_path + proFilename);
+        return pro_reader.openFile(data_path / proFilename);
     } else {
         throw std::runtime_error{"Couldn't load PRO file " + protoName};
     }
@@ -149,10 +152,10 @@ std::string MapReader::FIDtoFrmName(unsigned int FID) {
 
     const auto& typeArtDescription = frmTypeDescription[static_cast<size_t>(type)];
 
-    const std::string data_path = FileHelper::getInstance().path();
+    const auto data_path = FileHelper::getInstance().fallout2DataPath();
 
     LstReader lst_reader;
-    auto lst = lst_reader.openFile(data_path + typeArtDescription.lstFilePath);
+    auto lst = lst_reader.openFile(data_path / typeArtDescription.lstFilePath);
 
     if (baseId >= lst->list().size()) {
         throw std::runtime_error{"LST " + typeArtDescription.lstFilePath + " size " + std::to_string(lst->list().size()) + " <= frmID: " +
@@ -237,18 +240,6 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
                 object->current_hp = read_be_u32();  // hit points - saves only, otherwise = value from .pro
                 object->current_rad = read_be_u32();  // rad - always 0 - saves only
                 object->current_poison = read_be_u32();  // poison - always 0 - saves only
-
-                Msg message("resources/text/english/game/pro_crit.msg");
-                int msgId = map_reader.loadPro(object->pro_pid)->messageId();
-
-                spdlog::warn("Message: {}", message.message(msgId).text);
-                spdlog::warn("Description: {}", message.message(msgId+1).text);
-
-//                if (message.message(msgId).text == "Sulik") {
-//                    spdlog::warn("Sulik's position = {}", object->position);
-//                    object->position += 15;
-//                    spdlog::warn("Sulik's position = {}", object->position);
-//                }
             }
             break;
 

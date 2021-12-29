@@ -18,7 +18,7 @@ bool TextureManager::exists(const std::string& filename) {
 }
 
 void TextureManager::insert(const std::string& filename, uint32_t orientation) {
-    if (exists(_dataPath + filename)) {
+    if (exists(_dataPath / filename)) {
         return;
     }
 
@@ -29,23 +29,39 @@ void TextureManager::insert(const std::string& filename, uint32_t orientation) {
         return s;
     }();
 
-    auto texture = std::make_unique<sf::Texture>();
     if (extension.rfind(".frm", 0) == 0) {  // frm, frm0, frmX..
-        texture = loadTextureFRM(_dataPath + filename, orientation);
+        loadTextureFRM(_dataPath / filename, orientation);
     } else {
-        if (!texture->loadFromFile(_dataPath + filename)) {  // default to SFML's implementation
-            throw std::runtime_error{"Failed to load texture " + _dataPath + filename + ", extension: " + extension};
+        auto texture = std::make_unique<sf::Texture>();
+        if (!texture->loadFromFile(_dataPath / filename)) {  // default to SFML's implementation
+            throw std::runtime_error{"Failed to load texture " + _dataPath.string() + "/" + filename + ", extension: " + extension};
         }
+        _resources.insert(std::make_pair(_dataPath / filename, std::move(texture)));
     }
-
-    _resources.insert(std::make_pair(_dataPath + filename, std::move(texture)));
 }
 
-const sf::Texture& TextureManager::get(const std::string& filename) const {
-    auto found = _resources.find(_dataPath + filename);
+const sf::Texture& TextureManager::get(const std::string& filename) {
+    auto found = _resources.find(_dataPath / filename);
 
     if (found == _resources.end()) {
-        throw std::runtime_error{"Texture " + _dataPath + filename + " does not exist"};
+        auto image = _imagesToLoad.find(_dataPath / filename);
+        if (image == _imagesToLoad.end()) {
+            throw std::runtime_error{"Texture " + _dataPath.string() + "/" + filename + " does not exist"};
+        }
+
+        auto texture = std::make_unique<sf::Texture>();
+        //    texture->create(frame.width(), frame.height());
+        //    texture->update(&pixels[0]);
+
+        texture->loadFromImage(image->second);
+
+        auto loaded = _resources.insert(std::make_pair(_dataPath / filename, std::move(texture)));
+
+        if (loaded.second) {
+            return *loaded.first->second; // uh huh
+        } else {
+            throw std::runtime_error{"Couldn't load " + _dataPath.string() + "/" + filename + " from image"};
+        }
     }
 
     return *found->second;
@@ -55,16 +71,23 @@ void TextureManager::setDataPath(const std::string& path) {
     _dataPath = path;
 }
 
-std::unique_ptr<sf::Texture> TextureManager::loadTextureFRM(const std::string& filename, uint32_t orientation) {
+void TextureManager::loadTextureFRM(const std::string& filename, uint32_t orientation) {
     FrmReader frm_reader;
     auto frm = frm_reader.openFile(filename);
 
+    int totalOrientations = frm->orientations().size() - 1;
+
+    // FIXME: block.frm on cave6.map
+    if (orientation > totalOrientations) {
+        spdlog::error("Cannot load orientation {} because FRM {} has only {} orientations. Using orientation 0 instead.", orientation, filename, totalOrientations);
+        orientation = 0;
+    }
+
     // FIXME: using just the first frame for now
-//    geck::Frame frame = frm->orientations().front().frames().front();
     geck::Frame frame = frm->orientations().at(orientation).frames().front();
 
     PalReader pal_reader;
-    auto pal = pal_reader.openFile(_dataPath + "color.pal");  // TODO: custom .pal
+    auto pal = pal_reader.openFile(_dataPath / "color.pal");  // TODO: custom .pal
 
     const auto& colors = pal->palette();
     const auto& colorIndexes = frame.data();
@@ -93,11 +116,10 @@ std::unique_ptr<sf::Texture> TextureManager::loadTextureFRM(const std::string& f
         }
     }
 
-    auto texture = std::make_unique<sf::Texture>();
-    texture->create(frame.width(), frame.height());
-    texture->update(&pixels[0]);
+    sf::Image image{};
+    image.create(frame.width(), frame.height(), &pixels[0]);
 
-    return texture;
+    _imagesToLoad.insert(std::make_pair(_dataPath / filename, std::move(image)));
 }
 
 }  // namespace geck

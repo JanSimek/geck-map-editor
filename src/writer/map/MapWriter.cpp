@@ -74,7 +74,10 @@ bool MapWriter::write(const Map::MapFile &map)
 
         int current_sequence = 0;
         uint32_t check = 0;
+
+        // TODO: check
         int scripts_in_section = (script_section.size() % 16 == 0 ? script_section.size() : script_section.size() + 16 - number_of_scripts % 16);
+
         for (int i = 0; i < scripts_in_section; i++) {
 
             if (i < script_section.size()) {
@@ -103,6 +106,8 @@ bool MapWriter::write(const Map::MapFile &map)
 //        }
     }
 
+//    return true;
+
     // Objects
 
     long total_objects = 0;
@@ -119,10 +124,43 @@ bool MapWriter::write(const Map::MapFile &map)
         auto objectsOnElevation = map.map_objects.at(elev).size();
         write_be_32(objectsOnElevation);
 
-        for (const auto& obj : map.map_objects.at(elev)) {
-            writeObject(*obj);
+//        for (const auto& obj : map.map_objects.at(elev)) {
+        for (size_t i = 0; i < map.map_objects.at(elev).size(); i++) {
+            const auto & object = map.map_objects.at(elev)[i];
+            writeObject(*object);
+
+            if (elev == map.map_objects.size() - 1 && i > objectsOnElevation - 1) {
+                spdlog::info("Writing last object");
+
+                spdlog::info("{0:X}", object->unknown0);
+                spdlog::info("{0:X}", object->position);
+                spdlog::info("{0:X}", object->x);
+                spdlog::info("{0:X}", object->y);
+                spdlog::info("{0:X}", object->sx);
+                spdlog::info("{0:X}", object->sy);
+                spdlog::info("{0:X}", object->frame_number);
+                spdlog::info("{0:X}", object->orientation);
+                spdlog::info("{0:X}", object->frm_pid);
+                spdlog::info("{0:X}", object->flags);
+                spdlog::info("{0:X}", object->elevation);
+                spdlog::info("{0:X}", object->pro_pid);
+                spdlog::info("{0:X}", object->critter_index);
+                spdlog::info("{0:X}", object->light_radius);
+                spdlog::info("{0:X}", object->light_intensity);
+                spdlog::info("{0:X}", object->outline_color);
+                spdlog::info("{0:X}", object->map_scripts_pid);
+                spdlog::info("{0:X}", object->script_id);
+                spdlog::info("{0:X}", object->objects_in_inventory);
+                spdlog::info("{0:X}", object->max_inventory_size);
+                spdlog::info("{0:X}", object->unknown10);
+                spdlog::info("{0:X}", object->unknown11);
+            }
         }
     }
+
+    // TODO: check: at least on artemple.map there are 2x extra 0x000000 at the end of the file
+    write_be_32(0);
+    write_be_32(0);
 
     return true;
 }

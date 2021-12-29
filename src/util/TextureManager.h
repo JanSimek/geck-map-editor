@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <filesystem>
 #include <unordered_map>
 
 #include <SFML/Graphics.hpp>
@@ -10,15 +11,26 @@ namespace geck {
 
 class TextureManager {
 private:
-    std::string _dataPath = "";
+    std::filesystem::path _dataPath;
+    std::unordered_map<std::string, sf::Image> _imagesToLoad;
     std::unordered_map<std::string, std::unique_ptr<sf::Texture>> _resources;
 
-    std::unique_ptr<sf::Texture> loadTextureFRM(const std::string& filename, uint32_t orientation = 0);
+    void loadTextureFRM(const std::string& filename, uint32_t orientation = 0);
 
+    TextureManager() {};
 public:
+    // Singleton
+    TextureManager(TextureManager const&) = delete;
+    void operator=(TextureManager const&) = delete;
+
+    static TextureManager& getInstance() {
+        static TextureManager instance;  // Guaranteed to be destroyed.
+        return instance;
+    }
+
     bool exists(const std::string& filename);
     void insert(const std::string& filename, uint32_t orientation = 0);
-    const sf::Texture& get(const std::string& filename) const;
+    const sf::Texture& get(const std::string& filename);
 
     void setDataPath(const std::string& path);
 };

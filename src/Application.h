@@ -2,6 +2,9 @@
 
 #include <memory>
 #include <stack>
+#include <filesystem>
+#include <atomic>
+#include <shared_mutex>
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include "ui/IconsFontAwesome5.h"
@@ -17,10 +20,21 @@ struct AppData {
 };
 
 class Application {
+public:
+    inline static const std::string FONT_DIR = "fonts/";
+    inline static const std::string FONT_MAIN = FONT_DIR + "SourceSansPro-SemiBold.ttf";
+    inline static const std::string FONT_ICON = FONT_DIR + FONT_ICON_FILE_NAME_FAR;
+
+    Application(const std::filesystem::path& dataPath, const std::string& mapName);
+    ~Application();
+
+    bool isRunning() const;
+
+    void run();
+    void update(float dt);
+    void render(float dt);
+
 private:
-    const std::string FONT_DIR = "fonts/";
-    const std::string FONT_MAIN = FONT_DIR + "SourceSansPro-SemiBold.ttf";
-    const std::string FONT_ICON = FONT_DIR + FONT_ICON_FILE_NAME_FAR;
 
     void initUI();
 
@@ -31,15 +45,9 @@ private:
     std::shared_ptr<StateMachine> _stateMachine;
     std::shared_ptr<AppData> _appData;
 
-public:
-    Application(const std::string& dataPath, const std::string& mapName);
-    ~Application();
+    void renderDockingUI();
 
-    bool isRunning() const;
-
-    void run();
-    void update(float dt);
-    void render(float dt);
+    void loadMap();
 };
 
 }  // namespace geck

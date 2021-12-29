@@ -1,12 +1,14 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
 
 class FileHelper {
 private:
     FileHelper() {}
 
     std::string _path;
+    std::string _fallout2DataPath;
 
 public:
     // Singleton
@@ -18,6 +20,11 @@ public:
         return instance;
     }
 
-    std::string path() const;
-    void setPath(const std::string& path);
+    std::filesystem::path resourcesPath() const;
+    void setResourcesPath(const std::filesystem::path& path);
+
+
+    std::filesystem::path fallout2DataPath() const;
+    void setFallout2DataPath(const std::filesystem::path& path);
+
 };

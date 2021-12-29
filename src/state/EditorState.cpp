@@ -1,22 +1,15 @@
 #include "EditorState.h"
 
 #include <imgui.h>
+#include <imgui-SFML.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
 #include <cmath>  // ceil
-#include <fstream>
+#include <portable-file-dialogs.h>
 
-#include "../Application.h"
-#include "../ui/IconsFontAwesome5.h"
 #include "../ui/util.h"
-#include "../util/TextureManager.h"
 
 #include "../editor/HexagonGrid.h"
-#include "../editor/Tile.h"
-#include "StateMachine.h"
-
-// FIXME: Object
-#include "../format/map/MapObject.h"
 
 #include "../reader/dat/DatReader.h"
 #include "../reader/frm/FrmReader.h"
@@ -29,34 +22,50 @@
 #include "../format/frm/Frame.h"
 #include "../format/frm/Frm.h"
 #include "../format/lst/Lst.h"
-#include "../format/map/Map.h"
-#include "../format/pal/Pal.h"
 
 #include "../util/FileHelper.h"
+#include "LoadingState.h"
 
 namespace geck {
 
-EditorState::EditorState(const std::shared_ptr<AppData>& appData)
+EditorState::EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map)
     : _appData(appData), _view({0.f, 0.f}, sf::Vector2f(appData->window->getSize())) {
-    _textureManager.setDataPath(FileHelper::getInstance().path());
+    _map = std::move(map);
     centerViewOnMap();
 }
 
 void EditorState::init() {
-    // FIXME:   Figure out how to load textures in another thread.
-    //          sf::Texture cannot be created outside of the main thread
-    //          https://www.sfml-dev.org/tutorials/2.5/window-opengl.php#rendering-from-threads
-    spdlog::warn("FIXME: Initializing map. The application will hang for a few seconds");
-    loadMap();
+    std::filesystem::path data_path = FileHelper::getInstance().fallout2DataPath();
+    std::filesystem::path map_directory = data_path / "maps";
+
+    if (!std::filesystem::is_directory(map_directory)) {
+        pfd::message("Invalid Fallout 2 directory",
+                    "The map directory does not exist: " + map_directory.string(),
+                    pfd::choice::ok,
+                    pfd::icon::error);
+        _quit = true;
+        return;
+    }
+
+    loadMap(map_directory);
 }
 
 void EditorState::renderMainMenu() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(ICON_FA_FILE_ALT " File")) {
-            if (ImGui::MenuItem(ICON_FA_SAVE " Save", "Ctrl+S")) {
+            if (ImGui::MenuItem(ICON_FA_SAVE " Save map", "Ctrl+S")) {
                 MapWriter map_writer;
+                // TODO: show file dialog
                 map_writer.openFile("test.map");
                 map_writer.write(_map->getMapFile());
+                spdlog::info("Saved map test.map");
+            }
+            if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN " Load map", "Ctrl+L")) {
+                _appData->mapName = "";
+                auto loading_state = std::make_unique<LoadingState>(_appData);
+                loading_state->addLoader(std::make_unique<MapLoader>(_appData->mapName));
+
+                _appData->stateMachine->push(std::move(loading_state));
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Ctrl+Q")) {
@@ -87,7 +96,7 @@ void EditorState::renderMainMenu() {
                             if (ImGui::MenuItem(text.c_str()) && _currentElevation != i) {
                                 _currentElevation = i;
                                 spdlog::info("Loading elevation " + std::to_string(_currentElevation));
-                                loadMap();
+                                init(); // reload map
                             }
                         }
                     }
@@ -96,48 +105,57 @@ void EditorState::renderMainMenu() {
             }
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu(ICON_FA_PLAY_CIRCLE " Run")) {
+            // TODO: run in F2 / Falltergeist
+            ImGui::EndMenu();
+        }
         ImGui::EndMainMenuBar();
     }
 }
 
-void geck::EditorState::loadMap() {
+void geck::EditorState::loadMap(std::filesystem::path path) {
 
     spdlog::stopwatch sw;
 
-    const std::string data_path = FileHelper::getInstance().path();
+    const auto data_path = FileHelper::getInstance().fallout2DataPath();
 
+    _appData->window->setTitle(path.filename().string() + " - GECK::Mapper");
+
+    _objects.clear();
     _floorSprites.clear();
     _roofSprites.clear();
-    _objectSprites.clear();
 
     // Data
 
     MapReader map_reader;
-    auto map = map_reader.openFile(data_path + "maps/" + _appData->mapName);
+//    auto map = map_reader.openFile(data_path / "maps" / _appData->mapName);
 
     LstReader lst_reader;
-    auto lst = lst_reader.openFile(data_path + "art/tiles/tiles.lst");
+    auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
 
     // Tiles
-    for (auto i = 0U; i < geck::Map::TILES_PER_ELEVATION; ++i) {
-        auto tile = map->tiles().at(_currentElevation).at(i);
+    for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; ++tileNumber) {
+        auto tile = _map->tiles().at(_currentElevation).at(tileNumber);
 
         // floor
         sf::Sprite floor_sprite;
         std::string floor_texture_path = "art/tiles/" + lst->at(tile.getFloor());
-        _textureManager.insert(floor_texture_path);
-        floor_sprite.setTexture(_textureManager.get(floor_texture_path));
+        floor_sprite.setTexture(TextureManager::getInstance().get(floor_texture_path));
 
         // roof
         sf::Sprite roof_sprite;
         std::string roof_texture_path = "art/tiles/" + lst->at(tile.getRoof());
-        _textureManager.insert(roof_texture_path);
-        roof_sprite.setTexture(_textureManager.get(roof_texture_path));
+        roof_sprite.setTexture(TextureManager::getInstance().get(roof_texture_path));
 
         // Positioning
 
-        unsigned int tileX = static_cast<unsigned>(ceil(((double)i) / 100));
-        unsigned int tileY = i % 100;
+        // geometry constants
+//        const TILE_WIDTH = 80
+//        const TILE_HEIGHT = 36
+//        const HEX_GRID_SIZE = 200 // hex grid is 200x200
+
+        unsigned int tileX = static_cast<unsigned>(ceil(((double)tileNumber) / 100));
+        unsigned int tileY = tileNumber % 100;
         unsigned int x = (100 - tileY - 1) * 48 + 32 * (tileX - 1);
         unsigned int y = tileX * 24 + (tileY - 1) * 12 + 1;
 
@@ -145,7 +163,7 @@ void geck::EditorState::loadMap() {
         floor_sprite.setPosition(x, y);
 
         // roof
-        constexpr int roofOffset = 96;
+        constexpr int roofOffset = 96; // "roof height"
         roof_sprite.setPosition(x, y - roofOffset);
 
         _floorSprites.push_back(std::move(floor_sprite));
@@ -157,7 +175,7 @@ void geck::EditorState::loadMap() {
     FrmReader frm_reader;
 
     // Objects
-    for (const auto& object : map->objects().at(_currentElevation)) {
+    for (const auto& object : _map->objects().at(_currentElevation)) {
         if (object->position == -1)
             continue;  // object inside an inventory/container
 
@@ -169,8 +187,7 @@ void geck::EditorState::loadMap() {
         }
 
         sf::Sprite object_sprite;
-        _textureManager.insert(frmName, object->orientation);
-        object_sprite.setTexture(_textureManager.get(frmName));
+        object_sprite.setTexture(TextureManager::getInstance().get(frmName));
 
         //        int hexPos = object->hexPosition();
         //        float x = hexPos % 200;
@@ -181,17 +198,17 @@ void geck::EditorState::loadMap() {
         const geck::Hex* hex = hexgrid.grid().at(object->position).get();
 
         // TODO: orientation
-        auto frmPath = data_path + frmName;
+        const auto frmPath = data_path / frmName;
         auto frm = frm_reader.openFile(frmPath);
 
-        spdlog::info("Loading sprite {}", frmPath);
+        spdlog::info("Loading sprite {}", frmPath.string());
 
         // center on the hex
         auto orientation = object->orientation;
 
         // FIXME: ??? one scrblk on arcaves.map
         if (frm->orientations().size() < orientation) {
-            spdlog::error("Object has orienation {} but the FRM has only {} orientations", orientation, frm->orientations().size());
+            spdlog::error("Object has orientation {} but the FRM has only {} orientations", orientation, frm->orientations().size());
             orientation = 0;
         }
 
@@ -203,17 +220,28 @@ void geck::EditorState::loadMap() {
             // Y
             (float)hex->y() + frm->orientations().at(orientation).shiftY() - object_sprite.getTexture()->getSize().y);
 
-//        _objectSprites.push_back(std::move(object_sprite));
-
         Object entity;
         entity.setSprite(std::move(object_sprite));
         entity.setMapObject(object);
 
         _objects.push_back(std::move(entity));
     }
+}
 
-    _map = std::move(map);
-    spdlog::info("Map loaded in {:.3} seconds", sw);
+std::vector<bool> calculateBitset(const sf::Image& img)
+{
+        sf::Vector2u imgSize = img.getSize();
+
+        std::vector<bool> retVal(imgSize.x * imgSize.y); // allocate directly
+
+        for (unsigned int x = 0; x < imgSize.x; ++x) // unsigned,  pre-increment (not crucial
+            for (unsigned int y = 0; y < imgSize.y; ++y) // here, but generally good practice)
+            {
+                const auto& pixel = img.getPixel(x,y);
+                retVal[imgSize.x*y + x] = (pixel.r == 0 && pixel.g == 0 && pixel.b == 0 && pixel.a == 0);
+            }
+
+        return retVal;
 }
 
 void EditorState::handleEvent(const sf::Event& event) {
@@ -250,6 +278,46 @@ void EditorState::handleEvent(const sf::Event& event) {
         _view.zoom(1.0f - delta * 0.1f);
     }
 
+    // Left mouse click
+    if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Left) {
+
+        const sf::Color BASE_COLOR = {128, 128, 128};// get the current mouse position in the window
+
+        sf::Vector2i pixelPos = sf::Mouse::getPosition(*_appData->window);
+
+        // convert it to world coordinates
+        sf::Vector2f worldPos = _appData->window->mapPixelToCoords(pixelPos);
+
+        for (auto& tile : _floorSprites) {
+            // mouse is within the tile rect
+            if (tile.getGlobalBounds().contains(worldPos)) {
+
+                const auto& image = tile.getTexture()->copyToImage();
+                const auto bitsets = calculateBitset(image);
+
+                const auto& x = worldPos.x - tile.getGlobalBounds().left;
+                const auto& y = worldPos.y - tile.getGlobalBounds().top;
+
+                spdlog::info("image size {}x{}", image.getSize().x, image.getSize().y);
+                spdlog::info("texture size {}x{}", tile.getTexture()->getSize().x, tile.getTexture()->getSize().y);
+
+                spdlog::info("Worldpos x = {}, y = {}", worldPos.x, worldPos.y);
+                spdlog::info("Globalbounds x = {}, y = {}", tile.getGlobalBounds().left, tile.getGlobalBounds().top);
+
+                spdlog::info("Pixel x = {}, y = {}", x, y);
+                auto pixel = image.getPixel(x, y);
+
+                spdlog::info("Pixel color = {}, {}, {}, {}", pixel.r, pixel.g, pixel.b, pixel.a);
+                int w = image.getSize().x;
+                if (!bitsets[w*y+x]) {
+                    tile.setColor(BASE_COLOR);
+                    break;
+                }
+
+            }
+        }
+    }
+
     // Panning
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Right) {
         _currentAction = EditorAction::PANNING;
@@ -275,7 +343,11 @@ void EditorState::handleEvent(const sf::Event& event) {
 
 void EditorState::update(const float& dt) {}
 
+/**
+ * TODO: draw only sprites visible in the current view
+ */
 void EditorState::render(const float& dt) {
+
     renderMainMenu();
 
     _appData->window->setView(_view);
@@ -284,11 +356,6 @@ void EditorState::render(const float& dt) {
         _appData->window->draw(sprite);
     }
 
-//    if (_showObjects) {
-//        for (const auto& sprite : _objectSprites) {
-//            _appData->window->draw(sprite);
-//        }
-//    }
     if (_showObjects) {
         for (const auto& obj : _objects) {
             _appData->window->draw(obj.getSprite());
@@ -300,6 +367,36 @@ void EditorState::render(const float& dt) {
             _appData->window->draw(sprite);
         }
     }
+
+//  auto boldFont = io.Fonts->Fonts[0];
+    ImGui::PushFont(0);
+
+    // TODO: create a widget
+//    ImGui::Begin("Floor tiles");
+
+    int rowWidth = 0;
+//    for (const auto& floorTile : _floorSprites) {
+//        rowWidth += floorTile.getTextureRect().width;
+//        if (!(rowWidth >= ImGui::GetWindowContentRegionWidth())) {
+//            ImGui::SameLine();
+//        } else {
+//            rowWidth = 0;
+//        }
+//        ImGui::ImageButton(floorTile);
+//    }
+
+//    ImGui::End();
+
+//    ImGui::Begin("Roof tiles");
+//    ImGui::End();
+//
+//    ImGui::Begin("Objects");
+//    ImGui::End();
+//
+//    ImGui::Begin("Critters");
+//    ImGui::End();
+
+    ImGui::PopFont();
 }
 
 void EditorState::centerViewOnMap() {

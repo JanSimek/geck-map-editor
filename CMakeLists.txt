@@ -15,6 +15,7 @@ endif()
 
 include(cmake/CPM.cmake)
 
+CPMAddPackage("gh:samhocevar/portable-file-dialogs#0.1.0")
 CPMAddPackage("gh:gabime/spdlog@1.8.2")
 CPMAddPackage("gh:jarro2783/cxxopts@2.2.1")
 CPMAddPackage("gh:SFML/SFML#2.5.1")
@@ -23,8 +24,8 @@ CPMAddPackage(
     GITHUB_REPOSITORY "eliasdaler/imgui-sfml"
     VERSION "2.3"
     OPTIONS "IMGUI_DIR ${imgui_SOURCE_DIR}"
-    OPTIONS "IMGUI_SFML_IMGUI_DEMO ON" # not including demo breaks build
 )
+add_compile_definitions(IMGUI_DISABLE_DEMO_WINDOWS) # imgui-sfml doesn't compile demo by default
 
 add_subdirectory(src)
 

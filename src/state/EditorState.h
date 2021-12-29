@@ -2,6 +2,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <filesystem>
+#include <thread>
 
 #include "../util/TextureManager.h"
 #include "State.h"
@@ -15,22 +17,21 @@ class Map;
 
 class EditorState : public State {
 private:
+    EditorState(const std::shared_ptr<AppData>& appData);
     enum class EditorAction { NONE, PANNING };
 
     void renderMainMenu();
     void centerViewOnMap();
-    void loadMap();
+
+    void loadMap(std::filesystem::path path);
 
     std::vector<sf::Sprite> _floorSprites;
     std::vector<sf::Sprite> _roofSprites;
-    std::vector<sf::Sprite> _objectSprites;
 
     std::vector<Object> _objects;
 
     std::shared_ptr<AppData> _appData;
     sf::View _view;
-
-    TextureManager _textureManager;
 
     int _currentElevation = 0;
     std::unique_ptr<Map> _map;
@@ -47,7 +48,7 @@ private:
     EditorAction _currentAction = EditorAction::NONE;
 
 public:
-    EditorState(const std::shared_ptr<AppData>& appData);
+    EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map);
 
     void init() override;
     void handleEvent(const sf::Event& event) override;
@@ -55,6 +56,7 @@ public:
     void render(const float& dt) override;
 
     bool quit() const override;
+
 };
 
 }  // namespace geck

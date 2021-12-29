@@ -13,9 +13,17 @@ add_executable (geck-mapper
     # States
     state/StateMachine.h
     state/StateMachine.cpp
+
     state/State.h
+
     state/EditorState.h
     state/EditorState.cpp
+
+    state/LoadingState.h
+    state/LoadingState.cpp
+    state/loader/Loader.h
+    state/loader/MapLoader.cpp
+    state/loader/MapLoader.h
 
     # UI
     ui/util.h
@@ -119,9 +127,10 @@ add_executable (geck-mapper
 
 target_link_libraries(geck-mapper PRIVATE
     ImGui-SFML::ImGui-SFML
+    portable_file_dialogs
     cxxopts
     spdlog
 )
-
-target_compile_features(geck-mapper PRIVATE cxx_std_17)
+#target_include_directories(geck-mapper portable-file-dialogs_H))
+target_compile_features(geck-mapper PRIVATE cxx_std_20)
 set_target_properties(geck-mapper PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
