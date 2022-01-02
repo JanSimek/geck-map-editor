@@ -23,7 +23,8 @@ private:
     void renderMainMenu();
     void centerViewOnMap();
 
-    void loadMap(std::filesystem::path path);
+    void loadMap();
+    void createNewMap();
 
     std::vector<sf::Sprite> _floorSprites;
     std::vector<sf::Sprite> _roofSprites;

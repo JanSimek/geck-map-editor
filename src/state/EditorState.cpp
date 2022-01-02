@@ -47,12 +47,15 @@ void EditorState::init() {
         return;
     }
 
-    loadMap(map_directory);
+    loadMap();
 }
 
 void EditorState::renderMainMenu() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(ICON_FA_FILE_ALT " File")) {
+            if (ImGui::MenuItem(ICON_FA_FILE " New map", "Ctrl+N")) {
+                createNewMap();
+            }
             if (ImGui::MenuItem(ICON_FA_SAVE " Save map", "Ctrl+S")) {
                 MapWriter map_writer;
                 // TODO: show file dialog
@@ -113,13 +116,13 @@ void EditorState::renderMainMenu() {
     }
 }
 
-void geck::EditorState::loadMap(std::filesystem::path path) {
+void geck::EditorState::loadMap() {
 
     spdlog::stopwatch sw;
 
     const auto data_path = FileHelper::getInstance().fallout2DataPath();
 
-    _appData->window->setTitle(path.filename().string() + " - GECK::Mapper");
+    _appData->window->setTitle(_appData->mapName + " - GECK::Mapper");
 
     _objects.clear();
     _floorSprites.clear();
@@ -175,6 +178,8 @@ void geck::EditorState::loadMap(std::filesystem::path path) {
     FrmReader frm_reader;
 
     // Objects
+    if (_map->objects().empty()) return;
+
     for (const auto& object : _map->objects().at(_currentElevation)) {
         if (object->position == -1)
             continue;  // object inside an inventory/container
@@ -247,6 +252,10 @@ std::vector<bool> calculateBitset(const sf::Image& img)
 void EditorState::handleEvent(const sf::Event& event) {
     if (event.type == sf::Event::KeyPressed) {
         switch (event.key.code) {
+            case sf::Keyboard::N:  // Ctrl+N
+                if (event.key.control)
+                    createNewMap();
+                break;
             case sf::Keyboard::Q:  // Ctrl+Q
                 if (event.key.control)
                     _quit = true;
@@ -407,6 +416,42 @@ void EditorState::centerViewOnMap() {
 
 bool EditorState::quit() const {
     return _quit;
+}
+
+void EditorState::createNewMap() {
+        _appData->mapName = "New Map";
+
+        int elevations = 1;
+        int floorTileIndex = 192; // edg5000.frm
+        int roofTileIndex = 1; // grid000.frm
+
+        _map = std::make_unique<Map>();
+        auto map_file = std::make_unique<Map::MapFile>();
+        _map->setMapFile(std::move(map_file));
+
+        LstReader lst_reader;
+        std::filesystem::path data_path = FileHelper::getInstance().fallout2DataPath();
+        auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
+
+        std::string texture_path = "art/tiles/" + lst->at(floorTileIndex);
+        TextureManager::getInstance().insert(texture_path);
+
+        texture_path = "art/tiles/" + lst->at(roofTileIndex);
+        TextureManager::getInstance().insert(texture_path);
+
+        std::map<int, std::vector<Tile>> tiles;
+        for (auto elevation = 0; elevation < elevations; ++elevation) {
+            for (auto i = 0U; i < Map::TILES_PER_ELEVATION; ++i) {
+                uint16_t roof = roofTileIndex;
+                uint16_t floor = floorTileIndex;
+
+                Tile tile(floor, roof);
+                tiles[elevation].push_back(tile);
+            }
+        }
+        _map->setTiles(std::move(tiles));
+
+        loadMap();
 }
 
 }  // namespace geck

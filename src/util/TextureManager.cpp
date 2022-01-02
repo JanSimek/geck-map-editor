@@ -62,6 +62,8 @@ const sf::Texture& TextureManager::get(const std::string& filename) {
         } else {
             throw std::runtime_error{"Couldn't load " + _dataPath.string() + "/" + filename + " from image"};
         }
+    } else {
+        // TODO
     }
 
     return *found->second;
