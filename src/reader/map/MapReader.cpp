@@ -12,7 +12,6 @@
 #include "../../editor/Object.h"
 #include "../../editor/Tile.h"
 
-#include "../../format/lst/Lst.h"
 #include "../../format/map/Map.h"
 #include "../../format/map/MapObject.h"
 #include "../../format/pro/Pro.h"
@@ -118,8 +117,6 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
     }
 }
 
-enum class FRM_TYPE : char { ITEM = 0, CRITTER, SCENERY, WALL, TILE, MISC, INTERFACE, INVENTORY };
-
 std::string MapReader::FIDtoFrmName(unsigned int FID) {
     /*const*/ auto baseId = FID & 0x00FFFFFF;  // FIXME? 0x00000FFF;
     /*const*/ auto type = static_cast<FRM_TYPE>(FID >> 24);
@@ -136,6 +133,11 @@ std::string MapReader::FIDtoFrmName(unsigned int FID) {
         return SCROLL_BLOCKERS_PATH;
     }
 
+    if (type > FRM_TYPE::INVENTORY) {
+        throw std::runtime_error{"Invalid FRM_TYPE"};
+    }
+
+    // TODO: art/$/
     static struct TypeArtListDecription {
         const std::string prefixPath;
         const std::string lstFilePath;
@@ -146,16 +148,13 @@ std::string MapReader::FIDtoFrmName(unsigned int FID) {
         {"art/intrface/", "art/intrface/intrface.lst"}, {"art/inven/", "art/inven/inven.lst"},
     };
 
-    if (type > FRM_TYPE::INVENTORY) {
-        throw std::runtime_error{"Invalid FRM_TYPE"};
-    }
-
+    //    LstReader lst_reader;
+    //    const auto lst = lst_reader.openFile(data_path / typeArtDescription.lstFilePath);
     const auto& typeArtDescription = frmTypeDescription[static_cast<size_t>(type)];
 
     const auto data_path = FileHelper::getInstance().fallout2DataPath();
 
-    LstReader lst_reader;
-    auto lst = lst_reader.openFile(data_path / typeArtDescription.lstFilePath);
+    const auto lst = lst_frm.at(type).get();
 
     if (baseId >= lst->list().size()) {
         throw std::runtime_error{"LST " + typeArtDescription.lstFilePath + " size " + std::to_string(lst->list().size()) + " <= frmID: " +
@@ -169,6 +168,26 @@ std::string MapReader::FIDtoFrmName(unsigned int FID) {
         return typeArtDescription.prefixPath + frmName.substr(0, 6) + "aa.frm";
     }
     return typeArtDescription.prefixPath + frmName;
+}
+
+MapReader::MapReader()
+{
+    std::unordered_map<FRM_TYPE, std::string> frm_lists ({
+        { FRM_TYPE::ITEM,       "art/items/items.lst" },
+        { FRM_TYPE::CRITTER,    "art/critters/critters.lst" },
+        { FRM_TYPE::SCENERY,    "art/scenery/scenery.lst" },
+        { FRM_TYPE::WALL,       "art/walls/walls.lst" },
+        { FRM_TYPE::TILE,       "art/tiles/tiles.lst" },
+        { FRM_TYPE::MISC,       "art/misc/misc.lst" },
+        { FRM_TYPE::INTERFACE,  "art/intrface/intrface.lst" },
+        { FRM_TYPE::INVENTORY,  "art/inven/inven.lst" },
+    });
+
+    const auto data_path = FileHelper::getInstance().fallout2DataPath();
+    LstReader lst_reader;
+    for (const auto& lst : frm_lists) {
+        lst_frm.emplace(std::make_pair(lst.first, std::move(lst_reader.openFile(data_path / lst.second ))));
+    }
 }
 
 
@@ -201,12 +220,10 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
     uint32_t objectTypeId = object->pro_pid >> 24;
     uint32_t objectId = 0x00FFFFFF & object->pro_pid;
 
-    MapReader map_reader;
-
     switch ((Object::OBJECT_TYPE)objectTypeId) {
         case Object::OBJECT_TYPE::ITEM:
             {
-                uint32_t subtype_id = map_reader.loadPro(object->pro_pid)->objectSubtypeId();
+                uint32_t subtype_id = loadPro(object->pro_pid)->objectSubtypeId();
                 switch ((Object::ITEM_TYPE)subtype_id) {
                     case Object::ITEM_TYPE::AMMO: // ammo
                     case Object::ITEM_TYPE::MISC: // charges - have strangely high values, or negative.
@@ -245,7 +262,7 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
 
         case Object::OBJECT_TYPE::SCENERY:
             {
-                uint32_t subtype_id = map_reader.loadPro(object->pro_pid)->objectSubtypeId();
+                uint32_t subtype_id = loadPro(object->pro_pid)->objectSubtypeId();
                 switch ((Object::SCENERY_TYPE)subtype_id) {
                     case Object::SCENERY_TYPE::LADDER_TOP:
                     case Object::SCENERY_TYPE::LADDER_BOTTOM:
@@ -307,7 +324,10 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
             }
             break;
         default:
-            throw std::runtime_error{"Unknown object type: " + std::to_string(objectTypeId)};
+            spdlog::error("Unknown object type {}", objectTypeId);
+            break;
+
+//            throw std::runtime_error{"Unknown object type: " + std::to_string(objectTypeId)};
     }
 
     return std::move(object);
@@ -477,6 +497,8 @@ std::unique_ptr<Map> MapReader::read() {
                     spdlog::info("Current script check for sequence " + std::to_string(i) + " is " + std::to_string(cur_check) + ", j = " + std::to_string(j));
 
                     check += cur_check;
+
+                    // TODO: check, klamath does not read this last value
                     read_be_u32(); // uknown
                 }
             }

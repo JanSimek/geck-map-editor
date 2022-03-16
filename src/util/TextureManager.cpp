@@ -9,12 +9,12 @@
 #include "../format/frm/Direction.h"
 #include "../format/frm/Frame.h"
 #include "../format/frm/Frm.h"
-#include "../format/pal/Pal.h"
+//#include "../format/pal/Pal.h"
 
 namespace geck {
 
 bool TextureManager::exists(const std::string& filename) {
-    return _resources.find(filename) != _resources.end();
+    return _resources.find(filename) != _resources.end() || _imagesToLoad.find(filename) != _imagesToLoad.end();
 }
 
 void TextureManager::insert(const std::string& filename, uint32_t orientation) {
@@ -30,6 +30,11 @@ void TextureManager::insert(const std::string& filename, uint32_t orientation) {
     }();
 
     if (extension.rfind(".frm", 0) == 0) {  // frm, frm0, frmX..
+        if (!_initialized) {
+            PalReader pal_reader;
+            _pal = pal_reader.openFile(_dataPath / "color.pal");  // TODO: custom .pal
+            _initialized = true;
+        }
         loadTextureFRM(_dataPath / filename, orientation);
     } else {
         auto texture = std::make_unique<sf::Texture>();
@@ -88,22 +93,21 @@ void TextureManager::loadTextureFRM(const std::string& filename, uint32_t orient
     // FIXME: using just the first frame for now
     geck::Frame frame = frm->orientations().at(orientation).frames().front();
 
-    PalReader pal_reader;
-    auto pal = pal_reader.openFile(_dataPath / "color.pal");  // TODO: custom .pal
-
-    const auto& colors = pal->palette();
+    const auto& colors = _pal->palette();
     const auto& colorIndexes = frame.data();
 
     constexpr int RGBA = 4;  // RGBA of SFML texture
     size_t pixelCount = frame.width() * frame.height() * RGBA;
-    std::vector<sf::Uint8> pixels(pixelCount);
+    sf::Uint8 pixels[pixelCount];
 
     for (size_t i = 0; i < pixelCount; i += RGBA) {
         uint8_t paletteIndex = colorIndexes[i / RGBA];
 
         geck::Rgb color = colors[paletteIndex];
+        constexpr uint8_t white = 255;
+        constexpr uint8_t opaque_alpha = 255;
 
-        if (color.r == 255 && color.g == 255 && color.b == 255) {
+        if (color.r == white && color.g == white && color.b == white) {
             // transparent
             pixels[i] = 0;
             pixels[i + 1] = 0;
@@ -114,12 +118,12 @@ void TextureManager::loadTextureFRM(const std::string& filename, uint32_t orient
             pixels[i] = color.r * brightness;
             pixels[i + 1] = color.g * brightness;
             pixels[i + 2] = color.b * brightness;
-            pixels[i + 3] = 255;
+            pixels[i + 3] = opaque_alpha;
         }
     }
 
     sf::Image image{};
-    image.create(frame.width(), frame.height(), &pixels[0]);
+    image.create(frame.width(), frame.height(), pixels);
 
     _imagesToLoad.insert(std::make_pair(_dataPath / filename, std::move(image)));
 }

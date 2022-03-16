@@ -7,6 +7,8 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "../format/pal/Pal.h"
+
 namespace geck {
 
 class TextureManager {
@@ -18,6 +20,9 @@ private:
     void loadTextureFRM(const std::string& filename, uint32_t orientation = 0);
 
     TextureManager() {};
+
+    bool _initialized = false;
+    std::unique_ptr<Pal> _pal;
 public:
     // Singleton
     TextureManager(TextureManager const&) = delete;

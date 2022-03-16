@@ -13,12 +13,12 @@
 
 namespace geck {
 
-MapLoader::MapLoader(const std::filesystem::path& mapFile) : _mapPath(mapFile) {
+MapLoader::MapLoader(const std::filesystem::path& mapFile, int elevation) : _mapPath(mapFile), _elevation(elevation) {
 }
 
 void MapLoader::load() {
 
-    TextureManager::getInstance().setDataPath(FileHelper::getInstance().resourcesPath()); // FIXME: move
+    TextureManager::getInstance().setDataPath(FileHelper::getInstance().fallout2DataPath()); // FIXME: move
     const auto data_path = FileHelper::getInstance().fallout2DataPath();
 
 //    std::filesystem::path data_path = FileHelper::getInstance().fallout2DataPath();
@@ -36,39 +36,59 @@ void MapLoader::load() {
 //        _appData->mapName = std::filesystem::path(mapFile).filename();
     }
 
+    setStatus("Reading map " + _mapPath.filename().string());
+
     MapReader map_reader;
     _map = map_reader.openFile(_mapPath);
 
     LstReader lst_reader;
     auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
 
-    for (int elevation = 0; elevation < _map->elevations(); elevation++) {
+//    for (int elevation = 0; elevation < _map->elevations(); elevation++) {
 
-        setStatus("Loading map " + _mapPath.filename().string() + " elevation #" + std::to_string(elevation + 1));
+        setStatus("Loading map " + _mapPath.filename().string() + " elevation #" + std::to_string(_elevation + 1));
 
         // Tiles
-        for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; ++tileNumber) {
+        auto tiles = _map->tiles().at(_elevation);
+        for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; tileNumber++) {
 
-            setProgress("Loading map tile " + std::to_string(tileNumber + 1) + " of " + std::to_string(geck::Map::TILES_PER_ELEVATION));
+            setProgress("Loading map tile texture " + std::to_string(tileNumber + 1) + " of " + std::to_string(geck::Map::TILES_PER_ELEVATION));
 
-            auto tile = _map->tiles().at(elevation).at(tileNumber);
+
+            auto tile = tiles.at(tileNumber);
+
 
             // floor
-            std::string floor_texture_path = "art/tiles/" + lst->at(tile.getFloor());
-            TextureManager::getInstance().insert(floor_texture_path);
+            if (tile.getFloor() != Map::EMPTY_TILE) {
+                std::string floor_texture_path = "art/tiles/" + lst->at(tile.getFloor());
+                TextureManager::getInstance().insert(floor_texture_path);
+            }
 
             // roof
-            std::string roof_texture_path = "art/tiles/" + lst->at(tile.getRoof());
-            TextureManager::getInstance().insert(roof_texture_path);
+
+            // !!!!!!!!!!!!!!!!!!!!!
+            // FIXME: why does this check slow down the loading so much ????????????????
+            // !!!!!!!!!!!!!!!!!!!!!
+            // FIXME: epax 7913 - main EPA building roof tiles
+//            if (tile.getRoof() > lst->list().size()) {
+//                spdlog::error("Roof tile number {} has roof ID {} which overflows the LST size {}. Correcting to {}", tileNumber, tile.getRoof(), lst->list().size(), Map::EMPTY_TILE);
+//                tile = Tile(tile.getFloor(), Map::EMPTY_TILE);
+//            }
+
+            if (tile.getRoof() != Map::EMPTY_TILE) {
+                std::string roof_texture_path = "art/tiles/" + lst->at(tile.getRoof());
+                TextureManager::getInstance().insert(roof_texture_path);
+            }
         }
 
         // Objects
         size_t objectNumber = 1;
-        size_t objectsTotal = _map->objects().at(elevation).size();
+        size_t objectsTotal = _map->objects().at(_elevation).size();
 
-        for (const auto& object : _map->objects().at(elevation)) {
+        for (const auto& object : _map->objects().at(_elevation)) {
 
             setProgress("Loading map object " + std::to_string(objectNumber++) + " of " + std::to_string(objectsTotal));
+
 
             if (object->position == -1)
                 continue;  // object inside an inventory/container
@@ -82,8 +102,7 @@ void MapLoader::load() {
 
             TextureManager::getInstance().insert(frmName, object->orientation);
         }
-
-    }
+//    }
     done = true;
 }
 

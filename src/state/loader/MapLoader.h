@@ -15,8 +15,10 @@ class Map;
 
 class MapLoader : public Loader {
 public:
-    MapLoader(const std::filesystem::path& mapPath);
+    MapLoader(const std::filesystem::path& mapPath, int elevation);
     ~MapLoader();
+
+    std::unique_ptr<Map> getMap();
 
     void init() override;
     bool isDone() override;
@@ -27,9 +29,8 @@ private:
 
     std::filesystem::path _mapPath;
     std::unique_ptr<Map> _map;
+    int _elevation;
 
-public:
-    std::unique_ptr<Map> getMap();
 };
 
 } // namespace geck

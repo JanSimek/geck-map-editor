@@ -31,7 +31,7 @@ Application::Application(const std::filesystem::path& dataPath, const std::strin
 void Application::loadMap() {
 
     auto loading_state = std::make_unique<LoadingState>(_appData);
-    loading_state->addLoader(std::make_unique<MapLoader>(_appData->mapName));
+    loading_state->addLoader(std::make_unique<MapLoader>(_appData->mapName, 0)); // FIXME: default elevation
 
     _stateMachine->push(std::move(loading_state));
 }

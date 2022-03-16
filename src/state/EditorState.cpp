@@ -66,7 +66,7 @@ void EditorState::renderMainMenu() {
             if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN " Load map", "Ctrl+L")) {
                 _appData->mapName = "";
                 auto loading_state = std::make_unique<LoadingState>(_appData);
-                loading_state->addLoader(std::make_unique<MapLoader>(_appData->mapName));
+                loading_state->addLoader(std::make_unique<MapLoader>(_appData->mapName, 0)); // FIXME
 
                 _appData->stateMachine->push(std::move(loading_state));
             }
@@ -140,16 +140,6 @@ void geck::EditorState::loadMap() {
     for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; ++tileNumber) {
         auto tile = _map->tiles().at(_currentElevation).at(tileNumber);
 
-        // floor
-        sf::Sprite floor_sprite;
-        std::string floor_texture_path = "art/tiles/" + lst->at(tile.getFloor());
-        floor_sprite.setTexture(TextureManager::getInstance().get(floor_texture_path));
-
-        // roof
-        sf::Sprite roof_sprite;
-        std::string roof_texture_path = "art/tiles/" + lst->at(tile.getRoof());
-        roof_sprite.setTexture(TextureManager::getInstance().get(roof_texture_path));
-
         // Positioning
 
         // geometry constants
@@ -163,14 +153,29 @@ void geck::EditorState::loadMap() {
         unsigned int y = tileX * 24 + (tileY - 1) * 12 + 1;
 
         // floor
-        floor_sprite.setPosition(x, y);
+        if (tile.getFloor() != Map::EMPTY_TILE) {
+            sf::Sprite floor_sprite;
+            std::string floor_texture_path = "art/tiles/" + lst->at(tile.getFloor());
+            floor_sprite.setTexture(TextureManager::getInstance().get(floor_texture_path));
+            floor_sprite.setPosition(x, y);
+            _floorSprites.push_back(std::move(floor_sprite));
+        }
 
         // roof
-        constexpr int roofOffset = 96; // "roof height"
-        roof_sprite.setPosition(x, y - roofOffset);
+        if (tile.getRoof() != Map::EMPTY_TILE) {
+            sf::Sprite roof_sprite;
+            std::string roof_texture_path = "art/tiles/" + lst->at(tile.getRoof());
+            roof_sprite.setTexture(TextureManager::getInstance().get(roof_texture_path));
 
-        _floorSprites.push_back(std::move(floor_sprite));
-        _roofSprites.push_back(std::move(roof_sprite));
+            // FIXME: delete - probably won't be needed after reading the correct color.pal
+            if (tile.getRoof() == 0 || tile.getRoof() == 1) {
+                roof_sprite.setColor(sf::Color{0, 0, 0, 0});
+            }
+            constexpr int roofOffset = 96; // "roof height"
+            roof_sprite.setPosition(x, y - roofOffset);
+
+            _roofSprites.push_back(std::move(roof_sprite));
+        }
     }
 
     auto hexgrid = geck::HexagonGrid();
@@ -409,8 +414,8 @@ void EditorState::render(const float& dt) {
 }
 
 void EditorState::centerViewOnMap() {
-    float center_x = Tile::TILE_WIDTH * 50;
-    float center_y = Tile::TILE_HEIGHT * 50;
+    constexpr float center_x = Tile::TILE_WIDTH * 50;
+    constexpr float center_y = Tile::TILE_HEIGHT * 50;
     _view.setCenter(center_x, center_y);
 }
 

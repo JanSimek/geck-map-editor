@@ -27,6 +27,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
         }
 
         frm->orientations().emplace_back();
+
         auto& direction = frm->orientations().back();
         direction.setDataOffset(dataOffset[i]);
         direction.setShiftX(shiftX[i]);
@@ -62,7 +63,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
 
             // Number of pixels for this frame
             // We don't need this, because we already have width*height
-            read_be_u32();
+            read_be_u32(); // todo check = W*H
 
             frame.setOffsetX(read_be_u16());
             frame.setOffsetY(read_be_u16());
