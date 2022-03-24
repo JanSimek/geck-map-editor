@@ -83,7 +83,7 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
         throw std::runtime_error{"LST size < PID: " + std::to_string(PID)};
     }
 
-    std::string protoName = lst->list().at(index - 1); // - 1);  // FIXME ? is it -1?
+    std::string protoName = lst->list().at(index - 1);
 
     std::filesystem::path proFilename;
     switch ((Object::OBJECT_TYPE)typeId) {
@@ -148,11 +148,7 @@ std::string MapReader::FIDtoFrmName(unsigned int FID) {
         {"art/intrface/", "art/intrface/intrface.lst"}, {"art/inven/", "art/inven/inven.lst"},
     };
 
-    //    LstReader lst_reader;
-    //    const auto lst = lst_reader.openFile(data_path / typeArtDescription.lstFilePath);
     const auto& typeArtDescription = frmTypeDescription[static_cast<size_t>(type)];
-
-    const auto data_path = FileHelper::getInstance().fallout2DataPath();
 
     const auto lst = lst_frm.at(type).get();
 
@@ -172,6 +168,8 @@ std::string MapReader::FIDtoFrmName(unsigned int FID) {
 
 MapReader::MapReader()
 {
+    spdlog::info("Initializing MapReader");
+
     std::unordered_map<FRM_TYPE, std::string> frm_lists ({
         { FRM_TYPE::ITEM,       "art/items/items.lst" },
         { FRM_TYPE::CRITTER,    "art/critters/critters.lst" },
@@ -315,18 +313,11 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
                     object->exit_elevation = read_be_i32();
                     object->exit_orientation = read_be_i32();
                     break;
-//                default:
-//                    read_be_u32();  // stream.uint32();
-//                    read_be_u32();  // stream.uint32();
-//                    read_be_u32();  // stream.uint32();
-//                    read_be_u32();  // stream.uint32();
-//                    break;
             }
             break;
         default:
             spdlog::error("Unknown object type {}", objectTypeId);
             break;
-
 //            throw std::runtime_error{"Unknown object type: " + std::to_string(objectTypeId)};
     }
 
@@ -400,6 +391,7 @@ std::unique_ptr<Map> MapReader::read() {
     }
 
     for (auto elevation = 0; elevation < elevations; ++elevation) {
+        spdlog::info("Loading tiles at elevation {}", elevation);
         for (auto i = 0U; i < Map::TILES_PER_ELEVATION; ++i) {
             uint16_t roof = read_be_u16();
             uint16_t floor = read_be_u16();
@@ -424,6 +416,7 @@ std::unique_ptr<Map> MapReader::read() {
     // SCRIPTS SECTION
     // Each section contains 16 slots for scripts
     // FIXME: Five types of scripts - create an enum
+    spdlog::info("Loading map scripts");
     for (unsigned i = 0; i < Map::SCRIPT_SECTIONS; i++) {
         uint32_t count = read_be_u32(); // total number of scripts in section
         map_file->scripts_in_section[i] = count;
@@ -511,8 +504,11 @@ std::unique_ptr<Map> MapReader::read() {
     // OBJECTS SECTION
     uint32_t total_objects = read_be_u32();  // objects total
 
+    spdlog::info("Loading {} map objects", total_objects);
     for (auto elev = 0; elev < elevations; ++elev) {
         auto objectsOnElevation = read_be_u32();
+
+        spdlog::info("Loading {} map objects on elevation {}", objectsOnElevation, elev);
         for (size_t j = 0; j != objectsOnElevation; ++j) {
 
             std::unique_ptr<MapObject> object = readMapObject();

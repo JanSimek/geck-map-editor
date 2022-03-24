@@ -4,14 +4,14 @@
 #include <string>
 #include <vector>
 
-//#include "Direction.h"
+#include "../IFile.h"
 
 namespace geck {
 
 class Direction;
 class Pal;
 
-class Frm {
+class Frm : public IFile {
 private:
     uint32_t _version;
     uint16_t _fps;
@@ -19,8 +19,6 @@ private:
     uint16_t _framesPerDirection;
 
     std::vector<Direction> _directions;
-
-    std::string _path;
 
 public:
     // TODO : enum
@@ -35,8 +33,6 @@ public:
     std::vector<Direction>& orientations();
     void setOrientations(const std::vector<Direction>& orientations);
 
-    std::string path() const;
-
     uint32_t version() const;
     void setVersion(const uint32_t& version);
 
@@ -48,6 +44,7 @@ public:
 
     uint16_t framesPerDirection() const;
     void setFramesPerDirection(const uint16_t& framesPerDirection);
+
 };
 
 }  // namespace geck

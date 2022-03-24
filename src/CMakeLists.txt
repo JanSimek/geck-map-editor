@@ -5,8 +5,8 @@ add_executable (geck-mapper
     Application.cpp
 
     util/io.h
-    util/TextureManager.h
-    util/TextureManager.cpp
+    util/ResourceManager.h
+    util/ResourceManager.cpp
     util/FileHelper.h
     util/FileHelper.cpp
 
@@ -46,6 +46,9 @@ add_executable (geck-mapper
     #
     # FILE FORMATS
     #
+
+    format/IFile.h
+    format/IFile.cpp
 
     # DAT
     format/dat/Dat.h

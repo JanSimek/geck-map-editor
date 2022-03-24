@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <numeric>
 
 #include "Direction.h"
 #include "Frame.h"
@@ -37,17 +38,5 @@ void Direction::setFrames(const std::vector<Frame>& frames) {
     _frames = frames;
 }
 
-uint16_t Direction::width() const {
-    auto widest = std::max_element(_frames.begin(), _frames.end(),
-                                   [](const Frame& a, const Frame& b) { return a.width() < b.width(); });
-
-    return static_cast<uint16_t>((widest->width() + 2) * _frames.size());
-}
-
-uint16_t Direction::height() const {
-    auto tallest = std::max_element(_frames.begin(), _frames.end(),
-                                    [](const Frame& a, const Frame& b) { return a.height() < b.height(); });
-    return tallest->height() + 2;
-}
 
 }  // namespace geck

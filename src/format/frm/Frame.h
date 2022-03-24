@@ -5,6 +5,8 @@
 
 namespace geck {
 
+class Pal;
+
 class Frame {
 private:
     uint16_t _width = 0;
@@ -12,8 +14,11 @@ private:
     int16_t _offsetX = 0;
     int16_t _offsetY = 0;
     std::vector<uint8_t> _indexes;
+    std::vector<uint8_t> _rgba;
 
 public:
+    static constexpr int RGBA = 4;  // RGBA of SFML texture
+
     Frame(uint16_t width, uint16_t height);
 
     uint16_t width() const;
@@ -31,6 +36,8 @@ public:
     uint8_t index(uint16_t x, uint16_t y) const;
 
     uint8_t* data();
+
+    uint8_t* rgba(Pal* pal);
 };
 
 }  // namespace geck

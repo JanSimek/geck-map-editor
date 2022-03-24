@@ -1,10 +1,6 @@
 #include "Frm.h"
-#include "../../util/io.h"
-#include "../pal/Pal.h"
 #include "Direction.h"
 #include "Frame.h"
-
-#include <algorithm>
 
 namespace geck {
 
@@ -14,10 +10,6 @@ std::vector<Direction>& Frm::orientations() {
 
 void Frm::setOrientations(const std::vector<Direction>& directions) {
     _directions = directions;
-}
-
-std::string Frm::path() const {
-    return _path;
 }
 
 uint32_t Frm::version() const {
@@ -51,5 +43,6 @@ uint16_t Frm::framesPerDirection() const {
 void Frm::setFramesPerDirection(const uint16_t& framesPerDirection) {
     _framesPerDirection = framesPerDirection;
 }
+
 
 }  // namespace geck

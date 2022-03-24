@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <thread>
 
-#include "../util/TextureManager.h"
+#include "../util/ResourceManager.h"
 #include "State.h"
 
 #include "../format/map/Map.h"

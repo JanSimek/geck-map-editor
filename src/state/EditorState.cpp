@@ -64,9 +64,9 @@ void EditorState::renderMainMenu() {
                 spdlog::info("Saved map test.map");
             }
             if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN " Load map", "Ctrl+L")) {
-                _appData->mapName = "";
+                _appData->mapPath = "";
                 auto loading_state = std::make_unique<LoadingState>(_appData);
-                loading_state->addLoader(std::make_unique<MapLoader>(_appData->mapName, 0)); // FIXME
+                loading_state->addLoader(std::make_unique<MapLoader>(_appData->mapPath, 0)); // FIXME
 
                 _appData->stateMachine->push(std::move(loading_state));
             }
@@ -122,7 +122,7 @@ void geck::EditorState::loadMap() {
 
     const auto data_path = FileHelper::getInstance().fallout2DataPath();
 
-    _appData->window->setTitle(_appData->mapName + " - GECK::Mapper");
+    _appData->window->setTitle(_appData->mapPath.string() + " - GECK::Mapper");
 
     _objects.clear();
     _floorSprites.clear();
@@ -131,12 +131,12 @@ void geck::EditorState::loadMap() {
     // Data
 
     MapReader map_reader;
-//    auto map = map_reader.openFile(data_path / "maps" / _appData->mapName);
 
     LstReader lst_reader;
     auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
 
     // Tiles
+    // TODO: create tile atlas like in Falltergeist Tilemap.cpp
     for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; ++tileNumber) {
         auto tile = _map->tiles().at(_currentElevation).at(tileNumber);
 
@@ -156,7 +156,7 @@ void geck::EditorState::loadMap() {
         if (tile.getFloor() != Map::EMPTY_TILE) {
             sf::Sprite floor_sprite;
             std::string floor_texture_path = "art/tiles/" + lst->at(tile.getFloor());
-            floor_sprite.setTexture(TextureManager::getInstance().get(floor_texture_path));
+            floor_sprite.setTexture(ResourceManager::getInstance().texture(floor_texture_path));
             floor_sprite.setPosition(x, y);
             _floorSprites.push_back(std::move(floor_sprite));
         }
@@ -165,12 +165,12 @@ void geck::EditorState::loadMap() {
         if (tile.getRoof() != Map::EMPTY_TILE) {
             sf::Sprite roof_sprite;
             std::string roof_texture_path = "art/tiles/" + lst->at(tile.getRoof());
-            roof_sprite.setTexture(TextureManager::getInstance().get(roof_texture_path));
+            roof_sprite.setTexture(ResourceManager::getInstance().texture(roof_texture_path));
 
             // FIXME: delete - probably won't be needed after reading the correct color.pal
-            if (tile.getRoof() == 0 || tile.getRoof() == 1) {
-                roof_sprite.setColor(sf::Color{0, 0, 0, 0});
-            }
+//            if (tile.getRoof() == 0 || tile.getRoof() == 1) {
+//                roof_sprite.setColor(sf::Color{0, 0, 0, 0});
+//            }
             constexpr int roofOffset = 96; // "roof height"
             roof_sprite.setPosition(x, y - roofOffset);
 
@@ -179,8 +179,6 @@ void geck::EditorState::loadMap() {
     }
 
     auto hexgrid = geck::HexagonGrid();
-
-    FrmReader frm_reader;
 
     // Objects
     if (_map->objects().empty()) return;
@@ -197,7 +195,7 @@ void geck::EditorState::loadMap() {
         }
 
         sf::Sprite object_sprite;
-        object_sprite.setTexture(TextureManager::getInstance().get(frmName));
+        object_sprite.setTexture(ResourceManager::getInstance().texture(frmName)); // TODO: orientation
 
         //        int hexPos = object->hexPosition();
         //        float x = hexPos % 200;
@@ -207,17 +205,15 @@ void geck::EditorState::loadMap() {
 
         const geck::Hex* hex = hexgrid.grid().at(object->position).get();
 
-        // TODO: orientation
-        const auto frmPath = data_path / frmName;
-        auto frm = frm_reader.openFile(frmPath);
+        const auto& frm = ResourceManager::getInstance().get<Frm>(frmName);
 
-        spdlog::info("Loading sprite {}", frmPath.string());
+        spdlog::info("Loading sprite {}", frmName);
 
         // center on the hex
         auto orientation = object->orientation;
 
         // FIXME: ??? one scrblk on arcaves.map
-        if (frm->orientations().size() < orientation) {
+        if (frm->orientations().size() <= orientation) {
             spdlog::error("Object has orientation {} but the FRM has only {} orientations", orientation, frm->orientations().size());
             orientation = 0;
         }
@@ -424,7 +420,7 @@ bool EditorState::quit() const {
 }
 
 void EditorState::createNewMap() {
-        _appData->mapName = "New Map";
+        _appData->mapPath = "test.map";
 
         int elevations = 1;
         int floorTileIndex = 192; // edg5000.frm
@@ -439,10 +435,10 @@ void EditorState::createNewMap() {
         auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
 
         std::string texture_path = "art/tiles/" + lst->at(floorTileIndex);
-        TextureManager::getInstance().insert(texture_path);
+        ResourceManager::getInstance().insert(texture_path);
 
         texture_path = "art/tiles/" + lst->at(roofTileIndex);
-        TextureManager::getInstance().insert(texture_path);
+        ResourceManager::getInstance().insert(texture_path);
 
         std::map<int, std::vector<Tile>> tiles;
         for (auto elevation = 0; elevation < elevations; ++elevation) {

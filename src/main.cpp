@@ -14,10 +14,10 @@ int main(int argc, char** argv) {
     std::filesystem::path data_path = std::filesystem::current_path();
 
     options.add_options()(
-        "d,data", "path to the directory where master.dat was extracted", cxxopts::value(data_path))(
-        "m,map", "name of the map to load")( //, cxxopts::value<std::string>()->default_value("kladwtwn.map"))(
-        "debug", "show debug messages")(
-        "h,help", "Print usage");
+        "d,data", "path to the directory where master.dat was extracted", cxxopts::value<std::string>()->default_value(data_path))(
+        "m,map",  "path to the map file to load", cxxopts::value<std::string>())(
+        "debug",  "show debug messages")(
+        "h,help", "print usage");
 
     auto result = options.parse(argc, argv);
 
@@ -45,7 +45,9 @@ int main(int argc, char** argv) {
 
     FileHelper::getInstance().setResourcesPath(resources_path);
 
-    geck::Application app{data_path, !result.count("map") ? std::string() : result["map"].as<std::string>()};
+    std::string map = !result.count("map") ? std::string() : result["map"].as<std::string>();
+
+    geck::Application app{data_path, map};
 
     app.run();
 

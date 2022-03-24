@@ -8,7 +8,7 @@
 #include "../../format/frm/Direction.h"
 #include "../../reader/lst/LstReader.h"
 #include "../../util/FileHelper.h"
-#include "../../util/TextureManager.h"
+#include "../../util/ResourceManager.h"
 #include "portable-file-dialogs.h"
 
 namespace geck {
@@ -18,10 +18,10 @@ MapLoader::MapLoader(const std::filesystem::path& mapFile, int elevation) : _map
 
 void MapLoader::load() {
 
-    TextureManager::getInstance().setDataPath(FileHelper::getInstance().fallout2DataPath()); // FIXME: move
-    const auto data_path = FileHelper::getInstance().fallout2DataPath();
+    // TODO: open from resource manager
 
-//    std::filesystem::path data_path = FileHelper::getInstance().fallout2DataPath();
+    ResourceManager::getInstance().setDataPath(FileHelper::getInstance().fallout2DataPath()); // FIXME: move
+    const auto data_path = FileHelper::getInstance().fallout2DataPath();
 
     if (_mapPath.empty()) {
         _mapPath = pfd::open_file("Choose Fallout 2 map to load", data_path,
@@ -32,8 +32,6 @@ void MapLoader::load() {
             spdlog::error("You must choose a Fallout 2 map file to load");
             return;
         }
-
-//        _appData->mapName = std::filesystem::path(mapFile).filename();
     }
 
     setStatus("Reading map " + _mapPath.filename().string());
@@ -43,6 +41,7 @@ void MapLoader::load() {
 
     LstReader lst_reader;
     auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
+    size_t totalTiles = lst->list().size();
 
 //    for (int elevation = 0; elevation < _map->elevations(); elevation++) {
 
@@ -54,30 +53,18 @@ void MapLoader::load() {
 
             setProgress("Loading map tile texture " + std::to_string(tileNumber + 1) + " of " + std::to_string(geck::Map::TILES_PER_ELEVATION));
 
-
             auto tile = tiles.at(tileNumber);
-
 
             // floor
             if (tile.getFloor() != Map::EMPTY_TILE) {
                 std::string floor_texture_path = "art/tiles/" + lst->at(tile.getFloor());
-                TextureManager::getInstance().insert(floor_texture_path);
+                ResourceManager::getInstance().insert(floor_texture_path);
             }
 
             // roof
-
-            // !!!!!!!!!!!!!!!!!!!!!
-            // FIXME: why does this check slow down the loading so much ????????????????
-            // !!!!!!!!!!!!!!!!!!!!!
-            // FIXME: epax 7913 - main EPA building roof tiles
-//            if (tile.getRoof() > lst->list().size()) {
-//                spdlog::error("Roof tile number {} has roof ID {} which overflows the LST size {}. Correcting to {}", tileNumber, tile.getRoof(), lst->list().size(), Map::EMPTY_TILE);
-//                tile = Tile(tile.getFloor(), Map::EMPTY_TILE);
-//            }
-
             if (tile.getRoof() != Map::EMPTY_TILE) {
                 std::string roof_texture_path = "art/tiles/" + lst->at(tile.getRoof());
-                TextureManager::getInstance().insert(roof_texture_path);
+                ResourceManager::getInstance().insert(roof_texture_path);
             }
         }
 
@@ -89,18 +76,17 @@ void MapLoader::load() {
 
             setProgress("Loading map object " + std::to_string(objectNumber++) + " of " + std::to_string(objectsTotal));
 
-
             if (object->position == -1)
                 continue;  // object inside an inventory/container
 
             const std::string frmName = map_reader.FIDtoFrmName(object->frm_pid);
 
-            if (frmName.empty()) {
-                spdlog::error("Empty FRM file path on hex number " + std::to_string(object->position));
-                continue;  // this should probably never happen
-            }
+//            if (frmName.empty()) {
+//                spdlog::error("Empty FRM file path on hex number " + std::to_string(object->position));
+//                continue;  // this should probably never happen
+//            }
 
-            TextureManager::getInstance().insert(frmName, object->orientation);
+            ResourceManager::getInstance().insert(frmName);
         }
 //    }
     done = true;

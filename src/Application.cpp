@@ -13,11 +13,11 @@
 
 namespace geck {
 
-Application::Application(const std::filesystem::path& dataPath, const std::string& mapName)
+Application::Application(const std::filesystem::path& dataPath, const std::filesystem::path& mapPath)
     : _running(false),
       _window(std::make_unique<sf::RenderWindow>(sf::VideoMode(1280, 960), "GECK::Mapper")),
       _stateMachine(std::make_shared<StateMachine>()),
-      _appData(std::make_shared<AppData>(AppData{_window, _stateMachine, mapName})) {
+      _appData(std::make_shared<AppData>(AppData{_window, _stateMachine, mapPath})) {
 
     sf::Image icon;
     icon.loadFromFile(FileHelper::getInstance().resourcesPath() / "icon.png");
@@ -31,7 +31,7 @@ Application::Application(const std::filesystem::path& dataPath, const std::strin
 void Application::loadMap() {
 
     auto loading_state = std::make_unique<LoadingState>(_appData);
-    loading_state->addLoader(std::make_unique<MapLoader>(_appData->mapName, 0)); // FIXME: default elevation
+    loading_state->addLoader(std::make_unique<MapLoader>(_appData->mapPath, 0)); // FIXME: default elevation
 
     _stateMachine->push(std::move(loading_state));
 }
