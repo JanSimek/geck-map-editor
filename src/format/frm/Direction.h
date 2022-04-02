@@ -26,6 +26,9 @@ public:
 
     std::vector<Frame>& frames();
     void setFrames(const std::vector<Frame>& frames);
+
+    uint16_t width() const;
+    uint16_t height() const;
 };
 
 }  // namespace geck

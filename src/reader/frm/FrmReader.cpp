@@ -13,25 +13,33 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
     frm->setActionFrame(read_be_u16());
     frm->setFramesPerDirection(read_be_u16());
 
-    uint16_t shiftX[Frm::ORIENTATIONS];
-    uint16_t shiftY[Frm::ORIENTATIONS];
-    uint32_t dataOffset[Frm::ORIENTATIONS];
-    for (unsigned int i = 0; i != Frm::ORIENTATIONS; ++i)
+    uint16_t shiftX[Frm::DIRECTIONS];
+    uint16_t shiftY[Frm::DIRECTIONS];
+    uint32_t dataOffset[Frm::DIRECTIONS];
+
+    std::vector<Direction> directions;
+    for (unsigned int i = 0; i != Frm::DIRECTIONS; ++i)
         shiftX[i] = read_be_u16();
-    for (unsigned int i = 0; i != Frm::ORIENTATIONS; ++i)
+    for (unsigned int i = 0; i != Frm::DIRECTIONS; ++i)
         shiftY[i] = read_be_u16();
-    for (unsigned int i = 0; i != Frm::ORIENTATIONS; ++i) {
+    for (unsigned int i = 0; i != Frm::DIRECTIONS; ++i) {
         dataOffset[i] = read_be_u32();
         if (i > 0 && dataOffset[i - 1] == dataOffset[i]) {
             continue;
         }
 
-        frm->orientations().emplace_back();
+//        frm->directions().emplace_back();
 
-        auto& direction = frm->orientations().back();
+//        auto& direction = frm->directions().back();
+//        direction.setDataOffset(dataOffset[i]);
+//        direction.setShiftX(shiftX[i]);
+//        direction.setShiftY(shiftY[i]);
+        Direction direction{};
         direction.setDataOffset(dataOffset[i]);
         direction.setShiftX(shiftX[i]);
         direction.setShiftY(shiftY[i]);
+
+        directions.emplace_back(direction);
     }
 
     uint32_t size_of_frame_data = read_be_u32();
@@ -46,7 +54,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
     }
 
     // for each direction
-    for (auto& direction : frm->orientations()) {
+    for (auto& direction : directions) {
         // jump to frames data at frames area
         std::streamoff frame_data_offset = data_start + static_cast<std::streamoff>(direction.dataOffset());
 
@@ -59,7 +67,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
 
             Frame frame(width, height);
 
-            //            auto& frame = direction.frames().back();
+            // auto& frame = direction.frames().back();
 
             // Number of pixels for this frame
             // We don't need this, because we already have width*height
@@ -74,6 +82,8 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
             direction.frames().emplace_back(frame);
         }
     }
+
+    frm->setDirections(directions);
 
     return frm;
 }

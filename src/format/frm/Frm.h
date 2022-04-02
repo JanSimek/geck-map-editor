@@ -6,6 +6,8 @@
 
 #include "../IFile.h"
 
+#include <SFML/Graphics/Image.hpp>
+
 namespace geck {
 
 class Direction;
@@ -20,6 +22,12 @@ private:
 
     std::vector<Direction> _directions;
 
+    sf::Image _image;
+
+    uint16_t _maxFrameWidth;
+    uint16_t _maxFrameHeight;
+
+    void updateFrameDimensions();
 public:
     // TODO : enum
     //    north_east,
@@ -28,10 +36,10 @@ public:
     //    south_west,
     //    west,
     //    north_west,
-    constexpr static int ORIENTATIONS = 6;
+    constexpr static int DIRECTIONS = 6;
 
-    std::vector<Direction>& orientations();
-    void setOrientations(const std::vector<Direction>& orientations);
+    const std::vector<Direction>& directions() const;
+    void setDirections(std::vector<Direction> directions);
 
     uint32_t version() const;
     void setVersion(const uint32_t& version);
@@ -45,6 +53,14 @@ public:
     uint16_t framesPerDirection() const;
     void setFramesPerDirection(const uint16_t& framesPerDirection);
 
+    uint16_t width() const;
+    uint16_t height() const;
+
+    uint16_t maxFrameWidth() const;
+    uint16_t maxFrameHeight() const;
+
+//    const std::vector<uint8_t> rgba(Pal &pal);
+    const sf::Image& image(Pal* pal);
 };
 
 }  // namespace geck

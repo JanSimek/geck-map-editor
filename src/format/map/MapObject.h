@@ -16,7 +16,7 @@ struct MapObject {
     int32_t sx;
     int32_t sy;
     uint32_t frame_number;
-    uint32_t orientation;
+    uint32_t direction;
     uint32_t frm_pid; // FID
     uint32_t flags;
     uint32_t elevation;

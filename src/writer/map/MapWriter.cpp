@@ -12,7 +12,7 @@ namespace geck {
 bool MapWriter::write(const Map::MapFile &map)
 {
     if (!stream.is_open()) {
-        spdlog::error("Cannot save map. File {} is not opened for writing.", path.string());
+        spdlog::error("Cannot save map. File {} is not open for writing.", path.string());
         return false;
     }
 
@@ -139,7 +139,7 @@ bool MapWriter::write(const Map::MapFile &map)
                 spdlog::info("{0:X}", object->sx);
                 spdlog::info("{0:X}", object->sy);
                 spdlog::info("{0:X}", object->frame_number);
-                spdlog::info("{0:X}", object->orientation);
+                spdlog::info("{0:X}", object->direction);
                 spdlog::info("{0:X}", object->frm_pid);
                 spdlog::info("{0:X}", object->flags);
                 spdlog::info("{0:X}", object->elevation);
@@ -159,8 +159,8 @@ bool MapWriter::write(const Map::MapFile &map)
     }
 
     // TODO: check: at least on artemple.map there are 2x extra 0x000000 at the end of the file
-    write_be_32(0);
-    write_be_32(0);
+//    write_be_32(0);
+//    write_be_32(0);
 
     return true;
 }
@@ -218,7 +218,7 @@ void MapWriter::writeObject(const MapObject& object) {
     write_be_32(object.sx);
     write_be_32(object.sy);
     write_be_32(object.frame_number);
-    write_be_32(object.orientation);
+    write_be_32(object.direction);
     write_be_32(object.frm_pid);
     write_be_32(object.flags);
     write_be_32(object.elevation);

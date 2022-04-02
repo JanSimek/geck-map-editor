@@ -30,12 +30,40 @@ void Direction::setDataOffset(const uint32_t& dataOffset) {
     _dataOffset = dataOffset;
 }
 
-std::vector<Frame>& Direction::frames() {
+std::vector<Frame> &Direction::frames() {
     return _frames;
 }
 
 void Direction::setFrames(const std::vector<Frame>& frames) {
     _frames = frames;
+}
+
+/**
+ * @brief Calculates the width by taking the widest frame and multiplying it by the number of frames
+ * @return width of all frames resized to the width of the widest frame
+ */
+uint16_t Direction::width() const
+{
+    auto widest = std::max_element(_frames.begin(), _frames.end(), [](const Frame& a, const Frame& b)
+    {
+        return a.width() < b.width();
+    });
+
+    return widest->width() * _frames.size();
+}
+
+/**
+ * @brief Finds the height of the tallest frame (frames are stacked horizontally)
+ * @return height of the tallest frame
+ */
+uint16_t Direction::height() const
+{
+    auto tallest = std::max_element(_frames.begin(), _frames.end(), [](const Frame& a, const Frame& b)
+    {
+        return a.height() < b.height();
+    });
+
+    return tallest->height();
 }
 
 

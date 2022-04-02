@@ -57,18 +57,11 @@ const sf::Texture& ResourceManager::texture(const std::string& filename) {
             throw std::runtime_error{"Texture " + _dataPath.string() + "/" + filename + " does not exist"};
         }
 
-        // FIXME: using just the first frame for now
-        constexpr int orienation = 0;
-        geck::Frame frame = frm->orientations().at(orienation).frames().front();
-
-        sf::Image image{};
-        image.create(frame.width(), frame.height(), frame.rgba(_pal.get()));
-
         auto texture = std::make_unique<sf::Texture>();
 //        texture->create(frame.width(), frame.height());
 //        texture->update(&frame.rgba[0]);
 
-        texture->loadFromImage(image);
+        texture->loadFromImage(frm->image(_pal.get()));
 
         auto loaded = _textures.insert(std::make_pair(filename, std::move(texture)));
 

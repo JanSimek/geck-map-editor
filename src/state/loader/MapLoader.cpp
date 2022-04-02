@@ -34,7 +34,9 @@ void MapLoader::load() {
         }
     }
 
-    setStatus("Reading map " + _mapPath.filename().string());
+    setStatus("Loading map " + _mapPath.filename().string());
+
+    setProgress("Parsing map file");
 
     MapReader map_reader;
     _map = map_reader.openFile(_mapPath);
@@ -45,7 +47,7 @@ void MapLoader::load() {
 
 //    for (int elevation = 0; elevation < _map->elevations(); elevation++) {
 
-        setStatus("Loading map " + _mapPath.filename().string() + " elevation #" + std::to_string(_elevation + 1));
+//        setStatus("Loading map " + _mapPath.filename().string() + " elevation #" + std::to_string(_elevation + 1));
 
         // Tiles
         auto tiles = _map->tiles().at(_elevation);
