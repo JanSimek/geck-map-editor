@@ -19,9 +19,9 @@ Application::Application(const std::filesystem::path& dataPath, const std::files
       _stateMachine(std::make_shared<StateMachine>()),
       _appData(std::make_shared<AppData>(AppData{_window, _stateMachine, mapPath})) {
 
-    sf::Image icon;
-    icon.loadFromFile(FileHelper::getInstance().resourcesPath() / "icon.png");
-    _window->setIcon(600, 600, icon.getPixelsPtr());
+    //sf::Image icon;
+    //icon.loadFromFile((FileHelper::getInstance().resourcesPath() / "icon.png").string());
+    //_window->setIcon(600, 600, icon.getPixelsPtr());
 
     initUI();
 
@@ -56,7 +56,7 @@ void Application::initUI() {
 
     // default UI font
     std::filesystem::path main_font = resources_path / FONT_MAIN;
-    io.Fonts->AddFontFromFileTTF(main_font.c_str(), 18.0f);
+    io.Fonts->AddFontFromFileTTF(main_font.string().c_str(), 18.0f);
 
     // icon font - merge in icons from Font Awesome
     static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
@@ -66,7 +66,7 @@ void Application::initUI() {
     icons_config.GlyphOffset = ImVec2(0, 1);
 
     std::filesystem::path icon_font = resources_path / FONT_ICON;
-    io.Fonts->AddFontFromFileTTF(icon_font.c_str(), 16.0f, &icons_config, icons_ranges);
+    io.Fonts->AddFontFromFileTTF(icon_font.string().c_str(), 16.0f, &icons_config, icons_ranges);
 
     ImGui::SFML::UpdateFontTexture();
 

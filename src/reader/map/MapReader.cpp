@@ -23,6 +23,11 @@
 
 #include "../../writer/map/MapWriter.h"
 
+// FIXME
+#ifdef INTERFACE
+#undef INTERFACE
+#endif
+
 namespace geck {
 
 // TODO: namespace Map...
@@ -464,7 +469,7 @@ std::unique_ptr<Map> MapReader::read() {
                     case 9:
                         break;
                     default:
-                        spdlog::debug("Unknown script PID = " + std::to_string((pid & 0xFF000000) >> 24));
+                        spdlog::error("Unknown script PID = " + std::to_string((pid & 0xFF000000) >> 24));
                         break;
                 }
                 map_script.flags = read_be_u32();  // flags

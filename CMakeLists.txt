@@ -5,6 +5,9 @@ project (geck-mapper
     VERSION 0.1
 )
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "Setting build type to Release as none was specified.")
   set(CMAKE_BUILD_TYPE "Release" CACHE
@@ -18,14 +21,18 @@ include(cmake/CPM.cmake)
 CPMAddPackage("gh:samhocevar/portable-file-dialogs#0.1.0")
 CPMAddPackage("gh:gabime/spdlog@1.8.2")
 CPMAddPackage("gh:jarro2783/cxxopts@2.2.1")
-CPMAddPackage("gh:SFML/SFML#2.5.1")
-CPMAddPackage("gh:ocornut/imgui#docking")
-CPMAddPackage(
-    GITHUB_REPOSITORY "eliasdaler/imgui-sfml"
-    VERSION "2.3"
-    OPTIONS "IMGUI_DIR ${imgui_SOURCE_DIR}"
-)
-add_compile_definitions(IMGUI_DISABLE_DEMO_WINDOWS) # imgui-sfml doesn't compile demo by default
+
+#CPMAddPackage("gh:SFML/SFML#2.5.1")
+#CPMAddPackage("gh:ocornut/imgui#docking")
+#CPMAddPackage(
+#    GITHUB_REPOSITORY "eliasdaler/imgui-sfml"
+#    VERSION "2.3"
+#    OPTIONS "IMGUI_DIR ${imgui_SOURCE_DIR}"
+#)
+
+find_package(imgui REQUIRED)
+find_package(SFML COMPONENTS system window graphics REQUIRED)
+find_package(ImGui-SFML REQUIRED)
 
 add_subdirectory(src)
 

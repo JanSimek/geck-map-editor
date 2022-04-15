@@ -42,7 +42,7 @@ public:
 
     const sf::Texture& texture(const std::string& filename);
 
-    void setDataPath(const std::string& path);
+    void setDataPath(const std::filesystem::path& path);
 };
 
 }  // namespace geck

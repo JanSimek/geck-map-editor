@@ -3,7 +3,14 @@
 #include <fstream>
 #include <filesystem>
 
-#include <arpa/inet.h> // htonl
+// htonl, htons
+#ifdef _WIN32
+#define NOMINMAX // sfml conflict
+#pragma comment(lib, "ws2_32.lib")  // Winsock
+#include <winsock.h>
+#else
+#include <arpa/inet.h>
+#endif
 
 template <typename T>
 class FileWriter {

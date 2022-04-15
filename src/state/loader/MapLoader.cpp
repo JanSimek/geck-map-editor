@@ -24,7 +24,7 @@ void MapLoader::load() {
     const auto data_path = FileHelper::getInstance().fallout2DataPath();
 
     if (_mapPath.empty()) {
-        _mapPath = pfd::open_file("Choose Fallout 2 map to load", data_path,
+        _mapPath = pfd::open_file("Choose Fallout 2 map to load", data_path.string(),
                                  { "Fallout 2 map (.map)", "*.map" },
                                  pfd::opt::none).result().front();
 

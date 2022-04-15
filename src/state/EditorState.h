@@ -12,7 +12,7 @@
 
 namespace geck {
 
-class AppData;
+struct AppData;
 class Map;
 
 class EditorState : public State {

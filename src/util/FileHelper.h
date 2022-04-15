@@ -7,8 +7,8 @@ class FileHelper {
 private:
     FileHelper() {}
 
-    std::string _path;
-    std::string _fallout2DataPath;
+    std::filesystem::path _path;
+    std::filesystem::path _fallout2DataPath;
 
 public:
     // Singleton

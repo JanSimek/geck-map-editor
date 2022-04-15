@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
 
     spdlog::set_pattern("[%^%l%$] [thread %t] %v");
 
-    std::filesystem::path data_path = std::filesystem::current_path();
+    std::string data_path = std::filesystem::current_path().string();
 
     options.add_options()(
         "d,data", "path to the directory where master.dat was extracted", cxxopts::value<std::string>()->default_value(data_path))(

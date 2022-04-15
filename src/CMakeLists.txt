@@ -129,11 +129,14 @@ add_executable (geck-mapper
 )
 
 target_link_libraries(geck-mapper PRIVATE
+    sfml-system sfml-graphics sfml-window
+    imgui::imgui
     ImGui-SFML::ImGui-SFML
     portable_file_dialogs
     cxxopts
     spdlog
 )
-#target_include_directories(geck-mapper portable-file-dialogs_H))
-target_compile_features(geck-mapper PRIVATE cxx_std_20)
+
+target_include_directories(geck-mapper PRIVATE ${imgui_SOURCE_DIR})
+
 set_target_properties(geck-mapper PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")

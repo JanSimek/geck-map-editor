@@ -17,21 +17,31 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          # - {
-          #     os: windows-latest,
-          #     name: "Windows MSVC",
-          #     cc: cl,
-          #     cxx: cl,
-          #     cflags: ""
-          #   }
-          # - {
-          #     os: windows-latest,
-          #     name: "Windows Clang",
-          #     cc: clang-cl,
-          #     cxx: clang-cl,
-          #   }
-          - { os: ubuntu-latest, name: "Linux Clang", cc: clang, cxx: clang++ }
-          - { os: ubuntu-latest, name: "Linux GCC", cc: gcc-10, cxx: g++-10 }
+          - {
+              os: windows-latest,
+              name: "Windows MSVC",
+              cc: cl,
+              cxx: cl,
+              cflags: "",
+            }
+          - {
+              os: windows-latest,
+              name: "Windows Clang",
+              cc: clang-cl,
+              cxx: clang-cl,
+            }
+          - { 
+              os: ubuntu-latest, 
+              name: "Linux Clang", 
+              cc: clang, 
+              cxx: clang++ 
+            }
+          - { 
+              os: ubuntu-latest, 
+              name: "Linux GCC", 
+              cc: gcc-10, 
+              cxx: g++-10 
+            }
         # - {
         #     os: macos-latest,
         #     name: "OS X GCC",
@@ -42,31 +52,39 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      # FIXME imgui-sfml
       - name: Install dependencies via apt
         if: runner.os == 'Linux'
         shell: bash
         run: |
           set -e
           sudo apt-get update
-          sudo apt-get install xorg-dev libudev-dev libfreetype-dev libopenal-dev libxrandr-dev libflac-dev libvorbis-dev
+          sudo apt-get install xorg-dev libudev-dev libfreetype-dev libopenal-dev libxrandr-dev libflac-dev libvorbis-dev libsfml-dev libimgui-dev
+
+      - name: Install dependencies via vcpkg
+        if: runner.os == 'Windows'
+        run: |
+          vcpkg install --triplet x64-windows imgui[docking-experimental] sfml imgui-sfml
 
       # sudo apt-get build-dep libsfml-window2.5 libsfml-system2.5 libsfml-graphics2.5
 
-      # - name: Install conan
-      #   shell: bash
-      #   run: |
-      #     python3 -m pip install --upgrade pip setuptools
-      #     python3 -m pip install conan
-      #     source ~/.profile
-
       - name: Configure CMake
-        # Use a bash shell so we can use the same syntax for environment variable
-        # access regardless of the host operating system
         shell: bash
-        # We need to source the profile file to make sure conan is in PATH
         run: |
-          source ~/.profile
-          cmake -B build -DCMAKE_C_COMPILER=${{matrix.config.cc}} -DCMAKE_CXX_COMPILER=${{matrix.config.cxx}}
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            cmake \
+              -B ./build \
+              -DCMAKE_C_COMPILER=${{matrix.config.cc}} \
+              -DCMAKE_CXX_COMPILER=${{matrix.config.cxx}} \
+              -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake \
+              .
+          else
+            cmake \
+              -B ./build \
+              -DCMAKE_C_COMPILER=${{matrix.config.cc}} \
+              -DCMAKE_CXX_COMPILER=${{matrix.config.cxx}} \
+              .
+          fi
 
       - name: Build
         shell: bash

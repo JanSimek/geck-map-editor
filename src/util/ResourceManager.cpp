@@ -23,7 +23,7 @@ void ResourceManager::insert(const std::string& filename) {
 
     // lowercase file extension
     std::string extension = [&]() -> std::string {
-        std::string s = std::filesystem::path(filename).extension();
+        std::string s = std::filesystem::path(filename).extension().string();
         std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
         return s;
     }();
@@ -31,16 +31,16 @@ void ResourceManager::insert(const std::string& filename) {
     if (extension.rfind(".frm", 0) == 0) {  // frm, frm0, frmX..
         if (!_initialized) {
             PalReader pal_reader;
-            _pal = pal_reader.openFile(_dataPath / "color.pal");  // TODO: custom .pal
+            _pal = pal_reader.openFile((_dataPath / "color.pal").string());  // TODO: custom .pal
             _initialized = true;
         }
         FrmReader frm_reader;
-        auto frm = frm_reader.openFile(_dataPath / filename);
+        auto frm = frm_reader.openFile((_dataPath / filename).string());
 
         add(filename, std::move(frm));
     } else {
         auto texture = std::make_unique<sf::Texture>();
-        if (!texture->loadFromFile(_dataPath / filename)) {  // default to SFML's implementation
+        if (!texture->loadFromFile((_dataPath / filename).string())) {  // default to SFML's implementation
             throw std::runtime_error{"Failed to load texture " + _dataPath.string() + "/" + filename + ", extension: " + extension};
         }
         _textures.insert(std::make_pair(filename, std::move(texture)));
@@ -75,7 +75,7 @@ const sf::Texture& ResourceManager::texture(const std::string& filename) {
     return *found->second;
 }
 
-void ResourceManager::setDataPath(const std::string& path) {
+void ResourceManager::setDataPath(const std::filesystem::path& path) {
     _dataPath = path;
 }
 

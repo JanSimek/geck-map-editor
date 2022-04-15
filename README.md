@@ -8,7 +8,9 @@ At the current stage this is nothing more than a map viewer but one day it will 
 
 ## Building from source
 
-```
+### Linux
+
+```bash
 # Install dependencies (Ubuntu)
 sudo apt install libopenal-dev libogg-dev libflac-dev
 
@@ -17,8 +19,18 @@ cd geck-map-editor
 mkdir build && cd build
 cmake ..
 make
-
 ```
+
+### Windows
+
+The easiest way to build GECK on Windows is to use [vcpkg](https://vcpkg.io/) for dependency management and the latest Visual Studio for compilation.
+
+```bash
+vcpkg.exe integrate install
+vcpkg.exe install --triplet x64-windows imgui[docking-experimental] sfml imgui-sfml
+```
+
+Now just open and build the project in Visual Studio.
 
 ## Usage
 
