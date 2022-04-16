@@ -22,17 +22,21 @@ CPMAddPackage("gh:samhocevar/portable-file-dialogs#0.1.0")
 CPMAddPackage("gh:gabime/spdlog@1.8.2")
 CPMAddPackage("gh:jarro2783/cxxopts@2.2.1")
 
-#CPMAddPackage("gh:SFML/SFML#2.5.1")
-#CPMAddPackage("gh:ocornut/imgui#docking")
-#CPMAddPackage(
-#    GITHUB_REPOSITORY "eliasdaler/imgui-sfml"
-#    VERSION "2.3"
-#    OPTIONS "IMGUI_DIR ${imgui_SOURCE_DIR}"
-#)
-
-find_package(imgui REQUIRED)
-find_package(SFML COMPONENTS system window graphics REQUIRED)
-find_package(ImGui-SFML REQUIRED)
+if(NOT WIN32) # imgui-sfml from CPMAddPackage fails to compile with imgui on Windows
+    CPMAddPackage("gh:SFML/SFML#2.5.1")
+    CPMAddPackage("gh:ocornut/imgui#docking")
+    add_library(imgui INTERFACE)
+    add_library(imgui::imgui ALIAS imgui)
+    CPMAddPackage(
+        GITHUB_REPOSITORY "eliasdaler/imgui-sfml"
+        VERSION "2.3"
+        OPTIONS "IMGUI_DIR ${imgui_SOURCE_DIR}"
+    )
+else() # vcpkg
+    find_package(imgui REQUIRED)
+    find_package(SFML COMPONENTS system window graphics REQUIRED)
+    find_package(ImGui-SFML REQUIRED)
+endif()
 
 add_subdirectory(src)
 
