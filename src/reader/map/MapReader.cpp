@@ -23,7 +23,7 @@
 
 #include "../../writer/map/MapWriter.h"
 
-// FIXME
+// FIXME: Windows conflict
 #ifdef INTERFACE
 #undef INTERFACE
 #endif
@@ -56,24 +56,23 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
     const auto data_path = FileHelper::getInstance().fallout2DataPath();
     auto listFile = data_path;
 
-    switch ((Object::OBJECT_TYPE)typeId) {
-        using enum Object::OBJECT_TYPE;
-        case ITEM:
+    switch (static_cast<Object::OBJECT_TYPE>(typeId)) {
+        case Object::OBJECT_TYPE::ITEM:
             listFile /= "proto/items/items.lst";
             break;
-        case CRITTER:
+        case Object::OBJECT_TYPE::CRITTER:
             listFile /= "proto/critters/critters.lst";
             break;
-        case SCENERY:
+        case Object::OBJECT_TYPE::SCENERY:
             listFile /= "proto/scenery/scenery.lst";
             break;
-        case WALL:
+        case Object::OBJECT_TYPE::WALL:
             listFile /= "proto/walls/walls.lst";
             break;
-        case TILE:
+        case Object::OBJECT_TYPE::TILE:
             listFile /= "proto/tiles/tiles.lst";
             break;
-        case MISC:
+        case Object::OBJECT_TYPE::MISC:
             listFile /= "proto/misc/misc.lst";
             break;
         default:
@@ -93,23 +92,22 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
 
     std::filesystem::path proFilename;
     switch (static_cast<Object::OBJECT_TYPE>(typeId)) {
-        using enum Object::OBJECT_TYPE;
-        case ITEM:
+        case Object::OBJECT_TYPE::ITEM:
             proFilename /= "proto/items";
             break;
-        case CRITTER:
+        case Object::OBJECT_TYPE::CRITTER:
             proFilename /= "proto/critters";
             break;
-        case SCENERY:
+        case Object::OBJECT_TYPE::SCENERY:
             proFilename /= "proto/scenery";
             break;
-        case WALL:
+        case Object::OBJECT_TYPE::WALL:
             proFilename /= "proto/walls";
             break;
-        case TILE:
+        case Object::OBJECT_TYPE::TILE:
             proFilename /= "proto/tiles";
             break;
-        case MISC:
+        case Object::OBJECT_TYPE::MISC:
             proFilename /= "proto/misc";
             break;
     };
@@ -226,33 +224,31 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
     uint32_t objectId = 0x00FFFFFF & object->pro_pid;
 
     switch (static_cast<Object::OBJECT_TYPE>(objectTypeId)) {
-        using enum Object::OBJECT_TYPE;
-        case ITEM:
+        case Object::OBJECT_TYPE::ITEM:
             {
                 uint32_t subtype_id = loadPro(object->pro_pid)->objectSubtypeId();
                 switch (static_cast<Object::ITEM_TYPE>(subtype_id)) {
-                    using enum Object::ITEM_TYPE;
-                    case AMMO: // ammo
-                    case MISC: // charges - have strangely high values, or negative.
+                    case Object::ITEM_TYPE::AMMO: // ammo
+                    case Object::ITEM_TYPE::MISC: // charges - have strangely high values, or negative.
                         object->ammo = read_be_u32(); // bullets
                         break;
-                    case KEY:
+                    case Object::ITEM_TYPE::KEY:
                         object->keycode = read_be_u32(); // keycode = -1 in all maps. saves only? ignore for now
                         break;
-                    case WEAPON:
+                    case Object::ITEM_TYPE::WEAPON:
                         object->ammo = read_be_u32();  // ammo
                         object->ammo_pid = read_be_u32();  // ammo pid
                         break;
-                    case ARMOR:
-                    case CONTAINER:
-                    case DRUG:
+                    case Object::ITEM_TYPE::ARMOR:
+                    case Object::ITEM_TYPE::CONTAINER:
+                    case Object::ITEM_TYPE::DRUG:
                         break;
                     default:
                         throw std::runtime_error{"Unknown item type " + std::to_string(objectTypeId)};
                 }
             }
             break;
-        case CRITTER:
+        case Object::OBJECT_TYPE::CRITTER:
             {
                 object->player_reaction = read_be_u32();  // reaction to player - saves only
                 object->current_mp = read_be_u32();  // stream.uint32(); //current mp - saves only
@@ -267,43 +263,42 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
             }
             break;
 
-        case SCENERY:
+        case Object::OBJECT_TYPE::SCENERY:
             {
                 uint32_t subtype_id = loadPro(object->pro_pid)->objectSubtypeId();
                 switch (static_cast<Object::SCENERY_TYPE>(subtype_id)) {
-                    using enum Object::SCENERY_TYPE;
-                    case LADDER_TOP:
-                    case LADDER_BOTTOM:
+                    case Object::SCENERY_TYPE::LADDER_TOP:
+                    case Object::SCENERY_TYPE::LADDER_BOTTOM:
                         object->map = read_be_u32();
                         object->elevhex = read_be_u32();
                         // hex = elevhex & 0xFFFF;
                         // elev = ((elevhex >> 28) & 0xf) >> 1;
                         break;
-                    case STAIRS:
+                    case Object::SCENERY_TYPE::STAIRS:
                         // looks like for ladders and stairs map and elev+hex fields in the different order
                         object->elevhex = read_be_u32();
                         object->map = read_be_u32();
                         // hex = elevhex & 0xFFFF;
                         // elev = ((elevhex >> 28) & 0xf) >> 1;
                         break;
-                    case ELEVATOR:
+                    case Object::SCENERY_TYPE::ELEVATOR:
                         object->elevtype = read_be_u32();  // elevator type - sometimes -1
                         object->elevlevel = read_be_u32();  // current level - sometimes -1
                         break;
-                    case DOOR:
+                    case Object::SCENERY_TYPE::DOOR:
                         object->walkthrough = read_be_u32();  // != 0 -> is opened;
                         break;
-                    case GENERIC:
+                    case Object::SCENERY_TYPE::GENERIC:
                         break;
                     default:
                         throw std::runtime_error{"Unknown scenery type: " + std::to_string(subtype_id)};
                 }
             }
             break;
-        case WALL:
-        case TILE:
+        case Object::OBJECT_TYPE::WALL:
+        case Object::OBJECT_TYPE::TILE:
             break;
-        case MISC:
+        case Object::OBJECT_TYPE::MISC:
 
             switch (objectId) {
                 case 12:
