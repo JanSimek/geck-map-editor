@@ -32,7 +32,9 @@
 *.app
 
 CMakeLists.txt.user
+#CMakeSettings.json
 build/
+.vs/
 
 # All the stuff that running cmake adds
 CMakeCache.txt

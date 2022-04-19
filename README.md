@@ -1,6 +1,6 @@
 # GECK::Mapper - Fallout 2 map editor
 
-![](https://github.com/JanSimek/geck-map-editor/workflows/Build/badge.svg) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/50b6611a3e2246c6b07282f87aa5940a)](https://www.codacy.com/gh/JanSimek/geck-map-editor/dashboard?utm_source=github.com&utm_medium=referral&utm_content=JanSimek/geck-map-editor&utm_campaign=Badge_Grade)
+[![Build](https://github.com/JanSimek/geck-map-editor/workflows/Build/badge.svg)](https://github.com/JanSimek/geck-map-editor/actions) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/50b6611a3e2246c6b07282f87aa5940a)](https://www.codacy.com/gh/JanSimek/geck-map-editor/dashboard?utm_source=github.com&utm_medium=referral&utm_content=JanSimek/geck-map-editor&utm_campaign=Badge_Grade)
 
 At the current stage this is nothing more than a map viewer but one day it will hopefully become a fully-featured map editor. Any help is appreciated.
 
@@ -12,7 +12,7 @@ At the current stage this is nothing more than a map viewer but one day it will 
 
 ```bash
 # Install dependencies (Ubuntu)
-sudo apt install libopenal-dev libogg-dev libflac-dev
+sudo apt install libsfml-dev
 
 # Enter the cloned git repo folder
 cd geck-map-editor
@@ -27,14 +27,14 @@ The easiest way to build GECK on Windows is to use [vcpkg](https://vcpkg.io/) fo
 
 ```bash
 vcpkg.exe integrate install
-vcpkg.exe install --triplet x64-windows imgui[docking-experimental] sfml imgui-sfml
+vcpkg.exe install --triplet x64-windows sfml
 ```
 
 Now just open and build the project in Visual Studio.
 
 ## Usage
 
-It's currently not possible to load assets directly from master.dat and critter.dat. You must extract these archives using [dat-unpacker](https://github.com/falltergeist/dat-unpacker), for example. By default GECK::Mapper will load files from the `resources` subdirectory.
+It's currently not possible to load assets directly from master.dat and critter.dat. You must extract these archives using [dat-unpacker](https://github.com/falltergeist/dat-unpacker) and convert all files to *lowercase* using the `--transform` option. By default GECK::Mapper will load files from the `resources` subdirectory.
 
 Use arrow keys or right-click and drag to pan the view.
 
@@ -44,7 +44,7 @@ The goal is to be compatible with vanilla Fallout 2. That means loading maps mad
 
 ## Credits
 
-I would have never been able to reach this stage without the code from [Falltergeist](https://github.com/falltergeist/falltergeist/), [Klamath](https://github.com/adamkewley/klamath), [FRM-Viewer](https://github.com/Primagen/Fallout-FRM-Viewer) and [darkfo](https://github.com/darkf/darkfo).
+I would have never been able to reach this stage without the code from [Falltergeist](https://github.com/falltergeist/falltergeist/), [Klamath](https://github.com/adamkewley/klamath), [FRM-Viewer](https://github.com/Primagen/Fallout-FRM-Viewer), [Dims Mapper](https://github.com/FakelsHub/F2_Mapper_Dims) and [darkfo](https://github.com/darkf/darkfo).
 
 # Useful links
 

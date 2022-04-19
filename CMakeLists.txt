@@ -1,4 +1,4 @@
-﻿cmake_minimum_required (VERSION 3.8)
+﻿cmake_minimum_required (VERSION 3.22)
 
 project (geck-mapper 
     LANGUAGES CXX
@@ -16,27 +16,26 @@ if(NOT CMAKE_BUILD_TYPE)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-include(cmake/CPM.cmake)
+##################################################
+# dependencies
 
-CPMAddPackage("gh:samhocevar/portable-file-dialogs#0.1.0")
-CPMAddPackage("gh:gabime/spdlog@1.8.2")
-CPMAddPackage("gh:jarro2783/cxxopts@2.2.1")
+find_package(SFML COMPONENTS system window graphics REQUIRED)
 
-if(NOT WIN32) # imgui-sfml from CPMAddPackage fails to compile with imgui on Windows
-    CPMAddPackage("gh:SFML/SFML#2.5.1")
-    CPMAddPackage("gh:ocornut/imgui#docking")
-    add_library(imgui INTERFACE)
-    add_library(imgui::imgui ALIAS imgui)
-    CPMAddPackage(
-        GITHUB_REPOSITORY "eliasdaler/imgui-sfml"
-        VERSION "2.3"
-        OPTIONS "IMGUI_DIR ${imgui_SOURCE_DIR}"
-    )
-else() # vcpkg
-    find_package(imgui REQUIRED)
-    find_package(SFML COMPONENTS system window graphics REQUIRED)
-    find_package(ImGui-SFML REQUIRED)
-endif()
+add_subdirectory("external/portable-file-dialogs")
+add_subdirectory("external/spdlog")
+add_subdirectory("external/cxxopts")
+
+add_library(imgui INTERFACE)
+add_library(imgui::imgui ALIAS imgui)
+target_include_directories(imgui INTERFACE "${CMAKE_SOURCE_DIR}/external/imgui")
+
+set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui" CACHE STRING "path to the imgui library sources" FORCE)
+add_subdirectory("external/imgui-sfml")
+
+# TODO: option to use system libraries instead
+
+#find_package(imgui REQUIRED)
+#find_package(ImGui-SFML REQUIRED)
 
 add_subdirectory(src)
 
@@ -49,6 +48,7 @@ message("")
 
 message("${PROJECT_NAME} ${PROJECT_VERSION}
          compiler | ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}
+        generator | ${CMAKE_GENERATOR}
        build type | ${CMAKE_BUILD_TYPE}
          cxxflags | ${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS}
         build dir | ${CMAKE_BINARY_DIR}
