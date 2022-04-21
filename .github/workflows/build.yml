@@ -40,7 +40,10 @@ jobs:
         #   }
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
 
       # FIXME imgui-sfml
       - name: Install dependencies via apt
@@ -49,12 +52,12 @@ jobs:
         run: |
           set -e
           sudo apt-get update
-          sudo apt-get install xorg-dev libudev-dev libfreetype-dev libopenal-dev libxrandr-dev libflac-dev libvorbis-dev
+          sudo apt-get install libsfml-dev
 
       - name: Install dependencies via vcpkg
         if: runner.os == 'Windows'
         run: |
-          vcpkg install --triplet x64-windows imgui[docking-experimental] sfml imgui-sfml
+          vcpkg install --triplet x64-windows sfml
 
       # sudo apt-get build-dep libsfml-window2.5 libsfml-system2.5 libsfml-graphics2.5
 

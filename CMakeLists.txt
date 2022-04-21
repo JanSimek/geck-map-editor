@@ -19,7 +19,7 @@ endif()
 ##################################################
 # dependencies
 
-find_package(SFML COMPONENTS system window graphics REQUIRED)
+find_package(SFML 2.5 COMPONENTS system window graphics REQUIRED)
 
 add_subdirectory("external/portable-file-dialogs")
 add_subdirectory("external/spdlog")
@@ -29,6 +29,7 @@ add_library(imgui INTERFACE)
 add_library(imgui::imgui ALIAS imgui)
 target_include_directories(imgui INTERFACE "${CMAKE_SOURCE_DIR}/external/imgui")
 
+set(BUILD_SHARED_LIBS TRUE CACHE BOOL "build shared SFLM-Imgui (static build requires static SFML libraries)" FORCE)
 set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui" CACHE STRING "path to the imgui library sources" FORCE)
 add_subdirectory("external/imgui-sfml")
 
