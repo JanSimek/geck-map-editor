@@ -139,4 +139,6 @@ target_link_libraries(geck-mapper PRIVATE
 
 target_include_directories(geck-mapper PRIVATE ${imgui_SOURCE_DIR})
 
-set_target_properties(geck-mapper PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+add_custom_command(TARGET geck-mapper POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                       ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:geck-mapper>/resources)

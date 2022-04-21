@@ -8,6 +8,8 @@ At the current stage this is nothing more than a map viewer but one day it will 
 
 ## Building from source
 
+This repository contains dependencies as git submodules. When you clone the repository make sure to use the `--recursive` flag or once cloned download submodules with `git submodule update --init --recursive`
+
 ### Linux
 
 ```bash
@@ -34,9 +36,11 @@ Now just open and build the project in Visual Studio.
 
 ## Usage
 
-It's currently not possible to load assets directly from master.dat and critter.dat. You must extract these archives using [dat-unpacker](https://github.com/falltergeist/dat-unpacker) and convert all files to *lowercase* using the `--transform` option. By default GECK::Mapper will load files from the `resources` subdirectory.
+It's currently not possible to load assets directly from master.dat and critter.dat. You must extract these archives using [dat-unpacker](https://github.com/falltergeist/dat-unpacker) and convert all files to _lowercase_ using the `--transform` option. By default GECK::Mapper will load files from the `resources` subdirectory.
 
 Use arrow keys or right-click and drag to pan the view.
+
+Make sure to use the Release and not the Debug version if you are not a developer as the Release version is much much faster in loading maps.
 
 ## Compatibility
 

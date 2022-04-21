@@ -39,8 +39,6 @@ add_subdirectory("external/imgui-sfml")
 
 add_subdirectory(src)
 
-file(COPY resources DESTINATION ${CMAKE_BINARY_DIR}/bin)
-
 ##################################################
 # show build configuration overview
 
