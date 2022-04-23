@@ -2,11 +2,13 @@ name: Build
 
 on:
   push:
-    branches: [master]
-    # TODO: paths: ['.github/workflows/*', 'src/*'] #only when these files are modifed
+    paths:
+      - "CMakeLists.txt"
+      - "src/**"
   pull_request:
-    branches: [master]
-    # TODO: paths: ['.github/workflows/*', 'src/*'] #only when these files are modifed
+    paths:
+      - "CMakeLists.txt"
+      - "src/**"
 
 jobs:
   build:
@@ -45,21 +47,16 @@ jobs:
         with:
           submodules: "recursive"
 
-      # FIXME imgui-sfml
-      - name: Install dependencies via apt
-        if: runner.os == 'Linux'
+      - name: Install dependencies
         shell: bash
         run: |
-          set -e
-          sudo apt-get update
-          sudo apt-get install libsfml-dev
-
-      - name: Install dependencies via vcpkg
-        if: runner.os == 'Windows'
-        run: |
-          vcpkg install --triplet x64-windows sfml
-
-      # sudo apt-get build-dep libsfml-window2.5 libsfml-system2.5 libsfml-graphics2.5
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            vcpkg install --triplet x64-windows sfml
+          else
+            set -e
+            sudo apt-get update
+            sudo apt-get install libsfml-dev
+          fi
 
       - name: Configure CMake
         shell: bash
