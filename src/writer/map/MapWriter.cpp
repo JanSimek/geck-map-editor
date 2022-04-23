@@ -219,7 +219,7 @@ void MapWriter::writeObject(const MapObject& object) {
                 case Object::ITEM_TYPE::DRUG:
                     break;
                 default:
-                    throw std::runtime_error{"Unknown item type " + std::to_string(objectTypeId)};
+                    throw std::runtime_error{ "Unknown item type " + std::to_string(objectTypeId) };
             }
         } break;
         case Object::OBJECT_TYPE::CRITTER:
@@ -259,7 +259,7 @@ void MapWriter::writeObject(const MapObject& object) {
                 case Object::SCENERY_TYPE::GENERIC:
                     break;
                 default:
-                    throw std::runtime_error{"Unknown scenery type: " + std::to_string(subtype_id)};
+                    throw std::runtime_error{ "Unknown scenery type: " + std::to_string(subtype_id) };
             }
         } break;
         case Object::OBJECT_TYPE::WALL:
@@ -288,7 +288,7 @@ void MapWriter::writeObject(const MapObject& object) {
             }
             break;
         default:
-            throw std::runtime_error{"Unknown object type: " + std::to_string(objectTypeId)};
+            throw std::runtime_error{ "Unknown object type: " + std::to_string(objectTypeId) };
     }
 
     if (object.objects_in_inventory > 0) {

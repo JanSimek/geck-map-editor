@@ -27,4 +27,4 @@ public:
     void addEntry(std::unique_ptr<DatEntry> entry);
 };
 
-}  // namespace geck
+} // namespace geck

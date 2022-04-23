@@ -42,4 +42,4 @@ void DatEntry::setOffset(const uint32_t& value) {
     offset = value;
 }
 
-}  // namespace geck
+} // namespace geck

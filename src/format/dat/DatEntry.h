@@ -33,4 +33,4 @@ public:
     void setOffset(const uint32_t& value);
 };
 
-}  // namespace geck
+} // namespace geck

@@ -14,8 +14,7 @@
 
 namespace geck {
 
-class LoadingState : public State
-{
+class LoadingState : public State {
 private:
     std::shared_ptr<AppData> _appData;
 
@@ -28,6 +27,7 @@ private:
     std::vector<std::unique_ptr<Loader>> _loaders;
 
     bool _quit = false;
+
 public:
     LoadingState(const std::shared_ptr<AppData>& appData)
         : _appData(appData) {
@@ -66,7 +66,7 @@ public:
     void handleEvent(const sf::Event& event) override {
         if (event.type == sf::Event::KeyPressed) {
             switch (event.key.code) {
-                case sf::Keyboard::Q:  // Ctrl+Q
+                case sf::Keyboard::Q: // Ctrl+Q
                     if (event.key.control)
                         _quit = true;
                     break;
@@ -97,11 +97,11 @@ public:
                 _appData->stateMachine->push(std::make_unique<EditorState>(_appData, std::move(map)), true);
             }
 
-//            std::erase_if(_loaders, [](std::unique_ptr<Loader> & L) { return L->isDone(); });
+            //            std::erase_if(_loaders, [](std::unique_ptr<Loader> & L) { return L->isDone(); });
         }
     }
 
-    void centerText(sf::Text & text, float yOffset = 0) {
+    void centerText(sf::Text& text, float yOffset = 0) {
         float centerX = _appData->window->getView().getCenter().x - text.getGlobalBounds().width / 2;
         float centerY = _appData->window->getView().getCenter().y + yOffset;
         text.setPosition(sf::Vector2f(centerX, centerY));

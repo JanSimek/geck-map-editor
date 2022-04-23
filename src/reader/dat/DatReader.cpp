@@ -13,14 +13,14 @@ std::unique_ptr<Dat> DatReader::read() {
     stream.seekg(-FOOTER_SIZE, stream.end);
 
     if (stream.bad()) {
-        throw std::runtime_error{"Could not seek to the end of a dat2 file"};
+        throw std::runtime_error{ "Could not seek to the end of a dat2 file" };
     }
 
     uint32_t tree_size = read_le_u32();
     uint32_t data_size = read_le_u32();
 
     if (data_size != stream.tellg()) {
-        throw std::runtime_error{"Stored file size and real size don't match"};
+        throw std::runtime_error{ "Stored file size and real size don't match" };
     }
 
     // tree_size includes file_cout field size
@@ -57,4 +57,4 @@ std::unique_ptr<Dat> DatReader::read() {
     return dat;
 }
 
-}  // namespace geck
+} // namespace geck

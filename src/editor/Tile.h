@@ -19,4 +19,4 @@ public:
     uint16_t getRoof() const;
 };
 
-}  // namespace geck
+} // namespace geck

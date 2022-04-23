@@ -14,4 +14,4 @@ public:
     std::unique_ptr<Lst> read() override;
 };
 
-}  // namespace geck
+} // namespace geck

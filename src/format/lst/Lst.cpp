@@ -15,4 +15,4 @@ const std::string& Lst::at(int line) const {
     return _list.at(line);
 }
 
-}  // namespace geck
+} // namespace geck

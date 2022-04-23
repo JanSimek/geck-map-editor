@@ -18,7 +18,7 @@ std::unique_ptr<Lst> LstReader::read() {
     std::array<char, 1 << 16> buf;
     std::string ws;
     std::string cur;
-    State st{State::start};
+    State st{ State::start };
 
     std::vector<std::string> list;
 
@@ -66,7 +66,7 @@ std::unique_ptr<Lst> LstReader::read() {
                             break;
                     }
                     break;
-                default:  // normal char
+                default: // normal char
                     switch (st) {
                         case State::start:
                             cur += c;
@@ -100,4 +100,4 @@ std::unique_ptr<Lst> LstReader::read() {
     return lst;
 }
 
-}  // namespace geck
+} // namespace geck

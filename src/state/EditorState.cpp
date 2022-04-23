@@ -4,7 +4,7 @@
 #include <imgui-SFML.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
-#include <cmath>  // ceil
+#include <cmath> // ceil
 #include <portable-file-dialogs.h>
 
 #include "../ui/util.h"
@@ -29,7 +29,8 @@
 namespace geck {
 
 EditorState::EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map)
-    : _appData(appData), _view({0.f, 0.f}, sf::Vector2f(appData->window->getSize())) {
+    : _appData(appData)
+    , _view({ 0.f, 0.f }, sf::Vector2f(appData->window->getSize())) {
     _map = std::move(map);
     centerViewOnMap();
 }
@@ -40,9 +41,9 @@ void EditorState::init() {
 
     if (!std::filesystem::is_directory(map_directory)) {
         pfd::message("Invalid Fallout 2 directory",
-                    "The map directory does not exist: " + map_directory.string(),
-                    pfd::choice::ok,
-                    pfd::icon::error);
+            "The map directory does not exist: " + map_directory.string(),
+            pfd::choice::ok,
+            pfd::icon::error);
         _quit = true;
         return;
     }
@@ -94,8 +95,7 @@ void EditorState::renderMainMenu() {
                         ImGui::Text("Map has only 1 elevation");
                     } else {
                         for (int i = 0; i < _map->elevations(); i++) {
-                            std::string text =
-                                std::to_string(i) + (i == _currentElevation ? " " ICON_FA_CHECK_CIRCLE : "");
+                            std::string text = std::to_string(i) + (i == _currentElevation ? " " ICON_FA_CHECK_CIRCLE : "");
                             if (ImGui::MenuItem(text.c_str()) && _currentElevation != i) {
                                 _currentElevation = i;
                                 spdlog::info("Loading elevation " + std::to_string(_currentElevation));
@@ -143,9 +143,9 @@ void geck::EditorState::loadMap() {
         // Positioning
 
         // geometry constants
-//        const TILE_WIDTH = 80
-//        const TILE_HEIGHT = 36
-//        const HEX_GRID_SIZE = 200 // hex grid is 200x200
+        //        const TILE_WIDTH = 80
+        //        const TILE_HEIGHT = 36
+        //        const HEX_GRID_SIZE = 200 // hex grid is 200x200
 
         unsigned int tileX = static_cast<unsigned>(ceil(((double)tileNumber) / 100));
         unsigned int tileY = tileNumber % 100;
@@ -168,9 +168,9 @@ void geck::EditorState::loadMap() {
             roof_sprite.setTexture(ResourceManager::getInstance().texture(roof_texture_path));
 
             // FIXME: delete - probably won't be needed after reading the correct color.pal
-//            if (tile.getRoof() == 0 || tile.getRoof() == 1) {
-//                roof_sprite.setColor(sf::Color{0, 0, 0, 0});
-//            }
+            //            if (tile.getRoof() == 0 || tile.getRoof() == 1) {
+            //                roof_sprite.setColor(sf::Color{0, 0, 0, 0});
+            //            }
             constexpr int roofOffset = 96; // "roof height"
             roof_sprite.setPosition(x, y - roofOffset);
 
@@ -181,17 +181,18 @@ void geck::EditorState::loadMap() {
     auto hexgrid = geck::HexagonGrid();
 
     // Objects
-    if (_map->objects().empty()) return;
+    if (_map->objects().empty())
+        return;
 
     for (const auto& object : _map->objects().at(_currentElevation)) {
         if (object->position == -1)
-            continue;  // object inside an inventory/container
+            continue; // object inside an inventory/container
 
         const std::string frmName = map_reader.FIDtoFrmName(object->frm_pid);
 
         if (frmName.empty()) {
             spdlog::error("Empty FRM file path on hex number " + std::to_string(object->position));
-            continue;  // this should probably never happen
+            continue; // this should probably never happen
         }
 
         sf::Sprite object_sprite;
@@ -244,30 +245,29 @@ void geck::EditorState::loadMap() {
     }
 }
 
-std::vector<bool> calculateBitset(const sf::Image& img)
-{
-        sf::Vector2u imgSize = img.getSize();
+std::vector<bool> calculateBitset(const sf::Image& img) {
+    sf::Vector2u imgSize = img.getSize();
 
-        std::vector<bool> retVal(imgSize.x * imgSize.y); // allocate directly
+    std::vector<bool> retVal(imgSize.x * imgSize.y); // allocate directly
 
-        for (unsigned int x = 0; x < imgSize.x; ++x) // unsigned,  pre-increment (not crucial
-            for (unsigned int y = 0; y < imgSize.y; ++y) // here, but generally good practice)
-            {
-                const auto& pixel = img.getPixel(x,y);
-                retVal[imgSize.x*y + x] = (pixel.r == 0 && pixel.g == 0 && pixel.b == 0 && pixel.a == 0);
-            }
+    for (unsigned int x = 0; x < imgSize.x; ++x)     // unsigned,  pre-increment (not crucial
+        for (unsigned int y = 0; y < imgSize.y; ++y) // here, but generally good practice)
+        {
+            const auto& pixel = img.getPixel(x, y);
+            retVal[imgSize.x * y + x] = (pixel.r == 0 && pixel.g == 0 && pixel.b == 0 && pixel.a == 0);
+        }
 
-        return retVal;
+    return retVal;
 }
 
 void EditorState::handleEvent(const sf::Event& event) {
     if (event.type == sf::Event::KeyPressed) {
         switch (event.key.code) {
-            case sf::Keyboard::N:  // Ctrl+N
+            case sf::Keyboard::N: // Ctrl+N
                 if (event.key.control)
                     createNewMap();
                 break;
-            case sf::Keyboard::Q:  // Ctrl+Q
+            case sf::Keyboard::Q: // Ctrl+Q
                 if (event.key.control)
                     _quit = true;
                 break;
@@ -292,8 +292,7 @@ void EditorState::handleEvent(const sf::Event& event) {
     }
 
     // Zoom
-    if (event.type == sf::Event::MouseWheelScrolled &&
-        event.mouseWheelScroll.wheel == sf::Mouse::Wheel::VerticalWheel) {
+    if (event.type == sf::Event::MouseWheelScrolled && event.mouseWheelScroll.wheel == sf::Mouse::Wheel::VerticalWheel) {
         float delta = event.mouseWheelScroll.delta;
         _view.zoom(1.0f - delta * 0.1f);
     }
@@ -301,7 +300,7 @@ void EditorState::handleEvent(const sf::Event& event) {
     // Left mouse click
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Left) {
 
-        const sf::Color BASE_COLOR = {128, 128, 128};// get the current mouse position in the window
+        const sf::Color BASE_COLOR = { 128, 128, 128 }; // get the current mouse position in the window
 
         sf::Vector2i pixelPos = sf::Mouse::getPosition(*_appData->window);
 
@@ -329,11 +328,10 @@ void EditorState::handleEvent(const sf::Event& event) {
 
                 spdlog::info("Pixel color = {}, {}, {}, {}", pixel.r, pixel.g, pixel.b, pixel.a);
                 int w = image.getSize().x;
-                if (!bitsets[w*y+x]) {
+                if (!bitsets[w * y + x]) {
                     tile.setColor(BASE_COLOR);
                     break;
                 }
-
             }
         }
     }
@@ -347,7 +345,7 @@ void EditorState::handleEvent(const sf::Event& event) {
         _currentAction = EditorAction::NONE;
     }
     if (_currentAction == EditorAction::PANNING) {
-        sf::Vector2f mousePos = sf::Vector2f{sf::Mouse::getPosition(*_appData->window) - _lastMousePos};
+        sf::Vector2f mousePos = sf::Vector2f{ sf::Mouse::getPosition(*_appData->window) - _lastMousePos };
         _view.move(-1.0f * mousePos);
         _lastMousePos = sf::Mouse::getPosition(*_appData->window);
     }
@@ -361,7 +359,7 @@ void EditorState::handleEvent(const sf::Event& event) {
     }
 }
 
-void EditorState::update(const float& dt) {}
+void EditorState::update(const float& dt) { }
 
 /**
  * TODO: draw only sprites visible in the current view
@@ -388,33 +386,33 @@ void EditorState::render(const float& dt) {
         }
     }
 
-//  auto boldFont = io.Fonts->Fonts[0];
+    //  auto boldFont = io.Fonts->Fonts[0];
     ImGui::PushFont(0);
 
     // TODO: create a widget
-//    ImGui::Begin("Floor tiles");
+    //    ImGui::Begin("Floor tiles");
 
     int rowWidth = 0;
-//    for (const auto& floorTile : _floorSprites) {
-//        rowWidth += floorTile.getTextureRect().width;
-//        if (!(rowWidth >= ImGui::GetWindowContentRegionWidth())) {
-//            ImGui::SameLine();
-//        } else {
-//            rowWidth = 0;
-//        }
-//        ImGui::ImageButton(floorTile);
-//    }
+    //    for (const auto& floorTile : _floorSprites) {
+    //        rowWidth += floorTile.getTextureRect().width;
+    //        if (!(rowWidth >= ImGui::GetWindowContentRegionWidth())) {
+    //            ImGui::SameLine();
+    //        } else {
+    //            rowWidth = 0;
+    //        }
+    //        ImGui::ImageButton(floorTile);
+    //    }
 
-//    ImGui::End();
+    //    ImGui::End();
 
-//    ImGui::Begin("Roof tiles");
-//    ImGui::End();
-//
-//    ImGui::Begin("Objects");
-//    ImGui::End();
-//
-//    ImGui::Begin("Critters");
-//    ImGui::End();
+    //    ImGui::Begin("Roof tiles");
+    //    ImGui::End();
+    //
+    //    ImGui::Begin("Objects");
+    //    ImGui::End();
+    //
+    //    ImGui::Begin("Critters");
+    //    ImGui::End();
 
     ImGui::PopFont();
 }
@@ -430,39 +428,39 @@ bool EditorState::quit() const {
 }
 
 void EditorState::createNewMap() {
-        _appData->mapPath = "test.map";
+    _appData->mapPath = "test.map";
 
-        int elevations = 1;
-        int floorTileIndex = 192; // edg5000.frm
-        int roofTileIndex = 1; // grid000.frm
+    int elevations = 1;
+    int floorTileIndex = 192; // edg5000.frm
+    int roofTileIndex = 1;    // grid000.frm
 
-        _map = std::make_unique<Map>();
-        auto map_file = std::make_unique<Map::MapFile>();
-        _map->setMapFile(std::move(map_file));
+    _map = std::make_unique<Map>();
+    auto map_file = std::make_unique<Map::MapFile>();
+    _map->setMapFile(std::move(map_file));
 
-        LstReader lst_reader;
-        std::filesystem::path data_path = FileHelper::getInstance().fallout2DataPath();
-        auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
+    LstReader lst_reader;
+    std::filesystem::path data_path = FileHelper::getInstance().fallout2DataPath();
+    auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
 
-        std::string texture_path = "art/tiles/" + lst->at(floorTileIndex);
-        ResourceManager::getInstance().insert(texture_path);
+    std::string texture_path = "art/tiles/" + lst->at(floorTileIndex);
+    ResourceManager::getInstance().insert(texture_path);
 
-        texture_path = "art/tiles/" + lst->at(roofTileIndex);
-        ResourceManager::getInstance().insert(texture_path);
+    texture_path = "art/tiles/" + lst->at(roofTileIndex);
+    ResourceManager::getInstance().insert(texture_path);
 
-        std::map<int, std::vector<Tile>> tiles;
-        for (auto elevation = 0; elevation < elevations; ++elevation) {
-            for (auto i = 0U; i < Map::TILES_PER_ELEVATION; ++i) {
-                uint16_t roof = roofTileIndex;
-                uint16_t floor = floorTileIndex;
+    std::map<int, std::vector<Tile>> tiles;
+    for (auto elevation = 0; elevation < elevations; ++elevation) {
+        for (auto i = 0U; i < Map::TILES_PER_ELEVATION; ++i) {
+            uint16_t roof = roofTileIndex;
+            uint16_t floor = floorTileIndex;
 
-                Tile tile(floor, roof);
-                tiles[elevation].push_back(tile);
-            }
+            Tile tile(floor, roof);
+            tiles[elevation].push_back(tile);
         }
-        _map->setTiles(std::move(tiles));
+    }
+    _map->setTiles(std::move(tiles));
 
-        loadMap();
+    loadMap();
 }
 
-}  // namespace geck
+} // namespace geck

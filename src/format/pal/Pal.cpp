@@ -18,4 +18,4 @@ void Pal::setPalette(const std::array<Rgb, NUM_PALETTE_COLORS>& value) {
     _palette = value;
 }
 
-}  // namespace geck
+} // namespace geck

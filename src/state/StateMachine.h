@@ -8,7 +8,7 @@ namespace geck {
 
 class StateMachine {
 private:
-    std::stack<std::unique_ptr<State> > _states;
+    std::stack<std::unique_ptr<State>> _states;
 
 public:
     void pop();
@@ -17,4 +17,4 @@ public:
     bool empty() const;
 };
 
-}  // namespace geck
+} // namespace geck

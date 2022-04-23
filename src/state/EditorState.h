@@ -18,7 +18,8 @@ class Map;
 class EditorState : public State {
 private:
     EditorState(const std::shared_ptr<AppData>& appData);
-    enum class EditorAction { NONE, PANNING };
+    enum class EditorAction { NONE,
+        PANNING };
 
     void renderMainMenu();
     void centerViewOnMap();
@@ -45,7 +46,7 @@ private:
 
     bool _quit = false;
 
-    sf::Vector2i _lastMousePos{0, 0};  // panning
+    sf::Vector2i _lastMousePos{ 0, 0 }; // panning
     EditorAction _currentAction = EditorAction::NONE;
 
 public:
@@ -57,7 +58,6 @@ public:
     void render(const float& dt) override;
 
     bool quit() const override;
-
 };
 
-}  // namespace geck
+} // namespace geck

@@ -28,6 +28,7 @@ private:
     uint16_t _maxFrameHeight;
 
     void updateFrameDimensions();
+
 public:
     // TODO : enum
     //    north_east,
@@ -59,8 +60,8 @@ public:
     uint16_t maxFrameWidth() const;
     uint16_t maxFrameHeight() const;
 
-//    const std::vector<uint8_t> rgba(Pal &pal);
+    //    const std::vector<uint8_t> rgba(Pal &pal);
     const sf::Image& image(Pal* pal);
 };
 
-}  // namespace geck
+} // namespace geck

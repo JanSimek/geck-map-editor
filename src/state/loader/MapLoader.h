@@ -22,6 +22,7 @@ public:
 
     void init() override;
     bool isDone() override;
+
 private:
     void load() override;
 
@@ -30,8 +31,7 @@ private:
     std::filesystem::path _mapPath;
     std::unique_ptr<Map> _map;
     int _elevation;
-
 };
 
 } // namespace geck
-#endif  // GECK_MAPPER_MAPLOADER_H
+#endif // GECK_MAPPER_MAPLOADER_H

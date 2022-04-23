@@ -27,4 +27,4 @@ private:
     std::array<uint8_t, NUM_CONVERSION_VALUES> _rgbConversionTable;
 };
 
-}  // namespace geck
+} // namespace geck

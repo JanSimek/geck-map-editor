@@ -12,9 +12,8 @@ protected:
     std::filesystem::path path;
 
 public:
-
     std::unique_ptr<T> openFile(const std::filesystem::path& path) {
-        stream = std::ifstream{path.string(), std::ifstream::in | std::ifstream::binary};
+        stream = std::ifstream{ path.string(), std::ifstream::in | std::ifstream::binary };
         this->path = path;
 
         if (!stream.is_open()) {
@@ -94,7 +93,7 @@ public:
         if (static_cast<size_t>(stream.gcount()) != sizeof(buf)) {
             // FIXME: pro file 0..14.pro in kladwntn.map doesn't have the last critter field "damage type"
             spdlog::error("ran out of data when trying to read a stream read_be_u32");
-    //        throw std::runtime_error("ran out of data when trying to read a stream");
+            //        throw std::runtime_error("ran out of data when trying to read a stream");
         }
 
         return val;

@@ -11,4 +11,4 @@ public:
     std::unique_ptr<Pro> read() override;
 };
 
-}  // namespace geck
+} // namespace geck

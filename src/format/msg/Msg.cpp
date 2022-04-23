@@ -8,8 +8,7 @@
 
 #include <iostream>
 
-Msg::Msg(std::filesystem::path path)
-{
+Msg::Msg(std::filesystem::path path) {
     std::ifstream stream(path.string());
 
     if (!stream.is_open()) {
@@ -20,22 +19,22 @@ Msg::Msg(std::filesystem::path path)
     // load entire file content into string
     std::string s((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
-//    std::string s(R"REGEX(  #
-//                            # target hit in eyes
-//                            #
-//                            {1380}{ahoj}{Hey, I'm blind}
-//                            {1381}{}{I can't see. That'll make this fair}
-//                            {1382{}{My eyes, bitch!}
-//                            {1381}{}{This is a
-//multiline text}
-//                            )REGEX");
+    //    std::string s(R"REGEX(  #
+    //                            # target hit in eyes
+    //                            #
+    //                            {1380}{ahoj}{Hey, I'm blind}
+    //                            {1381}{}{I can't see. That'll make this fair}
+    //                            {1382{}{My eyes, bitch!}
+    //                            {1381}{}{This is a
+    // multiline text}
+    //                            )REGEX");
 
     // because of bug in CMBATAI2.MSG in messages #1382 and #32020 we need to handle missing '}'
-    std::regex re { R"(\{(\d+)[\{\}|\}]?\{(.*?)\}\{([\s\S]*?)\})" };
+    std::regex re{ R"(\{(\d+)[\{\}|\}]?\{(.*?)\}\{([\s\S]*?)\})" };
 
     std::smatch matches;
 
-    while(std::regex_search(s, matches, re)) {
+    while (std::regex_search(s, matches, re)) {
         if (matches.size() != 4) {
             spdlog::error("Wrong message format in {}: {}", path.filename().string(), matches[0].str());
         } else {
@@ -54,7 +53,6 @@ Msg::Msg(std::filesystem::path path)
     }
 }
 
-const Msg::Message& Msg::message(int id)
-{
+const Msg::Message& Msg::message(int id) {
     return _messages[id];
 }

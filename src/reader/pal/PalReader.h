@@ -11,4 +11,4 @@ public:
     std::unique_ptr<Pal> read() override;
 };
 
-}  // namespace geck
+} // namespace geck

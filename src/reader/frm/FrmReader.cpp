@@ -28,12 +28,12 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
             continue;
         }
 
-//        frm->directions().emplace_back();
+        //        frm->directions().emplace_back();
 
-//        auto& direction = frm->directions().back();
-//        direction.setDataOffset(dataOffset[i]);
-//        direction.setShiftX(shiftX[i]);
-//        direction.setShiftY(shiftY[i]);
+        //        auto& direction = frm->directions().back();
+        //        direction.setDataOffset(dataOffset[i]);
+        //        direction.setShiftX(shiftX[i]);
+        //        direction.setShiftY(shiftY[i]);
         Direction direction{};
         direction.setDataOffset(dataOffset[i]);
         direction.setShiftX(shiftX[i]);
@@ -50,7 +50,8 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
 
     if (data_end - data_start < size_of_frame_data) {
         throw std::runtime_error{
-            "invalid frm data: the size of the frame data (indicated in header) is smaller than the provided data"};
+            "invalid frm data: the size of the frame data (indicated in header) is smaller than the provided data"
+        };
     }
 
     // for each direction
@@ -88,4 +89,4 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
     return frm;
 }
 
-}  // namespace geck
+} // namespace geck

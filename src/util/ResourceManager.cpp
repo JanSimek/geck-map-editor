@@ -28,10 +28,10 @@ void ResourceManager::insert(const std::string& filename) {
         return s;
     }();
 
-    if (extension.rfind(".frm", 0) == 0) {  // frm, frm0, frmX..
+    if (extension.rfind(".frm", 0) == 0) { // frm, frm0, frmX..
         if (!_initialized) {
             PalReader pal_reader;
-            _pal = pal_reader.openFile((_dataPath / "color.pal").string());  // TODO: custom .pal
+            _pal = pal_reader.openFile((_dataPath / "color.pal").string()); // TODO: custom .pal
             _initialized = true;
         }
         FrmReader frm_reader;
@@ -40,8 +40,8 @@ void ResourceManager::insert(const std::string& filename) {
         add(filename, std::move(frm));
     } else {
         auto texture = std::make_unique<sf::Texture>();
-        if (!texture->loadFromFile((_dataPath / filename).string())) {  // default to SFML's implementation
-            throw std::runtime_error{"Failed to load texture " + _dataPath.string() + "/" + filename + ", extension: " + extension};
+        if (!texture->loadFromFile((_dataPath / filename).string())) { // default to SFML's implementation
+            throw std::runtime_error{ "Failed to load texture " + _dataPath.string() + "/" + filename + ", extension: " + extension };
         }
         _textures.insert(std::make_pair(filename, std::move(texture)));
     }
@@ -54,12 +54,12 @@ const sf::Texture& ResourceManager::texture(const std::string& filename) {
         auto frm = get<Frm>(filename); // TODO: check extension?
 
         if (frm == nullptr) {
-            throw std::runtime_error{"Texture " + _dataPath.string() + "/" + filename + " does not exist"};
+            throw std::runtime_error{ "Texture " + _dataPath.string() + "/" + filename + " does not exist" };
         }
 
         auto texture = std::make_unique<sf::Texture>();
-//        texture->create(frame.width(), frame.height());
-//        texture->update(&frame.rgba[0]);
+        //        texture->create(frame.width(), frame.height());
+        //        texture->update(&frame.rgba[0]);
 
         texture->loadFromImage(frm->image(_pal.get()));
 
@@ -68,7 +68,7 @@ const sf::Texture& ResourceManager::texture(const std::string& filename) {
         if (loaded.second) {
             return *loaded.first->second; // uh huh
         } else {
-            throw std::runtime_error{"Couldn't load " + _dataPath.string() + "/" + filename + " from image"};
+            throw std::runtime_error{ "Couldn't load " + _dataPath.string() + "/" + filename + " from image" };
         }
     }
 
@@ -79,14 +79,13 @@ void ResourceManager::setDataPath(const std::filesystem::path& path) {
     _dataPath = path;
 }
 
-template<class T>
-T* ResourceManager::get(const std::string &filepath)
-{
+template <class T>
+T* ResourceManager::get(const std::string& filepath) {
     auto itemIt = _resources.find(filepath);
     if (itemIt != _resources.end()) {
-        auto resource = dynamic_cast<T *>(itemIt->second.get());
+        auto resource = dynamic_cast<T*>(itemIt->second.get());
         if (resource == nullptr) {
-            throw std::runtime_error{"Requested file type does not match type in the cache: " + filepath};
+            throw std::runtime_error{ "Requested file type does not match type in the cache: " + filepath };
         }
         return resource;
     }
@@ -97,9 +96,8 @@ T* ResourceManager::get(const std::string &filepath)
     return nullptr;
 }
 
-void ResourceManager::add(const std::string &filepath, std::unique_ptr<IFile> file)
-{
+void ResourceManager::add(const std::string& filepath, std::unique_ptr<IFile> file) {
     _resources.insert({ filepath, std::move(file) });
 }
 
-}  // namespace geck
+} // namespace geck

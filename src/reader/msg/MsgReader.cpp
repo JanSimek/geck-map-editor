@@ -1,6 +1,4 @@
 #include "MsgReader.h"
 
-MsgReader::MsgReader()
-{
-
+MsgReader::MsgReader() {
 }

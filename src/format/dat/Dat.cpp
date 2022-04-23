@@ -11,4 +11,4 @@ void Dat::addEntry(std::unique_ptr<DatEntry> entry) {
     this->entries.push_back(std::move(entry));
 }
 
-}  // namespace geck
+} // namespace geck

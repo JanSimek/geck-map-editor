@@ -1,7 +1,7 @@
 #pragma once
 
 #include <imgui.h>
-#include "IconsFontAwesome5.h"  // from https://github.com/juliettef/IconFontCppHeaders
+#include "IconsFontAwesome5.h" // from https://github.com/juliettef/IconFontCppHeaders
 
 namespace ImGui {
 inline void SetupImGuiStyle(bool bStyleDark_, float alpha_) {
@@ -112,4 +112,4 @@ inline void Tooltip(const char* tooltip) {
         ImGui::EndTooltip();
     }
 }
-};  // namespace ImGui
+}; // namespace ImGui

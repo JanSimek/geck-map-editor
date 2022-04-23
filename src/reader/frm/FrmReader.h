@@ -14,4 +14,4 @@ public:
     std::unique_ptr<Frm> read() override;
 };
 
-}  // namespace geck
+} // namespace geck

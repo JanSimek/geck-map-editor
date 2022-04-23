@@ -22,18 +22,18 @@ private:
     bool _initialized = false;
     std::unique_ptr<Pal> _pal;
 
-    ResourceManager() {}; // private constructor for singleton
+    ResourceManager(){}; // private constructor for singleton
 public:
     // Singleton
     ResourceManager(ResourceManager const&) = delete;
     void operator=(ResourceManager const&) = delete;
 
     static ResourceManager& getInstance() {
-        static ResourceManager instance;  // Guaranteed to be destroyed.
+        static ResourceManager instance; // Guaranteed to be destroyed.
         return instance;
     }
 
-    template<class T>
+    template <class T>
     T* get(const std::string& filepath);
     void add(const std::string& filepath, std::unique_ptr<IFile> file);
 
@@ -45,4 +45,4 @@ public:
     void setDataPath(const std::filesystem::path& path);
 };
 
-}  // namespace geck
+} // namespace geck

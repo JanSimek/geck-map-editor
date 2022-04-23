@@ -4,8 +4,7 @@
 #include <string>
 #include <filesystem>
 
-class Msg
-{
+class Msg {
 public:
     struct Message {
         int id;
@@ -20,4 +19,3 @@ public:
 private:
     std::map<int, Message> _messages;
 };
-

@@ -20,4 +20,4 @@ public:
     void setY(int y);
 };
 
-}  // namespace geck
+} // namespace geck

@@ -8,7 +8,7 @@ void StateMachine::push(std::unique_ptr<State> state, bool replace) {
     }
     _states.push(std::move(state));
 
-    _states.top()->init();  // TODO: should this really be in here?
+    _states.top()->init(); // TODO: should this really be in here?
 }
 
 void StateMachine::pop() {
@@ -24,4 +24,4 @@ bool StateMachine::empty() const {
     return _states.empty();
 }
 
-}  // namespace geck
+} // namespace geck

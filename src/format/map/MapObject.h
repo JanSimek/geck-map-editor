@@ -10,7 +10,7 @@ namespace geck {
 // scenery, walls, items, containers, keys and critters
 struct MapObject {
     uint32_t unknown0; // falltergeist OID ?
-    int32_t position; // hex position
+    int32_t position;  // hex position
     uint32_t x;
     uint32_t y;
     int32_t sx;
@@ -20,7 +20,7 @@ struct MapObject {
     uint32_t frm_pid; // FID
     uint32_t flags;
     uint32_t elevation;
-    uint32_t pro_pid; // PID
+    uint32_t pro_pid;      // PID
     int32_t critter_index; // combat id
     uint32_t light_radius;
     uint32_t light_intensity;
@@ -38,15 +38,15 @@ struct MapObject {
     uint32_t unknown11; // unknown13 ?
 
     // Extra fields for critters
-    uint32_t player_reaction;  // reaction to player - saves only
-    uint32_t current_mp;  // current mp - saves only
+    uint32_t player_reaction; // reaction to player - saves only
+    uint32_t current_mp;      // current mp - saves only
     uint32_t combat_results;  // combat results - saves only
-    uint32_t dmg_last_turn;  // damage last turn - saves only
-    uint32_t ai_packet;  // AI packet - is it different from .pro? well, it can be
-    uint32_t group_id;  // team - always 1? saves only?
-    uint32_t who_hit_me;  // who hit me - saves only
-    uint32_t current_hp;  // hit points - saves only, otherwise = value from .pro
-    uint32_t current_rad;  // rad - always 0 - saves only
+    uint32_t dmg_last_turn;   // damage last turn - saves only
+    uint32_t ai_packet;       // AI packet - is it different from .pro? well, it can be
+    uint32_t group_id;        // team - always 1? saves only?
+    uint32_t who_hit_me;      // who hit me - saves only
+    uint32_t current_hp;      // hit points - saves only, otherwise = value from .pro
+    uint32_t current_rad;     // rad - always 0 - saves only
     uint32_t current_poison;
 
     // Extra fields for ammo
@@ -79,4 +79,4 @@ struct MapObject {
     uint32_t exit_orientation;
 };
 
-}  // namespace geck
+} // namespace geck

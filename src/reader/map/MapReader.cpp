@@ -7,7 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <algorithm>    // std::fill
+#include <algorithm> // std::fill
 
 #include "../../editor/Object.h"
 #include "../../editor/Tile.h"
@@ -76,7 +76,7 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
             listFile /= "proto/misc/misc.lst";
             break;
         default:
-            throw std::runtime_error{"Wrong PID: " + std::to_string(PID)};
+            throw std::runtime_error{ "Wrong PID: " + std::to_string(PID) };
     }
 
     LstReader lst_reader;
@@ -85,7 +85,7 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
     unsigned int index = 0x00000FFF & PID;
 
     if (index > lst->list().size()) {
-        throw std::runtime_error{"LST size < PID: " + std::to_string(PID)};
+        throw std::runtime_error{ "LST size < PID: " + std::to_string(PID) };
     }
 
     std::string protoName = lst->list().at(index - 1);
@@ -118,17 +118,17 @@ std::unique_ptr<Pro> MapReader::loadPro(unsigned int PID) {
         ProReader pro_reader;
         return pro_reader.openFile(data_path / proFilename);
     } else {
-        throw std::runtime_error{"Couldn't load PRO file " + protoName};
+        throw std::runtime_error{ "Couldn't load PRO file " + protoName };
     }
 }
 
 std::string MapReader::FIDtoFrmName(unsigned int FID) {
-    /*const*/ auto baseId = FID & 0x00FFFFFF;  // FIXME? 0x00000FFF;
+    /*const*/ auto baseId = FID & 0x00FFFFFF; // FIXME? 0x00000FFF;
     /*const*/ auto type = static_cast<FRM_TYPE>(FID >> 24);
 
     if (type == FRM_TYPE::CRITTER) {
         baseId = FID & 0x00000FFF;
-        type = static_cast<FRM_TYPE>((FID & 0x0F000000) >> 24);  // FIXME: WTF?
+        type = static_cast<FRM_TYPE>((FID & 0x0F000000) >> 24); // FIXME: WTF?
     }
 
     // TODO: EditorState::_showScrlBlk
@@ -139,7 +139,7 @@ std::string MapReader::FIDtoFrmName(unsigned int FID) {
     }
 
     if (type > FRM_TYPE::INVENTORY) {
-        throw std::runtime_error{"Invalid FRM_TYPE"};
+        throw std::runtime_error{ "Invalid FRM_TYPE" };
     }
 
     // TODO: art/$/
@@ -147,10 +147,14 @@ std::string MapReader::FIDtoFrmName(unsigned int FID) {
         const std::string prefixPath;
         const std::string lstFilePath;
     } const frmTypeDescription[] = {
-        {"art/items/", "art/items/items.lst"},          {"art/critters/", "art/critters/critters.lst"},
-        {"art/scenery/", "art/scenery/scenery.lst"},    {"art/walls/", "art/walls/walls.lst"},
-        {"art/tiles/", "art/tiles/tiles.lst"},          {"art/misc/", "art/misc/misc.lst"},
-        {"art/intrface/", "art/intrface/intrface.lst"}, {"art/inven/", "art/inven/inven.lst"},
+        { "art/items/", "art/items/items.lst" },
+        { "art/critters/", "art/critters/critters.lst" },
+        { "art/scenery/", "art/scenery/scenery.lst" },
+        { "art/walls/", "art/walls/walls.lst" },
+        { "art/tiles/", "art/tiles/tiles.lst" },
+        { "art/misc/", "art/misc/misc.lst" },
+        { "art/intrface/", "art/intrface/intrface.lst" },
+        { "art/inven/", "art/inven/inven.lst" },
     };
 
     const auto& typeArtDescription = frmTypeDescription[static_cast<size_t>(type)];
@@ -158,8 +162,7 @@ std::string MapReader::FIDtoFrmName(unsigned int FID) {
     const auto lst = lst_frm.at(type).get();
 
     if (baseId >= lst->list().size()) {
-        throw std::runtime_error{"LST " + typeArtDescription.lstFilePath + " size " + std::to_string(lst->list().size()) + " <= frmID: " +
-                                 std::to_string(baseId) + ", frmType: " + std::to_string((unsigned)type)};
+        throw std::runtime_error{ "LST " + typeArtDescription.lstFilePath + " size " + std::to_string(lst->list().size()) + " <= frmID: " + std::to_string(baseId) + ", frmType: " + std::to_string((unsigned)type) };
     }
 
     std::string frmName = lst->list().at(baseId);
@@ -171,28 +174,26 @@ std::string MapReader::FIDtoFrmName(unsigned int FID) {
     return typeArtDescription.prefixPath + frmName;
 }
 
-MapReader::MapReader()
-{
+MapReader::MapReader() {
     spdlog::info("Initializing MapReader");
 
-    std::unordered_map<FRM_TYPE, std::string> frm_lists ({
-        { FRM_TYPE::ITEM,       "art/items/items.lst" },
-        { FRM_TYPE::CRITTER,    "art/critters/critters.lst" },
-        { FRM_TYPE::SCENERY,    "art/scenery/scenery.lst" },
-        { FRM_TYPE::WALL,       "art/walls/walls.lst" },
-        { FRM_TYPE::TILE,       "art/tiles/tiles.lst" },
-        { FRM_TYPE::MISC,       "art/misc/misc.lst" },
-        { FRM_TYPE::INTERFACE,  "art/intrface/intrface.lst" },
-        { FRM_TYPE::INVENTORY,  "art/inven/inven.lst" },
+    std::unordered_map<FRM_TYPE, std::string> frm_lists({
+        { FRM_TYPE::ITEM, "art/items/items.lst" },
+        { FRM_TYPE::CRITTER, "art/critters/critters.lst" },
+        { FRM_TYPE::SCENERY, "art/scenery/scenery.lst" },
+        { FRM_TYPE::WALL, "art/walls/walls.lst" },
+        { FRM_TYPE::TILE, "art/tiles/tiles.lst" },
+        { FRM_TYPE::MISC, "art/misc/misc.lst" },
+        { FRM_TYPE::INTERFACE, "art/intrface/intrface.lst" },
+        { FRM_TYPE::INVENTORY, "art/inven/inven.lst" },
     });
 
     const auto data_path = FileHelper::getInstance().fallout2DataPath();
     LstReader lst_reader;
     for (const auto& lst : frm_lists) {
-        lst_frm.emplace(std::make_pair(lst.first, std::move(lst_reader.openFile(data_path / lst.second ))));
+        lst_frm.emplace(std::make_pair(lst.first, std::move(lst_reader.openFile(data_path / lst.second))));
     }
 }
-
 
 std::unique_ptr<MapObject> MapReader::readMapObject() {
     auto object = std::make_unique<MapObject>();
@@ -224,77 +225,71 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
     uint32_t objectId = 0x00FFFFFF & object->pro_pid;
 
     switch (static_cast<Object::OBJECT_TYPE>(objectTypeId)) {
-        case Object::OBJECT_TYPE::ITEM:
-            {
-                uint32_t subtype_id = loadPro(object->pro_pid)->objectSubtypeId();
-                switch (static_cast<Object::ITEM_TYPE>(subtype_id)) {
-                    case Object::ITEM_TYPE::AMMO: // ammo
-                    case Object::ITEM_TYPE::MISC: // charges - have strangely high values, or negative.
-                        object->ammo = read_be_u32(); // bullets
-                        break;
-                    case Object::ITEM_TYPE::KEY:
-                        object->keycode = read_be_u32(); // keycode = -1 in all maps. saves only? ignore for now
-                        break;
-                    case Object::ITEM_TYPE::WEAPON:
-                        object->ammo = read_be_u32();  // ammo
-                        object->ammo_pid = read_be_u32();  // ammo pid
-                        break;
-                    case Object::ITEM_TYPE::ARMOR:
-                    case Object::ITEM_TYPE::CONTAINER:
-                    case Object::ITEM_TYPE::DRUG:
-                        break;
-                    default:
-                        throw std::runtime_error{"Unknown item type " + std::to_string(objectTypeId)};
-                }
+        case Object::OBJECT_TYPE::ITEM: {
+            uint32_t subtype_id = loadPro(object->pro_pid)->objectSubtypeId();
+            switch (static_cast<Object::ITEM_TYPE>(subtype_id)) {
+                case Object::ITEM_TYPE::AMMO:     // ammo
+                case Object::ITEM_TYPE::MISC:     // charges - have strangely high values, or negative.
+                    object->ammo = read_be_u32(); // bullets
+                    break;
+                case Object::ITEM_TYPE::KEY:
+                    object->keycode = read_be_u32(); // keycode = -1 in all maps. saves only? ignore for now
+                    break;
+                case Object::ITEM_TYPE::WEAPON:
+                    object->ammo = read_be_u32();     // ammo
+                    object->ammo_pid = read_be_u32(); // ammo pid
+                    break;
+                case Object::ITEM_TYPE::ARMOR:
+                case Object::ITEM_TYPE::CONTAINER:
+                case Object::ITEM_TYPE::DRUG:
+                    break;
+                default:
+                    throw std::runtime_error{ "Unknown item type " + std::to_string(objectTypeId) };
             }
-            break;
-        case Object::OBJECT_TYPE::CRITTER:
-            {
-                object->player_reaction = read_be_u32();  // reaction to player - saves only
-                object->current_mp = read_be_u32();  // stream.uint32(); //current mp - saves only
-                object->combat_results = read_be_u32();  // stream.uint32(); //combat results - saves only
-                object->dmg_last_turn = read_be_u32();  // stream.uint32(); //damage last turn - saves only
-                object->ai_packet = read_be_u32();  // AI packet - is it different from .pro? well, it can be
-                object->group_id = read_be_u32();  // team - always 1? saves only?
-                object->who_hit_me = read_be_u32();  // who hit me - saves only
-                object->current_hp = read_be_u32();  // hit points - saves only, otherwise = value from .pro
-                object->current_rad = read_be_u32();  // rad - always 0 - saves only
-                object->current_poison = read_be_u32();  // poison - always 0 - saves only
-            }
-            break;
+        } break;
+        case Object::OBJECT_TYPE::CRITTER: {
+            object->player_reaction = read_be_u32(); // reaction to player - saves only
+            object->current_mp = read_be_u32();      // stream.uint32(); //current mp - saves only
+            object->combat_results = read_be_u32();  // stream.uint32(); //combat results - saves only
+            object->dmg_last_turn = read_be_u32();   // stream.uint32(); //damage last turn - saves only
+            object->ai_packet = read_be_u32();       // AI packet - is it different from .pro? well, it can be
+            object->group_id = read_be_u32();        // team - always 1? saves only?
+            object->who_hit_me = read_be_u32();      // who hit me - saves only
+            object->current_hp = read_be_u32();      // hit points - saves only, otherwise = value from .pro
+            object->current_rad = read_be_u32();     // rad - always 0 - saves only
+            object->current_poison = read_be_u32();  // poison - always 0 - saves only
+        } break;
 
-        case Object::OBJECT_TYPE::SCENERY:
-            {
-                uint32_t subtype_id = loadPro(object->pro_pid)->objectSubtypeId();
-                switch (static_cast<Object::SCENERY_TYPE>(subtype_id)) {
-                    case Object::SCENERY_TYPE::LADDER_TOP:
-                    case Object::SCENERY_TYPE::LADDER_BOTTOM:
-                        object->map = read_be_u32();
-                        object->elevhex = read_be_u32();
-                        // hex = elevhex & 0xFFFF;
-                        // elev = ((elevhex >> 28) & 0xf) >> 1;
-                        break;
-                    case Object::SCENERY_TYPE::STAIRS:
-                        // looks like for ladders and stairs map and elev+hex fields in the different order
-                        object->elevhex = read_be_u32();
-                        object->map = read_be_u32();
-                        // hex = elevhex & 0xFFFF;
-                        // elev = ((elevhex >> 28) & 0xf) >> 1;
-                        break;
-                    case Object::SCENERY_TYPE::ELEVATOR:
-                        object->elevtype = read_be_u32();  // elevator type - sometimes -1
-                        object->elevlevel = read_be_u32();  // current level - sometimes -1
-                        break;
-                    case Object::SCENERY_TYPE::DOOR:
-                        object->walkthrough = read_be_u32();  // != 0 -> is opened;
-                        break;
-                    case Object::SCENERY_TYPE::GENERIC:
-                        break;
-                    default:
-                        throw std::runtime_error{"Unknown scenery type: " + std::to_string(subtype_id)};
-                }
+        case Object::OBJECT_TYPE::SCENERY: {
+            uint32_t subtype_id = loadPro(object->pro_pid)->objectSubtypeId();
+            switch (static_cast<Object::SCENERY_TYPE>(subtype_id)) {
+                case Object::SCENERY_TYPE::LADDER_TOP:
+                case Object::SCENERY_TYPE::LADDER_BOTTOM:
+                    object->map = read_be_u32();
+                    object->elevhex = read_be_u32();
+                    // hex = elevhex & 0xFFFF;
+                    // elev = ((elevhex >> 28) & 0xf) >> 1;
+                    break;
+                case Object::SCENERY_TYPE::STAIRS:
+                    // looks like for ladders and stairs map and elev+hex fields in the different order
+                    object->elevhex = read_be_u32();
+                    object->map = read_be_u32();
+                    // hex = elevhex & 0xFFFF;
+                    // elev = ((elevhex >> 28) & 0xf) >> 1;
+                    break;
+                case Object::SCENERY_TYPE::ELEVATOR:
+                    object->elevtype = read_be_u32();  // elevator type - sometimes -1
+                    object->elevlevel = read_be_u32(); // current level - sometimes -1
+                    break;
+                case Object::SCENERY_TYPE::DOOR:
+                    object->walkthrough = read_be_u32(); // != 0 -> is opened;
+                    break;
+                case Object::SCENERY_TYPE::GENERIC:
+                    break;
+                default:
+                    throw std::runtime_error{ "Unknown scenery type: " + std::to_string(subtype_id) };
             }
-            break;
+        } break;
         case Object::OBJECT_TYPE::WALL:
         case Object::OBJECT_TYPE::TILE:
             break;
@@ -323,7 +318,7 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
         default:
             spdlog::error("Unknown object type {}", objectTypeId);
             break;
-//            throw std::runtime_error{"Unknown object type: " + std::to_string(objectTypeId)};
+            //            throw std::runtime_error{"Unknown object type: " + std::to_string(objectTypeId)};
     }
 
     return std::move(object);
@@ -339,11 +334,11 @@ std::unique_ptr<Map> MapReader::read() {
     auto version = read_be_u32();
 
     if (version == 19) {
-        throw std::runtime_error{"Fallout 1 maps are not supported yet"};
+        throw std::runtime_error{ "Fallout 1 maps are not supported yet" };
     }
 
     if (version != 20) {
-        throw std::runtime_error{"Unknown map version " + std::to_string(version)};
+        throw std::runtime_error{ "Unknown map version " + std::to_string(version) };
     }
 
     map_file->header.version = version;
@@ -357,11 +352,11 @@ std::unique_ptr<Map> MapReader::read() {
     map_file->header.player_default_elevation = read_be_u32();
     map_file->header.player_default_orientation = read_be_u32();
 
-    uint32_t num_local_vars = read_be_u32();  // num local vars
+    uint32_t num_local_vars = read_be_u32(); // num local vars
     map_file->header.num_local_vars = num_local_vars;
     map_file->header.script_id = read_be_i32(); // Script id
 
-    uint32_t flags = read_be_u32();  // map flags
+    uint32_t flags = read_be_u32(); // map flags
     map_file->header.flags = flags;
 
     bool elevation_low = (flags & 0x2) == 0;
@@ -377,16 +372,16 @@ std::unique_ptr<Map> MapReader::read() {
         elevations++;
     spdlog::info("Map has " + std::to_string(elevations) + " elevation(s)");
 
-//    skip<4>();  // map darkness (unused)
+    //    skip<4>();  // map darkness (unused)
     map_file->header.darkness = read_be_u32();
 
-    uint32_t num_global_vars = read_be_u32();  // num global vars
+    uint32_t num_global_vars = read_be_u32(); // num global vars
     map_file->header.num_global_vars = num_global_vars;
 
-    map_file->header.map_id = read_be_u32();                             // map id
-    map_file->header.timestamp = read_be_u32();                             // timestamp
+    map_file->header.map_id = read_be_u32();    // map id
+    map_file->header.timestamp = read_be_u32(); // timestamp
 
-    skip<4 * 44>();  // skipping to the end of a MAP header
+    skip<4 * 44>(); // skipping to the end of a MAP header
 
     for (uint32_t i = 0; i < num_local_vars; ++i) {
         map_file->map_local_vars.emplace_back(read_be_u32());
@@ -443,7 +438,7 @@ std::unique_ptr<Map> MapReader::read() {
                 int32_t pid = read_be_i32();
 
                 map_script.pid = pid;
-                map_script.next_script = read_be_u32();  // next script. unused
+                map_script.next_script = read_be_u32(); // next script. unused
 
                 switch ((pid & 0xFF000000) >> 24) {
                     case 0:
@@ -467,20 +462,20 @@ std::unique_ptr<Map> MapReader::read() {
                         spdlog::error("Unknown script PID = " + std::to_string((pid & 0xFF000000) >> 24));
                         break;
                 }
-                map_script.flags = read_be_u32();  // flags
-                map_script.script_id = read_be_i32();  // scriptId (?)
-                map_script.unknown5 = read_be_u32();  // unknown 5
-                map_script.script_oid = read_be_u32();  // oid == object->OID
-                map_script.local_var_offset = read_be_u32();  // local var offset
+                map_script.flags = read_be_u32();            // flags
+                map_script.script_id = read_be_i32();        // scriptId (?)
+                map_script.unknown5 = read_be_u32();         // unknown 5
+                map_script.script_oid = read_be_u32();       // oid == object->OID
+                map_script.local_var_offset = read_be_u32(); // local var offset
                 map_script.local_var_count = read_be_u32();  // loal var cnt
-                map_script.unknown9 = read_be_u32();  // unknown 9
-                map_script.unknown10 = read_be_u32();  // unknown 10
-                map_script.unknown11 = read_be_u32();  // unknown 11
-                map_script.unknown12 = read_be_u32();  // unknown 12
-                map_script.unknown13 = read_be_u32();  // unknown 13
-                map_script.unknown14 = read_be_u32();  // unknown 14
-                map_script.unknown15 = read_be_u32();  // unknown 15
-                map_script.unknown16 = read_be_u32();  // unknown 16
+                map_script.unknown9 = read_be_u32();         // unknown 9
+                map_script.unknown10 = read_be_u32();        // unknown 10
+                map_script.unknown11 = read_be_u32();        // unknown 11
+                map_script.unknown12 = read_be_u32();        // unknown 12
+                map_script.unknown13 = read_be_u32();        // unknown 13
+                map_script.unknown14 = read_be_u32();        // unknown 14
+                map_script.unknown15 = read_be_u32();        // unknown 15
+                map_script.unknown16 = read_be_u32();        // unknown 16
 
                 if (j < count) {
                     map_file->map_scripts[i].push_back(map_script);
@@ -501,13 +496,13 @@ std::unique_ptr<Map> MapReader::read() {
                 }
             }
             if (check != count) {
-                throw std::runtime_error{"Error reading scripts: check is incorrect"};
+                throw std::runtime_error{ "Error reading scripts: check is incorrect" };
             }
         }
     }
 
     // OBJECTS SECTION
-    uint32_t total_objects = read_be_u32();  // objects total
+    uint32_t total_objects = read_be_u32(); // objects total
 
     spdlog::info("Loading {} map objects", total_objects);
     for (auto elev = 0; elev < elevations; ++elev) {
@@ -534,24 +529,23 @@ std::unique_ptr<Map> MapReader::read() {
         }
 
         if (objectsOnElevation != map_file->map_objects[elev].size()) {
-            throw std::runtime_error{"Object count doesn't match: " + std::to_string(objectsOnElevation) + " vs " +
-                                     std::to_string(map_file->map_objects[elev].size())};
+            throw std::runtime_error{ "Object count doesn't match: " + std::to_string(objectsOnElevation) + " vs " + std::to_string(map_file->map_objects[elev].size()) };
         }
     }
 
-//    std::unordered_map<int, std::vector<std::unique_ptr<Object> > > objects;
-//    for (size_t elev = 0; elev < map_file->map_objects.size(); elev++) {
-//        for (size_t i = 0; i < map_file->map_objects[elev].size(); i++) {
+    //    std::unordered_map<int, std::vector<std::unique_ptr<Object> > > objects;
+    //    for (size_t elev = 0; elev < map_file->map_objects.size(); elev++) {
+    //        for (size_t i = 0; i < map_file->map_objects[elev].size(); i++) {
 
-//            auto mapobject = objectToMapObject(map_file->map_objects[elev][i]);
+    //            auto mapobject = objectToMapObject(map_file->map_objects[elev][i]);
 
-//            objects[elev].push_back(std::move(mapobject));
-//        }
-//    }
+    //            objects[elev].push_back(std::move(mapobject));
+    //        }
+    //    }
 
     map->setMapFile(std::move(map_file));
 
     return map;
 }
 
-}  // namespace geck
+} // namespace geck

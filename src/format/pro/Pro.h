@@ -8,6 +8,7 @@ class Pro {
 private:
     unsigned int _objectSubtypeId;
     uint32_t _messageId;
+
 public:
     unsigned int objectSubtypeId();
     void setObjectSubtypeId(unsigned int objectSubtypeId);
@@ -16,4 +17,4 @@ public:
     void setMessageId(uint32_t newMessageId);
 };
 
-}  // namespace geck
+} // namespace geck

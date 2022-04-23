@@ -31,4 +31,4 @@ public:
     uint16_t height() const;
 };
 
-}  // namespace geck
+} // namespace geck

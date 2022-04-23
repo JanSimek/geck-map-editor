@@ -1,9 +1,6 @@
 #pragma once
 
-
-class IFile
-{
+class IFile {
 public:
     virtual ~IFile() = default;
 };
-

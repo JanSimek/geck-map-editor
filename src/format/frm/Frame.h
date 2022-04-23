@@ -17,7 +17,7 @@ private:
     std::vector<uint8_t> _rgba;
 
 public:
-    static constexpr int RGBA = 4;  // RGBA of SFML texture
+    static constexpr int RGBA = 4; // RGBA of SFML texture
 
     Frame(uint16_t width, uint16_t height);
 
@@ -40,4 +40,4 @@ public:
     uint8_t* rgba(Pal* pal);
 };
 
-}  // namespace geck
+} // namespace geck

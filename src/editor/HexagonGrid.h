@@ -9,7 +9,7 @@ namespace geck {
 
 class HexagonGrid {
 private:
-    std::vector<std::unique_ptr<Hex> > _grid;
+    std::vector<std::unique_ptr<Hex>> _grid;
 
 public:
     static constexpr int GRID_WIDTH = 200;
@@ -17,7 +17,7 @@ public:
 
     HexagonGrid();
 
-    const std::vector<std::unique_ptr<Hex> >& grid() const;
+    const std::vector<std::unique_ptr<Hex>>& grid() const;
 };
 
-}  // namespace geck
+} // namespace geck

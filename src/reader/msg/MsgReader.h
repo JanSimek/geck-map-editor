@@ -1,11 +1,6 @@
 #pragma once
 
-
-class MsgReader
-{
+class MsgReader {
 public:
     MsgReader();
-
-
 };
-

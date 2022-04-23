@@ -23,21 +23,21 @@ public:
     virtual void load() = 0;
     virtual bool isDone() = 0;
 
-    const std::string & status() {
+    const std::string& status() {
         std::shared_lock lock(_mutex);
         return _status;
     }
 
-    const std::string & progress() {
+    const std::string& progress() {
         std::shared_lock lock(_mutex);
         return _progress;
     }
 
-    void setStatus(const std::string & status) {
+    void setStatus(const std::string& status) {
         this->_status = status;
     }
 
-    void setProgress(const std::string & progress) {
+    void setProgress(const std::string& progress) {
         this->_progress = progress;
     }
 
@@ -48,4 +48,4 @@ public:
 
 } // namespace geck
 
-#endif  // GECK_MAPPER_LOADER_H
+#endif // GECK_MAPPER_LOADER_H

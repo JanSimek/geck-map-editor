@@ -16,4 +16,4 @@ public:
     const std::string& at(int line) const;
 };
 
-}  // namespace geck
+} // namespace geck

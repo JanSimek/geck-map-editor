@@ -15,7 +15,14 @@ class Tile;
 
 class MapReader : public FileParser<Map> {
 public:
-    enum class ScriptType { system, spatial, timer, item, critter, unknown };
+    enum class ScriptType {
+        system,
+        spatial,
+        timer,
+        item,
+        critter,
+        unknown
+    };
 
     std::unique_ptr<Pro> loadPro(unsigned int PID);
 
@@ -23,7 +30,17 @@ public:
 
     MapReader();
 
-    enum class FRM_TYPE : char { ITEM = 0, CRITTER, SCENERY, WALL, TILE, MISC, INTERFACE, INVENTORY };
+    enum class FRM_TYPE : char {
+        ITEM = 0,
+        CRITTER,
+        SCENERY,
+        WALL,
+        TILE,
+        MISC,
+        INTERFACE,
+        INVENTORY
+    };
+
 private:
     std::unique_ptr<MapObject> readMapObject();
     ScriptType fromPid(uint32_t val);
@@ -35,4 +52,4 @@ public:
     std::unique_ptr<Map> read() override;
 };
 
-}  // namespace geck
+} // namespace geck

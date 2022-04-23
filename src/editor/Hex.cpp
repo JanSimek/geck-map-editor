@@ -2,7 +2,9 @@
 
 namespace geck {
 
-Hex::Hex(int x, int y) : _x(x), _y(y) {}
+Hex::Hex(int x, int y)
+    : _x(x)
+    , _y(y) { }
 
 int Hex::y() const {
     return _y;
@@ -20,4 +22,4 @@ void Hex::setX(int x) {
     _x = x;
 }
 
-}  // namespace geck
+} // namespace geck

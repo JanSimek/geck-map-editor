@@ -4,7 +4,7 @@ namespace sf {
 class Window;
 class RenderTarget;
 class Event;
-}  // namespace sf
+} // namespace sf
 
 class State {
 public:

@@ -2,13 +2,11 @@
 
 namespace geck {
 
-uint32_t Pro::messageId() const
-{
+uint32_t Pro::messageId() const {
     return _messageId;
 }
 
-void Pro::setMessageId(uint32_t newMessageId)
-{
+void Pro::setMessageId(uint32_t newMessageId) {
     _messageId = newMessageId;
 }
 
@@ -20,4 +18,4 @@ void Pro::setObjectSubtypeId(unsigned int objectSubtypeId) {
     _objectSubtypeId = objectSubtypeId;
 }
 
-}  // namespace geck
+} // namespace geck

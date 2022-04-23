@@ -3,11 +3,10 @@
 
 namespace geck {
 
-Frame::Frame(uint16_t width, uint16_t height) :
-    _width(width),
-    _height(height),
-    _indexes(width * height, 0)
-{}
+Frame::Frame(uint16_t width, uint16_t height)
+    : _width(width)
+    , _height(height)
+    , _indexes(width * height, 0) { }
 
 uint16_t Frame::width() const {
     return _width;
@@ -48,12 +47,11 @@ uint8_t Frame::index(uint16_t x, uint16_t y) const {
     return _indexes.at(static_cast<std::size_t>(_width * y + x));
 }
 
-uint8_t *Frame::data() {
+uint8_t* Frame::data() {
     return _indexes.data();
 }
 
-uint8_t* Frame::rgba(Pal* pal)
-{
+uint8_t* Frame::rgba(Pal* pal) {
     const auto pixelCount = width() * height() * RGBA;
     const auto& colors = pal->palette();
     const auto& colorIndexes = _indexes.data();
@@ -74,7 +72,7 @@ uint8_t* Frame::rgba(Pal* pal)
             _rgba.emplace_back(0);
             _rgba.emplace_back(0);
         } else {
-            constexpr int brightness = 4;  // brightness modifier
+            constexpr int brightness = 4; // brightness modifier
             _rgba.emplace_back(color.r * brightness);
             _rgba.emplace_back(color.g * brightness);
             _rgba.emplace_back(color.b * brightness);
@@ -84,4 +82,4 @@ uint8_t* Frame::rgba(Pal* pal)
     return _rgba.data();
 }
 
-}  // namespace geck
+} // namespace geck

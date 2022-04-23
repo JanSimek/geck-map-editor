@@ -1,3 +1,3 @@
 #include "datwriter.h"
 
-DatWriter::DatWriter() {}
+DatWriter::DatWriter() { }

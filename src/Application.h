@@ -35,7 +35,6 @@ public:
     void render(float dt);
 
 private:
-
     void initUI();
 
     bool _running;
@@ -50,4 +49,4 @@ private:
     void loadMap();
 };
 
-}  // namespace geck
+} // namespace geck

@@ -14,13 +14,13 @@
 namespace geck {
 
 Application::Application(const std::filesystem::path& dataPath, const std::filesystem::path& mapPath)
-    : _running(false),
-      _window(std::make_unique<sf::RenderWindow>(sf::VideoMode(1280, 960), "GECK::Mapper")),
-      _stateMachine(std::make_shared<StateMachine>()),
-      _appData(std::make_shared<AppData>(AppData{_window, _stateMachine, mapPath})) {
+    : _running(false)
+    , _window(std::make_unique<sf::RenderWindow>(sf::VideoMode(1280, 960), "GECK::Mapper"))
+    , _stateMachine(std::make_shared<StateMachine>())
+    , _appData(std::make_shared<AppData>(AppData{ _window, _stateMachine, mapPath })) {
 
-    //sf::Image icon;
-    //icon.loadFromFile((FileHelper::getInstance().resourcesPath() / "icon.png").string());
+    // sf::Image icon;
+    // icon.loadFromFile((FileHelper::getInstance().resourcesPath() / "icon.png").string());
     //_window->setIcon(600, 600, icon.getPixelsPtr());
 
     initUI();
@@ -46,9 +46,9 @@ void Application::initUI() {
 
     ImGuiIO& io = ImGui::GetIO();
 
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-//    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-//    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
+                                                      //    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+                                                      //    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
     io.Fonts->Clear();
 
@@ -59,7 +59,7 @@ void Application::initUI() {
     io.Fonts->AddFontFromFileTTF(main_font.string().c_str(), 18.0f);
 
     // icon font - merge in icons from Font Awesome
-    static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+    static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
     ImFontConfig icons_config;
     icons_config.MergeMode = true;
     icons_config.PixelSnapH = true;
@@ -102,19 +102,17 @@ void Application::update(float dt) {
 /**
  * @brief Creates an invisible window where other IMGUI windows can be docked into
  */
-void geck::Application::renderDockingUI()
-{
+void geck::Application::renderDockingUI() {
     const bool enableDocking = ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
-    if (enableDocking)
-    {
+    if (enableDocking) {
         ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->Pos);
         ImGui::SetNextWindowSize(viewport->Size);
         ImGui::SetNextWindowViewport(viewport->ID);
 
         ImGuiWindowFlags host_window_flags = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar;
-    //  ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking;
-    //  ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus
+        //  ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking;
+        //  ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -159,4 +157,4 @@ bool Application::isRunning() const {
     return _running;
 }
 
-}  // namespace geck
+} // namespace geck
