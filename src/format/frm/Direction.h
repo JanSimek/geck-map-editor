@@ -24,8 +24,8 @@ public:
     uint32_t dataOffset() const;
     void setDataOffset(const uint32_t& dataOffset);
 
-    std::vector<Frame>& frames();
-    void setFrames(const std::vector<Frame>& frames);
+    const std::vector<Frame> &frames() const;
+    void setFrames(std::vector<Frame> frames);
 
     uint16_t width() const;
     uint16_t height() const;

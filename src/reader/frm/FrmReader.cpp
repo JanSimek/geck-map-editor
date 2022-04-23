@@ -62,6 +62,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
         stream.seekg(frame_data_offset, std::ios_base::beg);
 
         // read all frames
+        std::vector<Frame> frames;
         for (unsigned i = 0; i != frm->framesPerDirection(); ++i) {
             uint16_t width = read_be_u16();
             uint16_t height = read_be_u16();
@@ -80,8 +81,9 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
             // Pixels data
             stream.read((char*)frame.data(), frame.width() * frame.height());
 
-            direction.frames().emplace_back(frame);
+            frames.emplace_back(frame);
         }
+        direction.setFrames(frames);
     }
 
     frm->setDirections(directions);

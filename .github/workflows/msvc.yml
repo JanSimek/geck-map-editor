@@ -34,6 +34,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
 
       - name: Install dependencies via vcpkg
         run: vcpkg install --triplet x64-windows sfml

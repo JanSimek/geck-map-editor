@@ -30,12 +30,12 @@ void Direction::setDataOffset(const uint32_t& dataOffset) {
     _dataOffset = dataOffset;
 }
 
-std::vector<Frame>& Direction::frames() {
+const std::vector<Frame>& Direction::frames() const {
     return _frames;
 }
 
-void Direction::setFrames(const std::vector<Frame>& frames) {
-    _frames = frames;
+void Direction::setFrames(std::vector<Frame> frames) {
+    _frames = std::move(frames);
 }
 
 /**

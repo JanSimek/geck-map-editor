@@ -211,31 +211,33 @@ void geck::EditorState::loadMap() {
         spdlog::info("Loading sprite {}", frmName);
 
         // center on the hex
-        auto direction = object->direction;
+        auto direction_index = object->direction;
 
         // FIXME: ??? one scrblk on arcaves.map
-        if (frm->directions().size() <= direction) {
-            spdlog::error("Object has orientation {} but the FRM has only {} orientations", direction, frm->directions().size());
-            direction = 0;
+        if (frm->directions().size() <= direction_index) {
+            spdlog::error("Object has orientation index {} but the FRM has only [{}] orientations", direction_index, frm->directions().size());
+            direction_index = 0;
         }
 
         // Take the first frame of the direction
+        auto first_frame = frm->directions().at(direction_index).frames().at(0);
+
         uint16_t left = 0;
-        uint16_t top = direction * frm->maxFrameHeight();
-        uint16_t width = frm->maxFrameWidth();
-        uint16_t height = frm->maxFrameHeight();
+        uint16_t top = direction_index * frm->maxFrameHeight();
+        uint16_t width = first_frame.width();
+        uint16_t height = first_frame.height();
 
         object_sprite.setTextureRect({ left, top, width, height });
 
-        auto frame = frm->directions().at(direction);
+        auto direction = frm->directions().at(direction_index);
 
         // center on the hex
         object_sprite.setPosition(
             // X
-            (float)hex->x() + frame.shiftX() - (width / 2),
+            (float)hex->x() + direction.shiftX() - (width / 2),
 
             // Y
-            (float)hex->y() + frame.shiftY() - height);
+            (float)hex->y() + direction.shiftY() - height);
 
         Object entity;
         entity.setSprite(std::move(object_sprite));
