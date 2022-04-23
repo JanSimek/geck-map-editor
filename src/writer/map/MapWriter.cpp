@@ -3,14 +3,12 @@
 #include <spdlog/spdlog.h>
 
 #include "../../format/pro/Pro.h"
-#include "../../reader/map/MapReader.h" // FIXME: REMOVE
 
 #include "../../editor/helper/ObjectHelper.h"
 
 namespace geck {
 
-bool MapWriter::write(const Map::MapFile &map)
-{
+bool MapWriter::write(const Map::MapFile& map) {
     if (!stream.is_open()) {
         spdlog::error("Cannot save map. File {} is not open for writing.", path.string());
         return false;
@@ -20,12 +18,11 @@ bool MapWriter::write(const Map::MapFile &map)
 
     write_be_32(map.header.version);
 
-    stream.write(map.header.filename.c_str(), map.header.filename.size());
+    stream.write(map.header.filename.c_str(), Map::FILENAME_LENGTH);
 
     write_be_32(map.header.player_default_position);
     write_be_32(map.header.player_default_elevation);
     write_be_32(map.header.player_default_orientation);
-
 
     write_be_32(map.header.num_local_vars);
     write_be_32(map.header.script_id);
@@ -40,11 +37,11 @@ bool MapWriter::write(const Map::MapFile &map)
         write_be_32(0); // unused bytes
     }
 
-    for (const auto& var : map.map_local_vars) {
+    for (const auto& var : map.map_global_vars) {
         write_be_32(var);
     }
 
-    for (const auto& var : map.map_global_vars) {
+    for (const auto& var : map.map_local_vars) {
         write_be_32(var);
     }
 
@@ -55,37 +52,36 @@ bool MapWriter::write(const Map::MapFile &map)
         }
     }
 
-//    for (auto& script_section : map_scripts) {
-//        if (script_section.size() % 16 != 0) {
-//            std::fill(script_section.begin(), script_section.end() + 16 - script_section.size() % 16, empty_script);
-//        }
-//    }
+    // Scripts
 
-    for (const auto& script_section : map.map_scripts) {
+    for (int section = 0; section < Map::SCRIPT_SECTIONS; section++) {
+
+        const auto& script_section = map.map_scripts[section];
 
         uint32_t number_of_scripts = script_section.size();
         write_be_32(number_of_scripts);
 
-        if (number_of_scripts == 0)
+        if (number_of_scripts == 0) {
             continue;
-
-//        std::fill(number_of_scripts /*+ 1*/, number_of_scripts + 16 - number_of_scripts % 16, empty_script);
-//        for (const auto& script : script_section) {
+        }
 
         int current_sequence = 0;
         uint32_t check = 0;
 
-        // TODO: check
-        int scripts_in_section = (script_section.size() % 16 == 0 ? script_section.size() : script_section.size() + 16 - number_of_scripts % 16);
+        // round number of script to be divisible by 16
+        int remainder = number_of_scripts % 16;
+        int scripts_in_section = (remainder == 0 ? number_of_scripts : number_of_scripts + 16 - remainder);
 
         for (int i = 0; i < scripts_in_section; i++) {
 
-            if (i < script_section.size()) {
+            if (i < number_of_scripts) {
                 writeScript(script_section.at(i));
                 current_sequence++;
                 check++;
-            } else {
-                writeScript(empty_script);
+            } else { // fill the rest with empty scripts
+                for (int j = 0; j < 16; j++) {
+                    write_be_32(0xCC); // empty MapScript without additional fields for spatial/timer scripts
+                }
             }
 
             if (i % 16 == 15) { // check after every batch
@@ -98,15 +94,7 @@ bool MapWriter::write(const Map::MapFile &map)
         if (check != number_of_scripts) {
             spdlog::error("Check {} doesn't match number of scripts {} in section", check, number_of_scripts);
         }
-
-//        // fill the remainder up to a multiple of 16 with empty scripts
-//        int multiple_of_16 = (number_of_scripts % 16 == 0 ? 0 : 16 - number_of_scripts % 16);
-//        for (int i = 0; i < multiple_of_16; i++) {
-//            write_script(empty_script, out);
-//        }
     }
-
-//    return true;
 
     // Objects
 
@@ -117,50 +105,21 @@ bool MapWriter::write(const Map::MapFile &map)
 
     write_be_32(total_objects); // Total number of object on this map
 
-    // for elevation ...
     for (size_t elev = 0; elev < map.map_objects.size(); elev++) {
 
-//        auto objectsOnElevation = map.map_objects[elev].size();
         auto objectsOnElevation = map.map_objects.at(elev).size();
         write_be_32(objectsOnElevation);
 
-//        for (const auto& obj : map.map_objects.at(elev)) {
-        for (size_t i = 0; i < map.map_objects.at(elev).size(); i++) {
-            const auto & object = map.map_objects.at(elev)[i];
+        for (size_t i = 0; i < objectsOnElevation; i++) {
+            const auto& object = map.map_objects.at(elev)[i];
             writeObject(*object);
-
-            if (elev == map.map_objects.size() - 1 && i > objectsOnElevation - 1) {
-                spdlog::info("Writing last object");
-
-                spdlog::info("{0:X}", object->unknown0);
-                spdlog::info("{0:X}", object->position);
-                spdlog::info("{0:X}", object->x);
-                spdlog::info("{0:X}", object->y);
-                spdlog::info("{0:X}", object->sx);
-                spdlog::info("{0:X}", object->sy);
-                spdlog::info("{0:X}", object->frame_number);
-                spdlog::info("{0:X}", object->direction);
-                spdlog::info("{0:X}", object->frm_pid);
-                spdlog::info("{0:X}", object->flags);
-                spdlog::info("{0:X}", object->elevation);
-                spdlog::info("{0:X}", object->pro_pid);
-                spdlog::info("{0:X}", object->critter_index);
-                spdlog::info("{0:X}", object->light_radius);
-                spdlog::info("{0:X}", object->light_intensity);
-                spdlog::info("{0:X}", object->outline_color);
-                spdlog::info("{0:X}", object->map_scripts_pid);
-                spdlog::info("{0:X}", object->script_id);
-                spdlog::info("{0:X}", object->objects_in_inventory);
-                spdlog::info("{0:X}", object->max_inventory_size);
-                spdlog::info("{0:X}", object->unknown10);
-                spdlog::info("{0:X}", object->unknown11);
-            }
         }
     }
 
-    // TODO: check: at least on artemple.map there are 2x extra 0x000000 at the end of the file
-//    write_be_32(0);
-//    write_be_32(0);
+    // FIXME: some maps (artemple.map, kladwtwn.map, all?) contain 2x extra 0x000000 at the end of the file
+    // without them kladwtnwn.map crashes Fallout 2; however F2_Dims_Mapper doesn't seem to add them (?)
+    write_be_32(0);
+    write_be_32(0);
 
     return true;
 }
@@ -189,7 +148,7 @@ void MapWriter::writeScript(const MapScript& script) {
         case 9:
             break;
         default:
-//            spdlog::debug("Unknown script PID = " + std::to_string((pid & 0xFF000000) >> 24));
+            spdlog::debug("Unknown script PID = " + std::to_string((script.pid & 0xFF000000) >> 24));
             break;
     }
 
@@ -237,82 +196,72 @@ void MapWriter::writeObject(const MapObject& object) {
     uint32_t objectTypeId = object.pro_pid >> 24;
     uint32_t objectId = 0x00FFFFFF & object.pro_pid;
 
-    MapReader map_reader;
-
     spdlog::info("Saving object {}", ObjectHelper::objectTypeFromId(objectTypeId));
 
     Object::OBJECT_TYPE object_type = static_cast<Object::OBJECT_TYPE>(objectTypeId);
-    switch (object_type) { //(Object::OBJECT_TYPE)objectTypeId
-        case Object::OBJECT_TYPE::ITEM:
-            {
-                uint32_t subtype_id = map_reader.loadPro(object.pro_pid)->objectSubtypeId();
-                switch ((Object::ITEM_TYPE)subtype_id) {
-                    case Object::ITEM_TYPE::AMMO: // ammo
-                    case Object::ITEM_TYPE::MISC: // charges - have strangely high values, or negative.
-                        write_be_32(object.ammo); // bullets
-                        break;
-                    case Object::ITEM_TYPE::KEY:
-                        write_be_32(object.keycode); // keycode = -1 in all maps. saves only? ignore for now
-                        break;
-                    case Object::ITEM_TYPE::WEAPON:
-                        write_be_32(object.ammo);  // ammo
-                        write_be_32(object.ammo_pid); // ammo pid
-                        break;
-                    case Object::ITEM_TYPE::ARMOR:
-                    case Object::ITEM_TYPE::CONTAINER:
-                    case Object::ITEM_TYPE::DRUG:
-                        break;
-                    default:
-                        throw std::runtime_error{"Unknown item type " + std::to_string(objectTypeId)};
-                }
+    switch (object_type) {
+        case Object::OBJECT_TYPE::ITEM: {
+            uint32_t subtype_id = map_reader.loadPro(object.pro_pid)->objectSubtypeId();
+            switch ((Object::ITEM_TYPE)subtype_id) {
+                case Object::ITEM_TYPE::AMMO: // ammo
+                case Object::ITEM_TYPE::MISC: // charges - have strangely high values, or negative.
+                    write_be_32(object.ammo); // bullets
+                    break;
+                case Object::ITEM_TYPE::KEY:
+                    write_be_32(object.keycode); // keycode = -1 in all maps. saves only? ignore for now
+                    break;
+                case Object::ITEM_TYPE::WEAPON:
+                    write_be_32(object.ammo);     // ammo
+                    write_be_32(object.ammo_pid); // ammo pid
+                    break;
+                case Object::ITEM_TYPE::ARMOR:
+                case Object::ITEM_TYPE::CONTAINER:
+                case Object::ITEM_TYPE::DRUG:
+                    break;
+                default:
+                    throw std::runtime_error{"Unknown item type " + std::to_string(objectTypeId)};
             }
-            break;
+        } break;
         case Object::OBJECT_TYPE::CRITTER:
-            write_be_32(object.player_reaction);  // reaction to player - saves only
-            write_be_32(object.current_mp);  // current mp - saves only
+            write_be_32(object.player_reaction); // reaction to player - saves only
+            write_be_32(object.current_mp);      // current mp - saves only
             write_be_32(object.combat_results);  // combat results - saves only
-            write_be_32(object.dmg_last_turn);  // damage last turn - saves only
-            write_be_32(object.ai_packet);  // AI packet - is it different from .pro? well, it can be
-            write_be_32(object.group_id);  // team - always 1? saves only?
-            write_be_32(object.who_hit_me);  // who hit me - saves only
-            write_be_32(object.current_hp);  // hit points - saves only, otherwise = value from .pro
-            write_be_32(object.current_rad);  // rad - always 0 - saves only
+            write_be_32(object.dmg_last_turn);   // damage last turn - saves only
+            write_be_32(object.ai_packet);       // AI packet - is it different from .pro? well, it can be
+            write_be_32(object.group_id);        // team - always 1? saves only?
+            write_be_32(object.who_hit_me);      // who hit me - saves only
+            write_be_32(object.current_hp);      // hit points - saves only, otherwise = value from .pro
+            write_be_32(object.current_rad);     // rad - always 0 - saves only
             write_be_32(object.current_poison);  // poison - always 0 - saves only
 
             break;
 
-        case Object::OBJECT_TYPE::SCENERY:
-            {
-                uint32_t subtype_id = map_reader.loadPro(object.pro_pid)->objectSubtypeId();
-                switch ((Object::SCENERY_TYPE)subtype_id) {
-                    case Object::SCENERY_TYPE::LADDER_TOP:
-                    case Object::SCENERY_TYPE::LADDER_BOTTOM:
-                        write_be_32(object.map);
-                        write_be_32(object.elevhex);
-                        // hex = elevhex & 0xFFFF;
-                        // elev = ((elevhex >> 28) & 0xf) >> 1;
-                        break;
-                    case Object::SCENERY_TYPE::STAIRS:
-                        // looks like for ladders and stairs map and elev+hex fields in the different order
-                        write_be_32(object.elevhex);
-                        write_be_32(object.map);
-                        // hex = elevhex & 0xFFFF;
-                        // elev = ((elevhex >> 28) & 0xf) >> 1;
-                        break;
-                    case Object::SCENERY_TYPE::ELEVATOR:
-                        write_be_32(object.elevtype);  // elevator type - sometimes -1
-                        write_be_32(object.elevlevel);  // current level - sometimes -1
-                        break;
-                    case Object::SCENERY_TYPE::DOOR:
-                        write_be_32(object.walkthrough);  // != 0 -> is opened;
-                        break;
-                    case Object::SCENERY_TYPE::GENERIC:
-                        break;
-                    default:
-                        throw std::runtime_error{"Unknown scenery type: " + std::to_string(subtype_id)};
-                }
+        case Object::OBJECT_TYPE::SCENERY: {
+            uint32_t subtype_id = map_reader.loadPro(object.pro_pid)->objectSubtypeId();
+            switch (static_cast<Object::SCENERY_TYPE>(subtype_id)) {
+                case Object::SCENERY_TYPE::LADDER_TOP:
+                case Object::SCENERY_TYPE::LADDER_BOTTOM:
+                    write_be_32(object.map);
+                    write_be_32(object.elevhex);
+                    break;
+                case Object::SCENERY_TYPE::STAIRS:
+                    // looks like for ladders and stairs map and elev+hex fields in the different order
+                    write_be_32(object.elevhex);
+                    write_be_32(object.map);
+                    break;
+                case Object::SCENERY_TYPE::ELEVATOR:
+                    write_be_32(object.elevtype);  // elevator type - sometimes -1
+                    write_be_32(object.elevlevel); // current level - sometimes -1
+                    break;
+                case Object::SCENERY_TYPE::DOOR:
+                    write_be_32(object.walkthrough);
+                    break;
+                case Object::SCENERY_TYPE::GENERIC:
+                    break;
+                default:
+                    throw std::runtime_error{"Unknown scenery type: " + std::to_string(subtype_id)};
             }
-            break;
+        } break;
         case Object::OBJECT_TYPE::WALL:
         case Object::OBJECT_TYPE::TILE:
             break;

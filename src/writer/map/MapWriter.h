@@ -2,20 +2,19 @@
 
 #include "../FileWriter.h"
 #include "../../format/map/Map.h"
+#include "../../reader/map/MapReader.h" // FIXME: REMOVE
 
 namespace geck {
 
-class MapWriter : public FileWriter<Map::MapFile>
-{
+class MapWriter : public FileWriter<Map::MapFile> {
 public:
-    constexpr static MapScript empty_script = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-    bool write(const Map::MapFile& map);
+    [[nodiscard]] bool write(const Map::MapFile& map);
 
 private:
+    MapReader map_reader;
+
     void writeScript(const MapScript& script);
     void writeObject(const MapObject& object);
-
 };
 
 } // namespace geck

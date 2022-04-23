@@ -26,6 +26,7 @@ public:
 
     static constexpr int EMPTY_TILE = 1;
     static constexpr int SCRIPT_SECTIONS = 5;
+    static constexpr int FILENAME_LENGTH = 16;
 
     // Header
     struct MapHeader {
@@ -53,20 +54,20 @@ public:
         std::vector<uint32_t> map_global_vars;
 
         // Tiles
-        std::map<int, std::vector<Tile> > tiles;
+        std::map<int, std::vector<Tile>> tiles;
 
         // Scripts
         std::vector<MapScript> map_scripts[SCRIPT_SECTIONS];
         std::array<int, SCRIPT_SECTIONS> scripts_in_section;
 
         // Objects sorted by elevation
-        std::unordered_map<int, std::vector<std::shared_ptr<MapObject> >> map_objects;
+        std::unordered_map<int, std::vector<std::shared_ptr<MapObject>>> map_objects;
     };
 
-    const std::map<int, std::vector<Tile> >& tiles() const;
-    void setTiles(const std::map<int, std::vector<Tile> >& tiles);
+    const std::map<int, std::vector<Tile>>& tiles() const;
+    void setTiles(const std::map<int, std::vector<Tile>>& tiles);
 
-    const std::unordered_map<int, std::vector<std::shared_ptr<MapObject> > >& objects() const;
+    const std::unordered_map<int, std::vector<std::shared_ptr<MapObject>>>& objects() const;
 
     int elevations() const;
 
@@ -74,11 +75,10 @@ public:
     void setMapFile(std::unique_ptr<MapFile> newMapFile);
 
 private:
-
     std::unique_ptr<MapFile> mapFile;
 
-    std::map<int, std::vector<Tile> > _tiles;
-//    std::unordered_map<int, std::vector<std::unique_ptr<Object> > > _objects;
+    std::map<int, std::vector<Tile>> _tiles;
+    //    std::unordered_map<int, std::vector<std::unique_ptr<Object> > > _objects;
 };
 
-}  // namespace geck
+} // namespace geck
