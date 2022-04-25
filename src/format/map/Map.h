@@ -8,15 +8,12 @@
 #include <vector>
 #include <array>
 
-#include "../../format/map/MapObject.h"
-#include "../../editor/Tile.h"
-#include "../../editor/Object.h"
 #include "MapScript.h"
 
 namespace geck {
 
-// class Tile;
-// class MapObject;
+class Tile;
+class MapObject;
 
 class Map {
 public:
@@ -34,11 +31,11 @@ public:
         std::string filename;
 
         uint32_t player_default_position;
-        uint32_t player_default_elevation; // map elevation where the map is loaded
+        uint32_t player_default_elevation; //!< map elevation where the map is loaded
         uint32_t player_default_orientation;
 
         uint32_t num_local_vars;
-        int32_t script_id;
+        int32_t script_id; //!< Script id for this map. Value of -1 means no map. Text string is found in MSG file scrname.msg at index [id + 101].
         uint32_t flags;
         uint32_t darkness;
         uint32_t num_global_vars;

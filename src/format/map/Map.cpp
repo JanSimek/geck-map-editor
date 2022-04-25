@@ -4,6 +4,8 @@
 
 #include "../../util/io.h"
 #include "../lst/Lst.h"
+#include "../../format/map/MapObject.h"
+#include "../../editor/Tile.h"
 
 namespace geck {
 

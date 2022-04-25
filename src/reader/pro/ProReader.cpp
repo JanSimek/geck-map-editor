@@ -2,6 +2,9 @@
 
 #include "../../editor/Object.h"
 #include "../../format/pro/Pro.h"
+#include "../../format/lst/Lst.h"
+#include "../../reader/lst/LstReader.h"
+#include "../../util/FileHelper.h"
 #include "../../util/io.h"
 
 namespace geck {
@@ -23,30 +26,30 @@ std::unique_ptr<Pro> ProReader::read() {
     read_be_u32(); //    _lightIntencity = stream.uint32();
     read_be_u32(); //    _flags          = stream.uint32();
 
-    switch ((Object::OBJECT_TYPE)type) {
-        case Object::OBJECT_TYPE::TILE:
-        case Object::OBJECT_TYPE::MISC:
+    switch (static_cast<Pro::OBJECT_TYPE>(type)) {
+        case Pro::OBJECT_TYPE::TILE:
+        case Pro::OBJECT_TYPE::MISC:
             break;
         default:
             read_be_u32(); //_flagsExt = stream.uint32();
             break;
     }
 
-    switch ((Object::OBJECT_TYPE)type) {
-        case Object::OBJECT_TYPE::ITEM:
-        case Object::OBJECT_TYPE::CRITTER:
-        case Object::OBJECT_TYPE::SCENERY:
-        case Object::OBJECT_TYPE::WALL:
+    switch ((Pro::OBJECT_TYPE)type) {
+        case Pro::OBJECT_TYPE::ITEM:
+        case Pro::OBJECT_TYPE::CRITTER:
+        case Pro::OBJECT_TYPE::SCENERY:
+        case Pro::OBJECT_TYPE::WALL:
             read_be_u32(); //_SID = stream.int32();
             break;
-        case Object::OBJECT_TYPE::TILE:
-        case Object::OBJECT_TYPE::MISC:
+        case Pro::OBJECT_TYPE::TILE:
+        case Pro::OBJECT_TYPE::MISC:
             break;
     }
 
-    switch ((Object::OBJECT_TYPE)type) {
+    switch ((Pro::OBJECT_TYPE)type) {
             //    {
-        case Object::OBJECT_TYPE::ITEM: {
+        case Pro::OBJECT_TYPE::ITEM: {
             uint32_t subtypeId = read_be_u32();
             pro->setObjectSubtypeId(subtypeId);
 
@@ -57,8 +60,8 @@ std::unique_ptr<Pro> ProReader::read() {
             read_be_u32(); //            _inventoryFID  = stream.int32();
             read_be_u8();  //            _soundId       = stream.uint8();
 
-            switch ((Object::ITEM_TYPE)subtypeId) {
-                case Object::ITEM_TYPE::ARMOR: {
+            switch ((Pro::ITEM_TYPE)subtypeId) {
+                case Pro::ITEM_TYPE::ARMOR: {
                     read_be_u32(); // _armorClass = stream.uint32();
                     // Damage resist
                     for (unsigned int i = 0; i != 7; ++i) {
@@ -75,12 +78,12 @@ std::unique_ptr<Pro> ProReader::read() {
                     read_be_u32(); //_armorFemaleFID = stream.int32();
                     break;
                 }
-                case Object::ITEM_TYPE::CONTAINER: {
+                case Pro::ITEM_TYPE::CONTAINER: {
                     read_be_u32(); // stream.uint32(); // max size
                     read_be_u32(); // stream.uint32(); // containter flags
                     break;
                 }
-                case Object::ITEM_TYPE::DRUG: {
+                case Pro::ITEM_TYPE::DRUG: {
                     read_be_u32(); // stream.uint32(); // Stat0
                     read_be_u32(); // stream.uint32(); // Stat1
                     read_be_u32(); // stream.uint32(); // Stat2
@@ -102,7 +105,7 @@ std::unique_ptr<Pro> ProReader::read() {
                     read_be_u32(); // stream.uint32(); // addiction delay
                     break;
                 }
-                case Object::ITEM_TYPE::WEAPON:
+                case Pro::ITEM_TYPE::WEAPON:
                     read_be_u32(); //_weaponAnimationCode  = stream.uint32();
                     read_be_u32(); //_weaponDamageMin      = stream.uint32();
                     read_be_u32(); //_weaponDamageMax      = stream.uint32();
@@ -121,16 +124,16 @@ std::unique_ptr<Pro> ProReader::read() {
                     read_be_u32(); //_weaponAmmoCapacity = stream.uint32();
                     read_be_u8();  //_soundId = stream.uint8();
                     break;
-                case Object::ITEM_TYPE::AMMO:
+                case Pro::ITEM_TYPE::AMMO:
                     break;
-                case Object::ITEM_TYPE::MISC:
+                case Pro::ITEM_TYPE::MISC:
                     break;
-                case Object::ITEM_TYPE::KEY:
+                case Pro::ITEM_TYPE::KEY:
                     break;
             }
             break;
         }
-        case Object::OBJECT_TYPE::CRITTER: {
+        case Pro::OBJECT_TYPE::CRITTER: {
             read_be_i32(); //_critterHeadFID = stream.int32();
 
             read_be_u32(); // stream.uint32(); // ai packet number
@@ -212,35 +215,35 @@ std::unique_ptr<Pro> ProReader::read() {
             read_be_u32(); // damage type
             break;
         }
-        case Object::OBJECT_TYPE::SCENERY: {
+        case Pro::OBJECT_TYPE::SCENERY: {
             uint32_t subtypeId = read_be_u32(); // _subtypeId  = stream.uint32();
             pro->setObjectSubtypeId(subtypeId);
 
             read_be_u32(); //_materialId = stream.uint32();
             read_be_u8();  // _soundId    = stream.uint8();
 
-            switch ((Object::SCENERY_TYPE)subtypeId) {
-                case Object::SCENERY_TYPE::DOOR: {
+            switch ((Pro::SCENERY_TYPE)subtypeId) {
+                case Pro::SCENERY_TYPE::DOOR: {
                     read_be_u32(); // stream.uint32(); // walk thru flag
                     read_be_u32(); // stream.uint32(); // unknown
                     break;
                 }
-                case Object::SCENERY_TYPE::STAIRS: {
+                case Pro::SCENERY_TYPE::STAIRS: {
                     read_be_u32(); // stream.uint32(); // DestTile && DestElevation
                     read_be_u32(); // stream.uint32(); // DestElevation
                     break;
                 }
-                case Object::SCENERY_TYPE::ELEVATOR: {
+                case Pro::SCENERY_TYPE::ELEVATOR: {
                     read_be_u32(); // stream.uint32(); // Elevator type
                     read_be_u32(); // stream.uint32(); // Elevator level
                     break;
                 }
-                case Object::SCENERY_TYPE::LADDER_BOTTOM:
-                case Object::SCENERY_TYPE::LADDER_TOP: {
+                case Pro::SCENERY_TYPE::LADDER_BOTTOM:
+                case Pro::SCENERY_TYPE::LADDER_TOP: {
                     read_be_u32(); // stream.uint32(); // DestTile && DestElevation
                     break;
                 }
-                case Object::SCENERY_TYPE::GENERIC: {
+                case Pro::SCENERY_TYPE::GENERIC: {
                     read_be_u32(); // stream.uint32(); // unknown
                     break;
                 }
@@ -248,15 +251,15 @@ std::unique_ptr<Pro> ProReader::read() {
 
             break;
         }
-        case Object::OBJECT_TYPE::WALL: {
+        case Pro::OBJECT_TYPE::WALL: {
             read_be_u32(); //_materialId = stream.uint32();
             break;
         }
-        case Object::OBJECT_TYPE::TILE: {
+        case Pro::OBJECT_TYPE::TILE: {
             read_be_u32(); //_materialId = stream.uint32();
             break;
         }
-        case Object::OBJECT_TYPE::MISC: {
+        case Pro::OBJECT_TYPE::MISC: {
             read_be_u32(); // stream.uint32(); // unknown
             break;
         }
@@ -265,4 +268,73 @@ std::unique_ptr<Pro> ProReader::read() {
     return pro;
 }
 
+std::unique_ptr<Pro> ProReader::loadPro(unsigned int PID) {
+    unsigned int typeId = PID >> 24;
+
+    const auto data_path = FileHelper::getInstance().fallout2DataPath();
+    auto listFile = data_path;
+
+    switch (static_cast<Pro::OBJECT_TYPE>(typeId)) {
+        case Pro::OBJECT_TYPE::ITEM:
+            listFile /= "proto/items/items.lst";
+            break;
+        case Pro::OBJECT_TYPE::CRITTER:
+            listFile /= "proto/critters/critters.lst";
+            break;
+        case Pro::OBJECT_TYPE::SCENERY:
+            listFile /= "proto/scenery/scenery.lst";
+            break;
+        case Pro::OBJECT_TYPE::WALL:
+            listFile /= "proto/walls/walls.lst";
+            break;
+        case Pro::OBJECT_TYPE::TILE:
+            listFile /= "proto/tiles/tiles.lst";
+            break;
+        case Pro::OBJECT_TYPE::MISC:
+            listFile /= "proto/misc/misc.lst";
+            break;
+        default:
+            throw std::runtime_error{ "Wrong PID: " + std::to_string(PID) };
+    }
+
+    LstReader lst_reader;
+    auto lst = lst_reader.openFile(listFile);
+
+    unsigned int index = 0x00000FFF & PID;
+
+    if (index > lst->list().size()) {
+        throw std::runtime_error{ "LST size < PID: " + std::to_string(PID) };
+    }
+
+    std::string protoName = lst->list().at(index - 1);
+
+    std::filesystem::path proFilename;
+    switch (static_cast<Pro::OBJECT_TYPE>(typeId)) {
+        case Pro::OBJECT_TYPE::ITEM:
+            proFilename /= "proto/items";
+            break;
+        case Pro::OBJECT_TYPE::CRITTER:
+            proFilename /= "proto/critters";
+            break;
+        case Pro::OBJECT_TYPE::SCENERY:
+            proFilename /= "proto/scenery";
+            break;
+        case Pro::OBJECT_TYPE::WALL:
+            proFilename /= "proto/walls";
+            break;
+        case Pro::OBJECT_TYPE::TILE:
+            proFilename /= "proto/tiles";
+            break;
+        case Pro::OBJECT_TYPE::MISC:
+            proFilename /= "proto/misc";
+            break;
+    };
+    proFilename /= protoName;
+    if (!proFilename.empty()) {
+        ProReader pro_reader;
+        return pro_reader.openFile(data_path / proFilename);
+    } else {
+        throw std::runtime_error{ "Couldn't load PRO file " + protoName };
+    }
+}
 } // namespace geck

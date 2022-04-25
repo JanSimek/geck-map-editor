@@ -14,6 +14,7 @@ namespace geck {
 
 struct AppData;
 class Map;
+class Object;
 
 class EditorState : public State {
 private:

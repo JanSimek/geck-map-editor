@@ -10,6 +10,7 @@
 #include "../ui/util.h"
 
 #include "../editor/HexagonGrid.h"
+#include "../editor/Object.h"
 
 #include "../reader/dat/DatReader.h"
 #include "../reader/frm/FrmReader.h"

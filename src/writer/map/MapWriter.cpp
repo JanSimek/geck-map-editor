@@ -3,8 +3,10 @@
 #include <spdlog/spdlog.h>
 
 #include "../../format/pro/Pro.h"
+#include "../../format/map/MapObject.h"
 
 #include "../../editor/helper/ObjectHelper.h"
+#include "../../editor/Tile.h"
 
 namespace geck {
 
@@ -54,9 +56,7 @@ bool MapWriter::write(const Map::MapFile& map) {
 
     // Scripts
 
-    for (int section = 0; section < Map::SCRIPT_SECTIONS; section++) {
-
-        const auto& script_section = map.map_scripts[section];
+    for (const auto& script_section : map.map_scripts) {
 
         uint32_t number_of_scripts = script_section.size();
         write_be_32(number_of_scripts);
@@ -128,27 +128,21 @@ void MapWriter::writeScript(const MapScript& script) {
     write_be_32(script.pid);
     write_be_32(script.next_script);
 
-    // TODO: enum 5 types of scripts ?
-    switch ((script.pid & 0xFF000000) >> 24) {
-        case 0:
+    switch (MapScript::fromPid(script.pid)) {
+        case MapScript::ScriptType::SYSTEM:
             break;
-        case 1: // spatial script
+        case MapScript::ScriptType::SPATIAL:
             write_be_32(script.timer);
             write_be_32(script.spatial_radius);
             break;
-        case 2: // timer script
+        case MapScript::ScriptType::TIMER:
             write_be_32(script.timer);
             break;
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9:
+        case MapScript::ScriptType::ITEM:
+        case MapScript::ScriptType::CRITTER:
             break;
         default:
-            spdlog::debug("Unknown script PID = " + std::to_string((script.pid & 0xFF000000) >> 24));
+            spdlog::error("Unknown script PID = {}", (script.pid & 0xFF000000) >> 24);
             break;
     }
 
@@ -198,31 +192,32 @@ void MapWriter::writeObject(const MapObject& object) {
 
     spdlog::info("Saving object {}", ObjectHelper::objectTypeFromId(objectTypeId));
 
-    Object::OBJECT_TYPE object_type = static_cast<Object::OBJECT_TYPE>(objectTypeId);
+    auto object_type = static_cast<Pro::OBJECT_TYPE>(objectTypeId);
+
     switch (object_type) {
-        case Object::OBJECT_TYPE::ITEM: {
-            uint32_t subtype_id = map_reader.loadPro(object.pro_pid)->objectSubtypeId();
-            switch ((Object::ITEM_TYPE)subtype_id) {
-                case Object::ITEM_TYPE::AMMO: // ammo
-                case Object::ITEM_TYPE::MISC: // charges - have strangely high values, or negative.
+        case Pro::OBJECT_TYPE::ITEM: {
+            uint32_t subtype_id = pro_reader.loadPro(object.pro_pid)->objectSubtypeId();
+            switch (static_cast<Pro::ITEM_TYPE>(subtype_id)) {
+                case Pro::ITEM_TYPE::AMMO:    // ammo
+                case Pro::ITEM_TYPE::MISC:    // charges - have strangely high values, or negative.
                     write_be_32(object.ammo); // bullets
                     break;
-                case Object::ITEM_TYPE::KEY:
+                case Pro::ITEM_TYPE::KEY:
                     write_be_32(object.keycode); // keycode = -1 in all maps. saves only? ignore for now
                     break;
-                case Object::ITEM_TYPE::WEAPON:
+                case Pro::ITEM_TYPE::WEAPON:
                     write_be_32(object.ammo);     // ammo
                     write_be_32(object.ammo_pid); // ammo pid
                     break;
-                case Object::ITEM_TYPE::ARMOR:
-                case Object::ITEM_TYPE::CONTAINER:
-                case Object::ITEM_TYPE::DRUG:
+                case Pro::ITEM_TYPE::ARMOR:
+                case Pro::ITEM_TYPE::CONTAINER:
+                case Pro::ITEM_TYPE::DRUG:
                     break;
                 default:
                     throw std::runtime_error{ "Unknown item type " + std::to_string(objectTypeId) };
             }
         } break;
-        case Object::OBJECT_TYPE::CRITTER:
+        case Pro::OBJECT_TYPE::CRITTER:
             write_be_32(object.player_reaction); // reaction to player - saves only
             write_be_32(object.current_mp);      // current mp - saves only
             write_be_32(object.combat_results);  // combat results - saves only
@@ -236,36 +231,36 @@ void MapWriter::writeObject(const MapObject& object) {
 
             break;
 
-        case Object::OBJECT_TYPE::SCENERY: {
-            uint32_t subtype_id = map_reader.loadPro(object.pro_pid)->objectSubtypeId();
-            switch (static_cast<Object::SCENERY_TYPE>(subtype_id)) {
-                case Object::SCENERY_TYPE::LADDER_TOP:
-                case Object::SCENERY_TYPE::LADDER_BOTTOM:
+        case Pro::OBJECT_TYPE::SCENERY: {
+            uint32_t subtype_id = pro_reader.loadPro(object.pro_pid)->objectSubtypeId();
+            switch (static_cast<Pro::SCENERY_TYPE>(subtype_id)) {
+                case Pro::SCENERY_TYPE::LADDER_TOP:
+                case Pro::SCENERY_TYPE::LADDER_BOTTOM:
                     write_be_32(object.map);
                     write_be_32(object.elevhex);
                     break;
-                case Object::SCENERY_TYPE::STAIRS:
+                case Pro::SCENERY_TYPE::STAIRS:
                     // looks like for ladders and stairs map and elev+hex fields in the different order
                     write_be_32(object.elevhex);
                     write_be_32(object.map);
                     break;
-                case Object::SCENERY_TYPE::ELEVATOR:
+                case Pro::SCENERY_TYPE::ELEVATOR:
                     write_be_32(object.elevtype);  // elevator type - sometimes -1
                     write_be_32(object.elevlevel); // current level - sometimes -1
                     break;
-                case Object::SCENERY_TYPE::DOOR:
+                case Pro::SCENERY_TYPE::DOOR:
                     write_be_32(object.walkthrough);
                     break;
-                case Object::SCENERY_TYPE::GENERIC:
+                case Pro::SCENERY_TYPE::GENERIC:
                     break;
                 default:
                     throw std::runtime_error{ "Unknown scenery type: " + std::to_string(subtype_id) };
             }
         } break;
-        case Object::OBJECT_TYPE::WALL:
-        case Object::OBJECT_TYPE::TILE:
+        case Pro::OBJECT_TYPE::WALL:
+        case Pro::OBJECT_TYPE::TILE:
             break;
-        case Object::OBJECT_TYPE::MISC:
+        case Pro::OBJECT_TYPE::MISC:
 
             switch (objectId) {
                 case 12:

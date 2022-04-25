@@ -5,6 +5,7 @@
 #include "../../reader/map/MapReader.h"
 #include "../../format/map/Map.h"
 #include "../../format/lst/Lst.h"
+#include "../../editor/Tile.h"
 #include "../../format/frm/Direction.h"
 #include "../../reader/lst/LstReader.h"
 #include "../../util/FileHelper.h"

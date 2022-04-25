@@ -3,6 +3,7 @@
 #include <inttypes.h>
 
 namespace geck {
+
 // Scripts
 struct MapScript {
     uint32_t pid;
@@ -23,6 +24,34 @@ struct MapScript {
     uint32_t unknown14;
     uint32_t unknown15;
     uint32_t unknown16;
+
+    enum class ScriptType : uint32_t {
+        SYSTEM = 0,
+        SPATIAL,
+        TIMER,
+        ITEM,
+        CRITTER,
+        UNKNOWN
+    };
+
+    static ScriptType fromPid(uint32_t val) {
+        unsigned int pid = (val & 0xff000000) >> 24;
+
+        switch (pid) {
+            case 0:
+                return ScriptType::SYSTEM;
+            case 1:
+                return ScriptType::SPATIAL;
+            case 2:
+                return ScriptType::TIMER;
+            case 3:
+                return ScriptType::ITEM;
+            case 4:
+                return ScriptType::CRITTER;
+            default:
+                return ScriptType::UNKNOWN;
+        }
+    }
 };
 
 } // namespace geck

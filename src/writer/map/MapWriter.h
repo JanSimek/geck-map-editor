@@ -2,7 +2,7 @@
 
 #include "../FileWriter.h"
 #include "../../format/map/Map.h"
-#include "../../reader/map/MapReader.h" // FIXME: REMOVE
+#include "../../reader/pro/ProReader.h"
 
 namespace geck {
 
@@ -11,7 +11,7 @@ public:
     [[nodiscard]] bool write(const Map::MapFile& map);
 
 private:
-    MapReader map_reader;
+    ProReader pro_reader;
 
     void writeScript(const MapScript& script);
     void writeObject(const MapObject& object);

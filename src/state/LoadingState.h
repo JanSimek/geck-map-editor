@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../Application.h"
+#include "../editor/Tile.h"
+#include "../editor/Object.h"
 #include "../util/FileHelper.h"
 #include "EditorState.h"
 #include "State.h"
