@@ -8,8 +8,6 @@
 #include "../util/ResourceManager.h"
 #include "State.h"
 
-#include "../format/map/Map.h"
-
 namespace geck {
 
 struct AppData;
@@ -49,6 +47,9 @@ private:
 
     sf::Vector2i _lastMousePos{ 0, 0 }; // panning
     EditorAction _currentAction = EditorAction::NONE;
+
+    void showMapInfoPanel();
+    void addTableRow(const std::string& key, const std::string& value);
 
 public:
     EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map);

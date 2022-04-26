@@ -13,7 +13,7 @@
 namespace geck {
 
 class Tile;
-class MapObject;
+struct MapObject;
 
 class Map {
 public:
@@ -75,7 +75,6 @@ private:
     std::unique_ptr<MapFile> mapFile;
 
     std::map<int, std::vector<Tile>> _tiles;
-    //    std::unordered_map<int, std::vector<std::unique_ptr<Object> > > _objects;
 };
 
 } // namespace geck

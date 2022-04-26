@@ -9,6 +9,7 @@
 #include "StateMachine.h"
 #include "loader/Loader.h"
 #include "loader/MapLoader.h"
+#include "../format/map/Map.h"
 
 #include <spdlog/spdlog.h>
 #include <memory>

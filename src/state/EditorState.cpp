@@ -303,7 +303,7 @@ void EditorState::handleEvent(const sf::Event& event) {
     // Left mouse click
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Left) {
 
-        const sf::Color BASE_COLOR = { 128, 128, 128 }; // get the current mouse position in the window
+        const sf::Color BASE_COLOR = { 200, 0, 0 }; // get the current mouse position in the window
 
         sf::Vector2i pixelPos = sf::Mouse::getPosition(*_appData->window);
 
@@ -364,6 +364,40 @@ void EditorState::handleEvent(const sf::Event& event) {
 
 void EditorState::update(const float& dt) { }
 
+void geck::EditorState::addTableRow(const std::string& key, const std::string& value) {
+    ImGui::TableNextColumn();
+    ImGui::Text("%s", key.c_str());
+    ImGui::TableNextColumn();
+    ImGui::Text("%s", value.c_str());
+}
+
+/**
+ * @brief UI widget for displaying properties from the current MAP file
+ */
+void geck::EditorState::showMapInfoPanel() {
+    auto mapInfo = _map->getMapFile();
+    int elevations = mapInfo.tiles.size();
+
+    ImGui::Begin("Map Information");
+
+    if (ImGui::CollapsingHeader("Map header")) {
+        if (ImGui::BeginTable("header_table", 2, ImGuiTableFlags_Borders)) {
+            ImGui::TableSetupColumn("##key", ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("##value", ImGuiTableColumnFlags_WidthStretch);
+
+            addTableRow("Filename", mapInfo.header.filename);
+            addTableRow("Map elevations", std::to_string(elevations));
+            addTableRow("Player default position", std::to_string(mapInfo.header.player_default_position));
+            addTableRow("Player default elevation", std::to_string(mapInfo.header.player_default_elevation));
+            addTableRow("Player default orientation", std::to_string(mapInfo.header.player_default_orientation));
+
+            ImGui::EndTable();
+        }
+    }
+
+    ImGui::End(); // Map Information
+}
+
 /**
  * TODO: draw only sprites visible in the current view
  */
@@ -389,13 +423,11 @@ void EditorState::render(const float& dt) {
         }
     }
 
-    //  auto boldFont = io.Fonts->Fonts[0];
-    ImGui::PushFont(0);
-
+    // auto boldFont = io.Fonts->Fonts[0];
+    // ImGui::PushFont(0);
     // TODO: create a widget
     //    ImGui::Begin("Floor tiles");
-
-    int rowWidth = 0;
+    //    int rowWidth = 0;
     //    for (const auto& floorTile : _floorSprites) {
     //        rowWidth += floorTile.getTextureRect().width;
     //        if (!(rowWidth >= ImGui::GetWindowContentRegionWidth())) {
@@ -405,19 +437,10 @@ void EditorState::render(const float& dt) {
     //        }
     //        ImGui::ImageButton(floorTile);
     //    }
+    //    ImGui::End();
+    //    ImGui::PopFont();
 
-    //    ImGui::End();
-
-    //    ImGui::Begin("Roof tiles");
-    //    ImGui::End();
-    //
-    //    ImGui::Begin("Objects");
-    //    ImGui::End();
-    //
-    //    ImGui::Begin("Critters");
-    //    ImGui::End();
-
-    ImGui::PopFont();
+    showMapInfoPanel();
 }
 
 void EditorState::centerViewOnMap() {

@@ -309,17 +309,7 @@ std::unique_ptr<Map> MapReader::read() {
         }
     }
 
-    // TODO: remove
     map->setTiles(std::move(map_file->tiles));
-
-    /*
-     * 1. count... 16
-     *
-     * 2. count
-     * 3. count
-     * 4. count
-     * 5. count
-     */
 
     // SCRIPTS SECTION
     // Each section contains 16 slots for scripts

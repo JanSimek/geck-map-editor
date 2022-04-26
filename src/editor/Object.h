@@ -7,10 +7,9 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "../format/map/MapObject.h"
 namespace geck {
 
-// struct MapObject;
+struct MapObject;
 
 class Object {
 private:

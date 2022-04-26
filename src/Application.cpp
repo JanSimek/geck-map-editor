@@ -42,7 +42,9 @@ Application::~Application() {
 }
 
 void Application::initUI() {
-    ImGui::SFML::Init(*_window, false);
+    if (!ImGui::SFML::Init(*_window, false)) {
+        throw std::runtime_error{ "Error initializing SFML-ImGui" };
+    }
 
     ImGuiIO& io = ImGui::GetIO();
 
@@ -68,7 +70,9 @@ void Application::initUI() {
     std::filesystem::path icon_font = resources_path / FONT_ICON;
     io.Fonts->AddFontFromFileTTF(icon_font.string().c_str(), 16.0f, &icons_config, icons_ranges);
 
-    ImGui::SFML::UpdateFontTexture();
+    if (!ImGui::SFML::UpdateFontTexture()) {
+        spdlog::error("Unable to load custom ImGui font");
+    }
 
     ImGui::SetupImGuiStyle(false, 1.f);
 }
@@ -76,9 +80,13 @@ void Application::initUI() {
 void Application::update(float dt) {
     sf::Event event;
     while (_window->pollEvent(event)) {
-        if (!(event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Unknown)) {
-            ImGui::SFML::ProcessEvent(event); // FIXME: printscreen key crashes in an older version of SFML-IMGUI
+        // don't pass mouse and keyboard presses to SFML when an ImGui widget is active
+        auto& io = ImGui::GetIO();
+        if ((io.WantCaptureMouse || io.WantCaptureKeyboard)
+            && (event.type == sf::Event::MouseButtonPressed || event.type == sf::Event::KeyPressed)) {
+            continue;
         }
+        ImGui::SFML::ProcessEvent(event);
 
         if (!_stateMachine->empty()) {
             _stateMachine->top().handleEvent(event);
@@ -105,24 +113,8 @@ void Application::update(float dt) {
 void geck::Application::renderDockingUI() {
     const bool enableDocking = ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
     if (enableDocking) {
-        ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(viewport->Pos);
-        ImGui::SetNextWindowSize(viewport->Size);
-        ImGui::SetNextWindowViewport(viewport->ID);
-
-        ImGuiWindowFlags host_window_flags = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar;
-        //  ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking;
-        //  ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("DockSpace Window", nullptr, host_window_flags);
-        ImGui::PopStyleVar(3);
-
-        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
-        ImGui::End();
+        ImGuiDockNodeFlags window_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+        ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), window_flags);
     }
 }
 
