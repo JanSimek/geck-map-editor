@@ -134,11 +134,19 @@ target_link_libraries(geck-mapper PRIVATE
     ImGui-SFML::ImGui-SFML
     portable_file_dialogs
     cxxopts
-    spdlog
+    spdlog::spdlog_header_only
 )
 
 target_include_directories(geck-mapper PRIVATE ${imgui_SOURCE_DIR})
 
-add_custom_command(TARGET geck-mapper POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:geck-mapper>/resources)
+# copy shared external libraries to the build directory for Windows builds
+add_custom_command(
+    TARGET geck-mapper POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:geck-mapper> $<TARGET_FILE_DIR:geck-mapper>
+    COMMAND_EXPAND_LISTS
+)
+
+add_custom_command(
+    TARGET geck-mapper POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:geck-mapper>/resources
+)
