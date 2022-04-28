@@ -22,6 +22,7 @@ public:
     virtual void init() = 0;
     virtual void load() = 0;
     virtual bool isDone() = 0;
+    virtual void onDone() = 0;
 
     const std::string& status() {
         std::shared_lock lock(_mutex);

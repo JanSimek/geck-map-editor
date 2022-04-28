@@ -16,7 +16,6 @@ class StateMachine;
 struct AppData {
     std::shared_ptr<sf::RenderWindow> window;
     std::shared_ptr<StateMachine> stateMachine;
-    std::filesystem::path mapPath;
 };
 
 class Application {
@@ -46,7 +45,7 @@ private:
 
     void renderDockingUI();
 
-    void loadMap();
+    void loadMap(const std::filesystem::path& mapPath);
 };
 
 } // namespace geck

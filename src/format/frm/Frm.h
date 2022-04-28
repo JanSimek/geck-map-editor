@@ -30,6 +30,8 @@ private:
     void updateFrameDimensions();
 
 public:
+    Frm(const std::filesystem::path& path);
+
     // TODO : enum
     //    north_east,
     //    east,

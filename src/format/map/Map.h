@@ -8,6 +8,7 @@
 #include <vector>
 #include <array>
 
+#include "../IFile.h"
 #include "MapScript.h"
 
 namespace geck {
@@ -15,7 +16,7 @@ namespace geck {
 class Tile;
 struct MapObject;
 
-class Map {
+class Map : public IFile {
 public:
     static constexpr unsigned ROWS = 100;
     static constexpr unsigned COLS = 100;
@@ -24,6 +25,9 @@ public:
     static constexpr int EMPTY_TILE = 1;
     static constexpr int SCRIPT_SECTIONS = 5;
     static constexpr int FILENAME_LENGTH = 16;
+
+    Map(std::filesystem::path path)
+        : IFile(path) { }
 
     // Header
     struct MapHeader {

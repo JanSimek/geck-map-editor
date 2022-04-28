@@ -17,7 +17,7 @@ Application::Application(const std::filesystem::path& dataPath, const std::files
     : _running(false)
     , _window(std::make_unique<sf::RenderWindow>(sf::VideoMode(1280, 960), "GECK::Mapper"))
     , _stateMachine(std::make_shared<StateMachine>())
-    , _appData(std::make_shared<AppData>(AppData{ _window, _stateMachine, mapPath })) {
+    , _appData(std::make_shared<AppData>(AppData{ _window, _stateMachine })) {
 
     // sf::Image icon;
     // icon.loadFromFile((FileHelper::getInstance().resourcesPath() / "icon.png").string());
@@ -25,13 +25,15 @@ Application::Application(const std::filesystem::path& dataPath, const std::files
 
     initUI();
 
-    loadMap();
+    loadMap(mapPath);
 }
 
-void Application::loadMap() {
+void Application::loadMap(const std::filesystem::path& mapPath) {
 
     auto loading_state = std::make_unique<LoadingState>(_appData);
-    loading_state->addLoader(std::make_unique<MapLoader>(_appData->mapPath, 0)); // FIXME: default elevation
+    loading_state->addLoader(std::make_unique<MapLoader>(mapPath, -1, [this](auto map) {
+        _appData->stateMachine->push(std::make_unique<EditorState>(_appData, std::move(map)), true);
+    }));
 
     _stateMachine->push(std::move(loading_state));
 }
@@ -80,13 +82,14 @@ void Application::initUI() {
 void Application::update(float dt) {
     sf::Event event;
     while (_window->pollEvent(event)) {
-        // don't pass mouse and keyboard presses to SFML when an ImGui widget is active
+        ImGui::SFML::ProcessEvent(event);
+
+        // don't pass mouse and keyboard presses to states when an ImGui widget is active
         auto& io = ImGui::GetIO();
-        if ((io.WantCaptureMouse || io.WantCaptureKeyboard)
-            && (event.type == sf::Event::MouseButtonPressed || event.type == sf::Event::KeyPressed)) {
+        if ((io.WantCaptureMouse && event.type == sf::Event::MouseButtonPressed)
+            || (io.WantCaptureKeyboard && event.type == sf::Event::KeyPressed)) {
             continue;
         }
-        ImGui::SFML::ProcessEvent(event);
 
         if (!_stateMachine->empty()) {
             _stateMachine->top().handleEvent(event);

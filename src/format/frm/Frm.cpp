@@ -82,7 +82,6 @@ void Frm::updateFrameDimensions() {
 
     for (Direction& direction : _directions) {
 
-        spdlog::info("Direction has {} frames", direction.frames().size());
         for (const Frame& frame : direction.frames()) {
             if (frame.width() > _maxFrameWidth)
                 _maxFrameWidth = frame.width();
@@ -90,6 +89,10 @@ void Frm::updateFrameDimensions() {
                 _maxFrameHeight = frame.height();
         }
     }
+}
+
+Frm::Frm(const std::filesystem::path& path)
+    : IFile(path) {
 }
 
 uint16_t Frm::maxFrameWidth() const {
@@ -105,6 +108,8 @@ const sf::Image& Frm::image(Pal* pal) {
         return _image;
     }
 
+    spdlog::debug("Stitching {} texture from {} directions", filename(), _directions.size());
+
     constexpr int RGBA = 4;
 
     auto colors = pal->palette();
@@ -112,9 +117,6 @@ const sf::Image& Frm::image(Pal* pal) {
     // find maximum width and height
     unsigned maxWidth = maxFrameWidth();
     unsigned maxHeight = maxFrameHeight();
-
-    spdlog::info("FRM total width = {}, total height = {}", width(), height());
-    spdlog::info("FRM max frame width = {}, max frame height = {}", maxWidth, maxHeight);
 
     _image = sf::Image{};
     _image.create(width(), height(), { 0, 0, 0, 0 });

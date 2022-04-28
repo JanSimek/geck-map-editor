@@ -1,6 +1,7 @@
 #include "MapLoader.h"
 #include <thread>
 #include <spdlog/spdlog.h>
+#include <spdlog/stopwatch.h>
 
 #include "../../reader/map/MapReader.h"
 #include "../../format/map/Map.h"
@@ -14,14 +15,16 @@
 
 namespace geck {
 
-MapLoader::MapLoader(const std::filesystem::path& mapFile, int elevation)
+MapLoader::MapLoader(const std::filesystem::path& mapFile, int elevation, std::function<void(std::unique_ptr<Map>)> onLoad)
     : _mapPath(mapFile)
-    , _elevation(elevation) {
+    , _elevation(elevation)
+    , _onLoad(onLoad) {
 }
 
 void MapLoader::load() {
 
     // TODO: open from resource manager
+    spdlog::stopwatch sw;
 
     ResourceManager::getInstance().setDataPath(FileHelper::getInstance().fallout2DataPath()); // FIXME: move
     const auto data_path = FileHelper::getInstance().fallout2DataPath();
@@ -34,6 +37,7 @@ void MapLoader::load() {
                        .front();
 
         if (_mapPath.empty()) {
+            // TODO: go back to the initial screen
             spdlog::error("You must choose a Fallout 2 map file to load");
             return;
         }
@@ -48,11 +52,12 @@ void MapLoader::load() {
 
     LstReader lst_reader;
     auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
-    size_t totalTiles = lst->list().size();
 
-    //    for (int elevation = 0; elevation < _map->elevations(); elevation++) {
-
-    //        setStatus("Loading map " + _mapPath.filename().string() + " elevation #" + std::to_string(_elevation + 1));
+    if (_elevation == -1) { // TODO: no magic numbers
+        uint32_t default_elevation = _map->getMapFile().header.player_default_elevation;
+        spdlog::info("Using defaul map elevation {}", default_elevation);
+        _elevation = default_elevation;
+    }
 
     // Tiles
     auto tiles = _map->tiles().at(_elevation);
@@ -64,14 +69,12 @@ void MapLoader::load() {
 
         // floor
         if (tile.getFloor() != Map::EMPTY_TILE) {
-            std::string floor_texture_path = "art/tiles/" + lst->at(tile.getFloor());
-            ResourceManager::getInstance().insert(floor_texture_path);
+            ResourceManager::getInstance().insert("art/tiles/" + lst->at(tile.getFloor()));
         }
 
         // roof
         if (tile.getRoof() != Map::EMPTY_TILE) {
-            std::string roof_texture_path = "art/tiles/" + lst->at(tile.getRoof());
-            ResourceManager::getInstance().insert(roof_texture_path);
+            ResourceManager::getInstance().insert("art/tiles/" + lst->at(tile.getRoof()));
         }
     }
 
@@ -88,14 +91,11 @@ void MapLoader::load() {
 
         const std::string frmName = map_reader.FIDtoFrmName(object->frm_pid);
 
-        //            if (frmName.empty()) {
-        //                spdlog::error("Empty FRM file path on hex number " + std::to_string(object->position));
-        //                continue;  // this should probably never happen
-        //            }
-
         ResourceManager::getInstance().insert(frmName);
     }
-    //    }
+
+    spdlog::info("Map loader finished after {:.3} seconds", sw);
+
     done = true;
 }
 
@@ -112,8 +112,8 @@ bool MapLoader::isDone() {
     return done;
 }
 
-std::unique_ptr<Map> MapLoader::getMap() {
-    return std::move(_map); // release ownership
+void MapLoader::onDone() {
+    _onLoad(std::move(_map));
 }
 
 } // namespace geck

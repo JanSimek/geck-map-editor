@@ -1,6 +1,7 @@
 #include "EditorState.h"
 
 #include <imgui.h>
+#include <imgui_stdlib.h>
 #include <imgui-SFML.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
@@ -49,7 +50,24 @@ void EditorState::init() {
         return;
     }
 
-    loadMap();
+    loadMapSprites();
+}
+
+void geck::EditorState::saveMap() {
+    MapWriter map_writer;
+    // TODO: show file dialog
+    map_writer.openFile("test.map");
+    map_writer.write(_map->getMapFile());
+    spdlog::info("Saved map test.map");
+}
+
+void geck::EditorState::openMap() {
+    auto loading_state = std::make_unique<LoadingState>(_appData);
+    loading_state->addLoader(std::make_unique<MapLoader>("", -1, [&](auto map) {
+        _appData->stateMachine->push(std::make_unique<EditorState>(_appData, std::move(map)), true);
+    }));
+
+    _appData->stateMachine->push(std::move(loading_state));
 }
 
 void EditorState::renderMainMenu() {
@@ -59,18 +77,10 @@ void EditorState::renderMainMenu() {
                 createNewMap();
             }
             if (ImGui::MenuItem(ICON_FA_SAVE " Save map", "Ctrl+S")) {
-                MapWriter map_writer;
-                // TODO: show file dialog
-                map_writer.openFile("test.map");
-                map_writer.write(_map->getMapFile());
-                spdlog::info("Saved map test.map");
+                saveMap();
             }
-            if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN " Load map", "Ctrl+L")) {
-                _appData->mapPath = "";
-                auto loading_state = std::make_unique<LoadingState>(_appData);
-                loading_state->addLoader(std::make_unique<MapLoader>(_appData->mapPath, 0)); // FIXME
-
-                _appData->stateMachine->push(std::move(loading_state));
+            if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN " Open map", "Ctrl+O")) {
+                openMap();
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Ctrl+Q")) {
@@ -100,7 +110,15 @@ void EditorState::renderMainMenu() {
                             if (ImGui::MenuItem(text.c_str()) && _currentElevation != i) {
                                 _currentElevation = i;
                                 spdlog::info("Loading elevation " + std::to_string(_currentElevation));
-                                init(); // reload map
+
+                                auto loading_state = std::make_unique<LoadingState>(_appData);
+                                loading_state->addLoader(std::make_unique<MapLoader>(_map->path(), _currentElevation, [&](std::unique_ptr<Map> map) {
+                                    _map = std::move(map);
+                                    init();
+                                    _appData->stateMachine->pop();
+                                }));
+
+                                _appData->stateMachine->push(std::move(loading_state));
                             }
                         }
                     }
@@ -117,13 +135,13 @@ void EditorState::renderMainMenu() {
     }
 }
 
-void geck::EditorState::loadMap() {
+void geck::EditorState::loadMapSprites() {
 
     spdlog::stopwatch sw;
 
     const auto data_path = FileHelper::getInstance().fallout2DataPath();
 
-    _appData->window->setTitle(_appData->mapPath.string() + " - GECK::Mapper");
+    _appData->window->setTitle(_map->filename() + " - GECK::Mapper");
 
     _objects.clear();
     _floorSprites.clear();
@@ -168,10 +186,6 @@ void geck::EditorState::loadMap() {
             std::string roof_texture_path = "art/tiles/" + lst->at(tile.getRoof());
             roof_sprite.setTexture(ResourceManager::getInstance().texture(roof_texture_path));
 
-            // FIXME: delete - probably won't be needed after reading the correct color.pal
-            //            if (tile.getRoof() == 0 || tile.getRoof() == 1) {
-            //                roof_sprite.setColor(sf::Color{0, 0, 0, 0});
-            //            }
             constexpr int roofOffset = 96; // "roof height"
             roof_sprite.setPosition(x, y - roofOffset);
 
@@ -246,6 +260,8 @@ void geck::EditorState::loadMap() {
 
         _objects.push_back(std::move(entity));
     }
+
+    spdlog::info("Map sprites loaded in {:.3} seconds", sw);
 }
 
 std::vector<bool> calculateBitset(const sf::Image& img) {
@@ -273,6 +289,14 @@ void EditorState::handleEvent(const sf::Event& event) {
             case sf::Keyboard::Q: // Ctrl+Q
                 if (event.key.control)
                     _quit = true;
+                break;
+            case sf::Keyboard::S: // Ctrl+S
+                if (event.key.control)
+                    saveMap();
+                break;
+            case sf::Keyboard::O: // Ctrl+O
+                if (event.key.control)
+                    openMap();
                 break;
             case sf::Keyboard::Escape:
                 _quit = true;
@@ -364,13 +388,6 @@ void EditorState::handleEvent(const sf::Event& event) {
 
 void EditorState::update(const float& dt) { }
 
-void geck::EditorState::addTableRow(const std::string& key, const std::string& value) {
-    ImGui::TableNextColumn();
-    ImGui::Text("%s", key.c_str());
-    ImGui::TableNextColumn();
-    ImGui::Text("%s", value.c_str());
-}
-
 /**
  * @brief UI widget for displaying properties from the current MAP file
  */
@@ -380,19 +397,32 @@ void geck::EditorState::showMapInfoPanel() {
 
     ImGui::Begin("Map Information");
 
+    const auto addInputScalar = [](const auto& label, const auto& value) {
+        ImGui::InputScalar(label, ImGuiDataType_U32, value, NULL, NULL, NULL, ImGuiInputTextFlags_ReadOnly);
+    };
+
     if (ImGui::CollapsingHeader("Map header")) {
-        if (ImGui::BeginTable("header_table", 2, ImGuiTableFlags_Borders)) {
-            ImGui::TableSetupColumn("##key", ImGuiTableColumnFlags_WidthFixed);
-            ImGui::TableSetupColumn("##value", ImGuiTableColumnFlags_WidthStretch);
 
-            addTableRow("Filename", mapInfo.header.filename);
-            addTableRow("Map elevations", std::to_string(elevations));
-            addTableRow("Player default position", std::to_string(mapInfo.header.player_default_position));
-            addTableRow("Player default elevation", std::to_string(mapInfo.header.player_default_elevation));
-            addTableRow("Player default orientation", std::to_string(mapInfo.header.player_default_orientation));
+        ImGui::LabelText("Property", "Value");
 
-            ImGui::EndTable();
-        }
+        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.45f);
+
+        ImGui::InputText("Filename", &mapInfo.header.filename, ImGuiInputTextFlags_ReadOnly);
+        addInputScalar("Map elevations", &elevations);
+        addInputScalar("Player default position", &mapInfo.header.player_default_position);
+        addInputScalar("Player default elevation", &mapInfo.header.player_default_elevation);
+        addInputScalar("Player default orientation", &mapInfo.header.player_default_orientation);
+        addInputScalar("Local variables #", &mapInfo.header.num_local_vars);
+        addInputScalar("Global variables #", &mapInfo.header.num_global_vars);
+        addInputScalar("Map script", &mapInfo.header.script_id);
+        addInputScalar("Darkness", &mapInfo.header.darkness);
+        addInputScalar("Map ID", &mapInfo.header.map_id);
+        addInputScalar("Timestamp", &mapInfo.header.timestamp);
+        bool isSavegame = ((mapInfo.header.flags & 0x1) != 0);
+        ImGui::Checkbox("Save game map", &isSavegame);
+    }
+
+    if (ImGui::CollapsingHeader("Map scripts")) {
     }
 
     ImGui::End(); // Map Information
@@ -454,13 +484,11 @@ bool EditorState::quit() const {
 }
 
 void EditorState::createNewMap() {
-    _appData->mapPath = "test.map";
-
     int elevations = 1;
     int floorTileIndex = 192; // edg5000.frm
     int roofTileIndex = 1;    // grid000.frm
 
-    _map = std::make_unique<Map>();
+    _map = std::make_unique<Map>("test.map");
     auto map_file = std::make_unique<Map::MapFile>();
     _map->setMapFile(std::move(map_file));
 
@@ -486,7 +514,7 @@ void EditorState::createNewMap() {
     }
     _map->setTiles(std::move(tiles));
 
-    loadMap();
+    loadMapSprites();
 }
 
 } // namespace geck

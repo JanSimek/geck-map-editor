@@ -27,7 +27,8 @@ add_subdirectory("external/cxxopts")
 
 add_library(imgui INTERFACE)
 add_library(imgui::imgui ALIAS imgui)
-target_include_directories(imgui INTERFACE "${CMAKE_SOURCE_DIR}/external/imgui")
+target_sources(imgui INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/misc/cpp/imgui_stdlib.cpp")
+target_include_directories(imgui INTERFACE "${CMAKE_SOURCE_DIR}/external/imgui" "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/misc/cpp")
 
 set(BUILD_SHARED_LIBS TRUE CACHE BOOL "build shared SFLM-Imgui (static build requires static SFML libraries)" FORCE)
 set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui" CACHE STRING "path to the imgui library sources" FORCE)

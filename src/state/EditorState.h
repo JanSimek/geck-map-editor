@@ -17,13 +17,15 @@ class Object;
 class EditorState : public State {
 private:
     EditorState(const std::shared_ptr<AppData>& appData);
-    enum class EditorAction { NONE,
-        PANNING };
+    enum class EditorAction {
+        NONE,
+        PANNING
+    };
 
     void renderMainMenu();
     void centerViewOnMap();
 
-    void loadMap();
+    void loadMapSprites();
     void createNewMap();
 
     std::vector<sf::Sprite> _floorSprites;
@@ -49,7 +51,9 @@ private:
     EditorAction _currentAction = EditorAction::NONE;
 
     void showMapInfoPanel();
-    void addTableRow(const std::string& key, const std::string& value);
+
+    void openMap();
+    void saveMap();
 
 public:
     EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map);

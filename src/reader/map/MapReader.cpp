@@ -236,7 +236,7 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
 // TODO: split
 std::unique_ptr<Map> MapReader::read() {
 
-    auto map = std::make_unique<Map>();
+    auto map = std::make_unique<Map>(path);
     auto map_file = std::make_unique<Map::MapFile>();
 
     // 19 or 20

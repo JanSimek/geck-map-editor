@@ -92,15 +92,9 @@ public:
 
                 progressText.setString(loader->progress());
                 centerText(progressText);
-                continue;
+            } else {
+                loader->onDone();
             }
-
-            if (const auto mapLoader = dynamic_cast<MapLoader*>(loader.get())) {
-                auto map = mapLoader->getMap();
-                _appData->stateMachine->push(std::make_unique<EditorState>(_appData, std::move(map)), true);
-            }
-
-            //            std::erase_if(_loaders, [](std::unique_ptr<Loader> & L) { return L->isDone(); });
         }
     }
 

@@ -7,7 +7,7 @@
 namespace geck {
 
 std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
-    auto frm = std::make_unique<Frm>();
+    auto frm = std::make_unique<Frm>(path);
     frm->setVersion(read_be_u32());
     frm->setFps(read_be_u16());
     frm->setActionFrame(read_be_u16());

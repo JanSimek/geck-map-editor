@@ -6,6 +6,7 @@
 #define GECK_MAPPER_MAPLOADER_H
 
 #include <filesystem>
+#include <functional>
 #include <thread>
 #include "Loader.h"
 
@@ -15,13 +16,12 @@ class Map;
 
 class MapLoader : public Loader {
 public:
-    MapLoader(const std::filesystem::path& mapPath, int elevation);
+    MapLoader(const std::filesystem::path& mapPath, int elevation, std::function<void(std::unique_ptr<Map>)> onLoad);
     ~MapLoader();
-
-    std::unique_ptr<Map> getMap();
 
     void init() override;
     bool isDone() override;
+    void onDone() override;
 
 private:
     void load() override;
@@ -31,6 +31,7 @@ private:
     std::filesystem::path _mapPath;
     std::unique_ptr<Map> _map;
     int _elevation;
+    std::function<void(std::unique_ptr<Map>)> _onLoad;
 };
 
 } // namespace geck
