@@ -76,7 +76,7 @@ void Application::initUI() {
         spdlog::error("Unable to load custom ImGui font");
     }
 
-    ImGui::SetupImGuiStyle(false, 1.f);
+    ImGui::SetupImGuiStyle();
 }
 
 void Application::update(float dt) {
@@ -86,7 +86,7 @@ void Application::update(float dt) {
 
         // don't pass mouse and keyboard presses to states when an ImGui widget is active
         auto& io = ImGui::GetIO();
-        if ((io.WantCaptureMouse && event.type == sf::Event::MouseButtonPressed)
+        if ((io.WantCaptureMouse && (event.type == sf::Event::MouseButtonPressed || event.type == sf::Event::MouseWheelScrolled))
             || (io.WantCaptureKeyboard && event.type == sf::Event::KeyPressed)) {
             continue;
         }
