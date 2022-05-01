@@ -276,6 +276,13 @@ void EditorState::loadScriptVars() {
     for (int index = 0; index < _map->getMapFile().header.num_global_vars; index++) {
         _mvars.emplace(gam_file->mvarKey(index), gam_file->mvarValue(index));
     }
+
+    int map_script_id = _map->getMapFile().header.script_id;
+    if (map_script_id >= 0) {
+        LstReader lst_reader{};
+        auto scripts = lst_reader.openFile(_dataPath / "scripts" / "scripts.lst", std::ifstream::in);
+        _mapScriptName = scripts->at(map_script_id - 1); // script id starts at 1
+    }
 }
 
 std::vector<bool> calculateBitset(const sf::Image& img) {
@@ -429,7 +436,10 @@ void geck::EditorState::showMapInfoPanel() {
         addInputScalar("Player default orientation", &mapInfo.header.player_default_orientation);
         addInputScalar("Global variables #", &mapInfo.header.num_global_vars);
         addInputScalar("Local variables #", &mapInfo.header.num_local_vars);
-        addInputScalar("Map script", &mapInfo.header.script_id);
+        if (mapInfo.header.script_id >= 0) {
+            ImGui::InputText("Map script", &_mapScriptName, ImGuiInputTextFlags_ReadOnly);
+        }
+        addInputScalar("Map script ID", &mapInfo.header.script_id);
         addInputScalar("Darkness", &mapInfo.header.darkness);
         addInputScalar("Map ID", &mapInfo.header.map_id);
         addInputScalar("Timestamp", &mapInfo.header.timestamp);

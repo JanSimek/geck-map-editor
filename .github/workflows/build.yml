@@ -80,4 +80,8 @@ jobs:
         shell: bash
         # Execute the build.  You can specify a specific target with "--target <NAME>"
         run: cmake --build build -j 3
+
+      - name: Run tests
+        shell: bash
+        run: cd build && ctest
 # TODO: release and publish artifacts: https://github.com/cristianadam/HelloWorld/blob/master/.github/workflows/build_cmake.yml

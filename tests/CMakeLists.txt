@@ -9,7 +9,6 @@ target_link_libraries(tests PRIVATE
 include(CTest)
 include(Catch)
 catch_discover_tests(tests)
-enable_testing()
 
 # copy shared external libraries to the build directory for Windows builds
 if(WIN32)

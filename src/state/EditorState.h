@@ -41,6 +41,7 @@ private:
 
     int _currentElevation = 0;
     std::unique_ptr<Map> _map;
+    std::string _mapScriptName;
 
     //    std::unordered_map<std::string, uint32_t> _gvars;
     std::unordered_map<std::string, uint32_t> _mvars;

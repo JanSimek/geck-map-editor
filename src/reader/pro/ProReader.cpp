@@ -1,6 +1,5 @@
 #include "ProReader.h"
 
-#include "../../editor/Object.h"
 #include "../../format/pro/Pro.h"
 #include "../../format/lst/Lst.h"
 #include "../../reader/lst/LstReader.h"

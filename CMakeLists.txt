@@ -45,6 +45,7 @@ find_package(Catch2 3 QUIET)
 
 if (Catch2_FOUND)
     add_subdirectory(tests)
+    enable_testing()
 endif()
 
 
