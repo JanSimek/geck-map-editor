@@ -9,6 +9,7 @@
 
 #include "../format/IFile.h"
 #include "../format/pal/Pal.h"
+#include "../format/frm/Frm.h"
 
 namespace geck {
 
@@ -23,6 +24,9 @@ private:
     std::unique_ptr<Pal> _pal;
 
     ResourceManager(){}; // private constructor for singleton
+
+    const sf::Image imageFromFrm(Frm* frm, Pal* pal);
+
 public:
     // Singleton
     ResourceManager(ResourceManager const&) = delete;

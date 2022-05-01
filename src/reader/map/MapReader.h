@@ -17,7 +17,7 @@ class MapReader : public FileParser<Map> {
 public:
     std::string FIDtoFrmName(unsigned int FID);
 
-    MapReader();
+    MapReader(const std::filesystem::path& dataPath);
 
     enum class FRM_TYPE : char {
         ITEM = 0,
@@ -31,6 +31,7 @@ public:
     };
 
 private:
+    std::filesystem::path _dataPath;
     std::unique_ptr<MapObject> readMapObject();
     MapScript::ScriptType fromPid(uint32_t val);
 

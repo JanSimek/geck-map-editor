@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Application.h"
-#include "../editor/Tile.h"
 #include "../editor/Object.h"
 #include "../util/FileHelper.h"
 #include "EditorState.h"
@@ -10,6 +9,7 @@
 #include "loader/Loader.h"
 #include "loader/MapLoader.h"
 #include "../format/map/Map.h"
+#include "../format/map/Tile.h"
 
 #include <spdlog/spdlog.h>
 #include <memory>

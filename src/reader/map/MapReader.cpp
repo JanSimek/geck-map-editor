@@ -8,10 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../../editor/Object.h"
-#include "../../editor/Tile.h"
-
 #include "../../format/map/Map.h"
+#include "../../format/map/Tile.h"
 #include "../../format/map/MapObject.h"
 #include "../../format/pro/Pro.h"
 #include "../../reader/pro/ProReader.h"
@@ -81,7 +79,8 @@ std::string MapReader::FIDtoFrmName(unsigned int FID) {
     return typeArtDescription.prefixPath + frmName;
 }
 
-MapReader::MapReader() {
+MapReader::MapReader(const std::filesystem::path& dataPath)
+    : _dataPath(dataPath) {
     spdlog::info("Initializing MapReader");
 
     std::unordered_map<FRM_TYPE, std::string> frm_lists({
@@ -95,10 +94,9 @@ MapReader::MapReader() {
         { FRM_TYPE::INVENTORY, "art/inven/inven.lst" },
     });
 
-    const auto data_path = FileHelper::getInstance().fallout2DataPath();
-    LstReader lst_reader;
+    LstReader lst_reader{};
     for (const auto& lst : frm_lists) {
-        lst_frm.emplace(std::make_pair(lst.first, std::move(lst_reader.openFile(data_path / lst.second))));
+        lst_frm.emplace(std::make_pair(lst.first, std::move(lst_reader.openFile(_dataPath / lst.second))));
     }
 }
 
@@ -135,7 +133,7 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
 
     switch (static_cast<Pro::OBJECT_TYPE>(objectTypeId)) {
         case Pro::OBJECT_TYPE::ITEM: {
-            uint32_t subtype_id = pro_reader.loadPro(object->pro_pid)->objectSubtypeId();
+            uint32_t subtype_id = pro_reader.loadPro(_dataPath, object->pro_pid)->objectSubtypeId();
             switch (static_cast<Pro::ITEM_TYPE>(subtype_id)) {
                 case Pro::ITEM_TYPE::AMMO:        // ammo
                 case Pro::ITEM_TYPE::MISC:        // charges - have strangely high values, or negative.
@@ -170,7 +168,7 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
         } break;
 
         case Pro::OBJECT_TYPE::SCENERY: {
-            uint32_t subtype_id = pro_reader.loadPro(object->pro_pid)->objectSubtypeId();
+            uint32_t subtype_id = pro_reader.loadPro(_dataPath, object->pro_pid)->objectSubtypeId();
             switch (static_cast<Pro::SCENERY_TYPE>(subtype_id)) {
                 case Pro::SCENERY_TYPE::LADDER_TOP:
                 case Pro::SCENERY_TYPE::LADDER_BOTTOM:
@@ -236,7 +234,7 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
 // TODO: split
 std::unique_ptr<Map> MapReader::read() {
 
-    auto map = std::make_unique<Map>(path);
+    auto map = std::make_unique<Map>(_path);
     auto map_file = std::make_unique<Map::MapFile>();
 
     // 19 or 20
@@ -255,7 +253,7 @@ std::unique_ptr<Map> MapReader::read() {
     std::string filename = read_str(16);
     map_file->header.filename = filename;
 
-    spdlog::info("Loading map {} from {}", filename, path.string());
+    spdlog::info("Loading map {} from {}", filename, _path.string());
 
     map_file->header.player_default_position = read_be_u32();
     map_file->header.player_default_elevation = read_be_u32();
@@ -291,11 +289,11 @@ std::unique_ptr<Map> MapReader::read() {
 
     skip<4 * 44>(); // skipping to the end of a MAP header
 
-    for (uint32_t i = 0; i < num_local_vars; ++i) {
-        map_file->map_local_vars.emplace_back(read_be_u32());
-    }
     for (uint32_t i = 0; i < num_global_vars; ++i) {
-        map_file->map_global_vars.emplace_back(read_be_u32());
+        map_file->map_global_vars.emplace_back(read_be_i32());
+    }
+    for (uint32_t i = 0; i < num_local_vars; ++i) {
+        map_file->map_local_vars.emplace_back(read_be_i32());
     }
 
     for (auto elevation = 0; elevation < elevations; ++elevation) {

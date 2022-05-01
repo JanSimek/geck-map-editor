@@ -8,16 +8,16 @@
 template <typename T>
 class FileParser {
 protected:
-    std::ifstream stream;
-    std::filesystem::path path;
+    std::ifstream _stream;
+    std::filesystem::path _path;
 
 public:
-    std::unique_ptr<T> openFile(const std::filesystem::path& path) {
-        stream = std::ifstream{ path.string(), std::ifstream::in | std::ifstream::binary };
-        this->path = path;
+    std::unique_ptr<T> openFile(const std::filesystem::path& path, std::ios_base::openmode mode = std::ifstream::in | std::ifstream::binary) {
+        _stream = std::ifstream{ path.string(), mode };
+        this->_path = path;
 
-        if (!stream.is_open()) {
-            spdlog::error("Could not read dat file {}", path.string());
+        if (!_stream.is_open()) {
+            spdlog::error("Could not read dat file {}", _path.string());
         }
 
         return read();
@@ -27,11 +27,11 @@ public:
 
     inline uint32_t read_u8() {
         uint8_t buf[1];
-        stream.read(reinterpret_cast<char*>(buf), sizeof(buf));
+        _stream.read(reinterpret_cast<char*>(buf), sizeof(buf));
 
         uint32_t val = buf[0];
 
-        if (static_cast<size_t>(stream.gcount()) != sizeof(buf)) {
+        if (static_cast<size_t>(_stream.gcount()) != sizeof(buf)) {
             spdlog::error("ran out of data when trying to read a stream read_u8");
         }
 
@@ -40,14 +40,14 @@ public:
 
     inline uint32_t read_le_u32() {
         uint8_t buf[4];
-        stream.read(reinterpret_cast<char*>(buf), sizeof(buf));
+        _stream.read(reinterpret_cast<char*>(buf), sizeof(buf));
 
         uint32_t val = buf[0];
         val |= static_cast<uint32_t>(buf[1]) << 8;
         val |= static_cast<uint32_t>(buf[2]) << 16;
         val |= static_cast<uint32_t>(buf[3]) << 24;
 
-        if (static_cast<size_t>(stream.gcount()) != sizeof(buf)) {
+        if (static_cast<size_t>(_stream.gcount()) != sizeof(buf)) {
             spdlog::error("ran out of data when trying to read a stream read_le_u32");
         }
 
@@ -56,11 +56,11 @@ public:
 
     inline uint8_t read_be_u8() {
         uint8_t buf[1];
-        stream.read(reinterpret_cast<char*>(buf), sizeof(buf));
+        _stream.read(reinterpret_cast<char*>(buf), sizeof(buf));
 
         uint8_t val = buf[0];
 
-        if (static_cast<size_t>(stream.gcount()) != sizeof(buf)) {
+        if (static_cast<size_t>(_stream.gcount()) != sizeof(buf)) {
             spdlog::error("ran out of data when trying to read a stream read_be_u8");
         }
 
@@ -69,12 +69,12 @@ public:
 
     inline uint16_t read_be_u16() {
         uint8_t buf[2]{};
-        stream.read(reinterpret_cast<char*>(buf), sizeof(buf));
+        _stream.read(reinterpret_cast<char*>(buf), sizeof(buf));
 
         uint16_t val = buf[1];
         val |= static_cast<uint16_t>(buf[0]) << 8;
 
-        if (static_cast<size_t>(stream.gcount()) != sizeof(buf)) {
+        if (static_cast<size_t>(_stream.gcount()) != sizeof(buf)) {
             spdlog::error("ran out of data when trying to read a stream read_be_u16");
         }
 
@@ -83,14 +83,14 @@ public:
 
     inline uint32_t read_be_u32() {
         uint8_t buf[4]{};
-        stream.read(reinterpret_cast<char*>(buf), sizeof(buf));
+        _stream.read(reinterpret_cast<char*>(buf), sizeof(buf));
 
         uint32_t val = buf[3];
         val |= static_cast<uint32_t>(buf[2]) << 8;
         val |= static_cast<uint32_t>(buf[1]) << 16;
         val |= static_cast<uint32_t>(buf[0]) << 24;
 
-        if (static_cast<size_t>(stream.gcount()) != sizeof(buf)) {
+        if (static_cast<size_t>(_stream.gcount()) != sizeof(buf)) {
             // FIXME: pro file 0..14.pro in kladwntn.map doesn't have the last critter field "damage type"
             spdlog::error("ran out of data when trying to read a stream read_be_u32");
             //        throw std::runtime_error("ran out of data when trying to read a stream");
@@ -105,14 +105,14 @@ public:
 
     inline std::string read_str(size_t len) {
         std::string ret(len, '\0');
-        stream.read(ret.data(), len);
+        _stream.read(ret.data(), len);
         return ret;
     }
 
     inline void openFile(uint8_t* buf, size_t n) {
-        stream.read(reinterpret_cast<char*>(buf), static_cast<long int>(n));
+        _stream.read(reinterpret_cast<char*>(buf), static_cast<long int>(n));
 
-        if (static_cast<size_t>(stream.gcount()) != n) {
+        if (static_cast<size_t>(_stream.gcount()) != n) {
             spdlog::error("ran out of data when trying to read a stream - openFile");
         }
     }

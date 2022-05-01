@@ -4,9 +4,9 @@
 
 #include "../../format/pro/Pro.h"
 #include "../../format/map/MapObject.h"
+#include "../../format/map/Tile.h"
 
 #include "../../editor/helper/ObjectHelper.h"
-#include "../../editor/Tile.h"
 
 namespace geck {
 
@@ -196,7 +196,7 @@ void MapWriter::writeObject(const MapObject& object) {
 
     switch (object_type) {
         case Pro::OBJECT_TYPE::ITEM: {
-            uint32_t subtype_id = pro_reader.loadPro(object.pro_pid)->objectSubtypeId();
+            uint32_t subtype_id = _proReader.loadPro(_dataPath, object.pro_pid)->objectSubtypeId();
             switch (static_cast<Pro::ITEM_TYPE>(subtype_id)) {
                 case Pro::ITEM_TYPE::AMMO:    // ammo
                 case Pro::ITEM_TYPE::MISC:    // charges - have strangely high values, or negative.
@@ -232,7 +232,7 @@ void MapWriter::writeObject(const MapObject& object) {
             break;
 
         case Pro::OBJECT_TYPE::SCENERY: {
-            uint32_t subtype_id = pro_reader.loadPro(object.pro_pid)->objectSubtypeId();
+            uint32_t subtype_id = _proReader.loadPro(_dataPath, object.pro_pid)->objectSubtypeId();
             switch (static_cast<Pro::SCENERY_TYPE>(subtype_id)) {
                 case Pro::SCENERY_TYPE::LADDER_TOP:
                 case Pro::SCENERY_TYPE::LADDER_BOTTOM:

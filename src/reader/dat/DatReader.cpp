@@ -10,22 +10,22 @@ namespace geck {
 
 std::unique_ptr<Dat> DatReader::read() {
 
-    stream.seekg(-FOOTER_SIZE, stream.end);
+    _stream.seekg(-FOOTER_SIZE, _stream.end);
 
-    if (stream.bad()) {
+    if (_stream.bad()) {
         throw std::runtime_error{ "Could not seek to the end of a dat2 file" };
     }
 
     uint32_t tree_size = read_le_u32();
     uint32_t data_size = read_le_u32();
 
-    if (data_size != stream.tellg()) {
+    if (data_size != _stream.tellg()) {
         throw std::runtime_error{ "Stored file size and real size don't match" };
     }
 
     // tree_size includes file_cout field size
     uint32_t file_count_offset = data_size - FOOTER_SIZE - tree_size;
-    stream.seekg(file_count_offset, stream.beg);
+    _stream.seekg(file_count_offset, _stream.beg);
 
     uint32_t file_count = read_le_u32();
 

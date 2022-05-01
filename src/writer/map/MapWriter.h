@@ -8,10 +8,14 @@ namespace geck {
 
 class MapWriter : public FileWriter<Map::MapFile> {
 public:
+    MapWriter(const std::filesystem::path& dataPath)
+        : _dataPath(dataPath) { }
+
     [[nodiscard]] bool write(const Map::MapFile& map);
 
 private:
-    ProReader pro_reader;
+    ProReader _proReader;
+    std::filesystem::path _dataPath;
 
     void writeScript(const MapScript& script);
     void writeObject(const MapObject& object);

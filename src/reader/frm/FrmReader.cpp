@@ -6,8 +6,8 @@
 
 namespace geck {
 
-std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
-    auto frm = std::make_unique<Frm>(path);
+std::unique_ptr<geck::Frm> geck::FrmReader::read() {
+    auto frm = std::make_unique<Frm>(_path);
     frm->setVersion(read_be_u32());
     frm->setFps(read_be_u16());
     frm->setActionFrame(read_be_u16());
@@ -28,12 +28,6 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
             continue;
         }
 
-        //        frm->directions().emplace_back();
-
-        //        auto& direction = frm->directions().back();
-        //        direction.setDataOffset(dataOffset[i]);
-        //        direction.setShiftX(shiftX[i]);
-        //        direction.setShiftY(shiftY[i]);
         Direction direction{};
         direction.setDataOffset(dataOffset[i]);
         direction.setShiftX(shiftX[i]);
@@ -44,9 +38,9 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
 
     uint32_t size_of_frame_data = read_be_u32();
 
-    auto data_start = stream.tellg();
-    stream.seekg(size_of_frame_data, std::ios_base::cur);
-    auto data_end = stream.tellg();
+    auto data_start = _stream.tellg();
+    _stream.seekg(size_of_frame_data, std::ios_base::cur);
+    auto data_end = _stream.tellg();
 
     if (data_end - data_start < size_of_frame_data) {
         throw std::runtime_error{
@@ -59,7 +53,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
         // jump to frames data at frames area
         std::streamoff frame_data_offset = data_start + static_cast<std::streamoff>(direction.dataOffset());
 
-        stream.seekg(frame_data_offset, std::ios_base::beg);
+        _stream.seekg(frame_data_offset, std::ios_base::beg);
 
         // read all frames
         std::vector<Frame> frames;
@@ -79,7 +73,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read(/*std::istream& stream*/) {
             frame.setOffsetY(read_be_u16());
 
             // Pixels data
-            stream.read((char*)frame.data(), frame.width() * frame.height());
+            _stream.read((char*)frame.data(), frame.width() * frame.height());
 
             frames.emplace_back(frame);
         }

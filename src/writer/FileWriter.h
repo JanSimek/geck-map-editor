@@ -21,7 +21,6 @@ protected:
 public:
     void openFile(const std::filesystem::path& path) {
 
-        //        std::ofstream out("test.map", std::ofstream::binary);
         stream = std::ofstream{ path.string(), std::ofstream::out | std::ofstream::binary };
         this->path = path;
 

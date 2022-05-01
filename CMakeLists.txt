@@ -41,6 +41,13 @@ add_subdirectory("external/imgui-sfml")
 
 add_subdirectory(src)
 
+find_package(Catch2 3 QUIET)
+
+if (Catch2_FOUND)
+    add_subdirectory(tests)
+endif()
+
+
 ##################################################
 # show build configuration overview
 

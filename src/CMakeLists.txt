@@ -1,10 +1,14 @@
-add_executable (geck-mapper 
+
+###################################
+# GECK Mapper executable
+###################################
+add_executable (geck-mapper
+
     main.cpp
 
     Application.h
     Application.cpp
 
-    util/io.h
     util/ResourceManager.h
     util/ResourceManager.cpp
     util/FileHelper.h
@@ -29,9 +33,6 @@ add_executable (geck-mapper
     ui/util.h
     ui/IconsFontAwesome5.h
 
-    editor/Tile.h
-    editor/Tile.cpp
-
     editor/Object.h
     editor/Object.cpp
 
@@ -42,6 +43,15 @@ add_executable (geck-mapper
 
     editor/Hex.h
     editor/Hex.cpp
+
+)
+
+###################################
+# GECK Library "Vault"
+###################################
+add_library(vault
+
+    util/io.h
 
     #
     # FILE FORMATS
@@ -73,6 +83,8 @@ add_executable (geck-mapper
     format/map/Map.cpp
     format/map/MapScript.h
     format/map/MapObject.h
+    format/map/Tile.h
+    format/map/Tile.cpp
 
     # MSG
     format/msg/Msg.h
@@ -85,6 +97,10 @@ add_executable (geck-mapper
     # PRO
     format/pro/Pro.h
     format/pro/Pro.cpp
+
+    # GAM
+    format/gam/Gam.h
+    format/gam/Gam.cpp
 
     #
     # FILE WRITERS
@@ -126,6 +142,17 @@ add_executable (geck-mapper
 
     reader/pro/ProReader.h
     reader/pro/ProReader.cpp
+
+    reader/gam/GamReader.h
+    reader/gam/GamReader.cpp
+)
+
+target_include_directories(vault PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(vault PRIVATE
+    spdlog::spdlog_header_only
 )
 
 target_link_libraries(geck-mapper PRIVATE
@@ -135,16 +162,19 @@ target_link_libraries(geck-mapper PRIVATE
     portable_file_dialogs
     cxxopts
     spdlog::spdlog_header_only
+    vault
 )
 
 target_include_directories(geck-mapper PRIVATE ${imgui_SOURCE_DIR})
 
 # copy shared external libraries to the build directory for Windows builds
-add_custom_command(
-    TARGET geck-mapper POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:geck-mapper> $<TARGET_FILE_DIR:geck-mapper>
-    COMMAND_EXPAND_LISTS
-)
+if(WIN32)
+    add_custom_command(
+        TARGET geck-mapper POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:geck-mapper> $<TARGET_FILE_DIR:geck-mapper>
+        COMMAND_EXPAND_LISTS
+    )
+endif()
 
 add_custom_command(
     TARGET geck-mapper POST_BUILD

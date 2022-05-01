@@ -51,8 +51,8 @@ public:
         MapHeader header;
 
         // Global and local variables
-        std::vector<uint32_t> map_local_vars;
-        std::vector<uint32_t> map_global_vars;
+        std::vector<int32_t> map_local_vars;  // LVARS
+        std::vector<int32_t> map_global_vars; // MVARS
 
         // Tiles
         std::map<int, std::vector<Tile>> tiles;

@@ -6,8 +6,6 @@
 
 #include "../IFile.h"
 
-#include <SFML/Graphics/Image.hpp>
-
 namespace geck {
 
 class Direction;
@@ -21,8 +19,6 @@ private:
     uint16_t _framesPerDirection;
 
     std::vector<Direction> _directions;
-
-    sf::Image _image;
 
     uint16_t _maxFrameWidth;
     uint16_t _maxFrameHeight;
@@ -61,9 +57,6 @@ public:
 
     uint16_t maxFrameWidth() const;
     uint16_t maxFrameHeight() const;
-
-    //    const std::vector<uint8_t> rgba(Pal &pal);
-    const sf::Image& image(Pal* pal);
 };
 
 } // namespace geck

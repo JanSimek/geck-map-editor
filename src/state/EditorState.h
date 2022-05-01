@@ -26,7 +26,10 @@ private:
     void centerViewOnMap();
 
     void loadMapSprites();
+    void loadScriptVars();
     void createNewMap();
+
+    std::filesystem::path _dataPath;
 
     std::vector<sf::Sprite> _floorSprites;
     std::vector<sf::Sprite> _roofSprites;
@@ -38,6 +41,9 @@ private:
 
     int _currentElevation = 0;
     std::unique_ptr<Map> _map;
+
+    //    std::unordered_map<std::string, uint32_t> _gvars;
+    std::unordered_map<std::string, uint32_t> _mvars;
 
     bool _showObjects = true;
     bool _showCritters = true;

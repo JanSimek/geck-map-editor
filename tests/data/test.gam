@@ -1,0 +1,33 @@
+ // Map vars for testing
+
+ // Comments
+
+//MAP_GLOBAL_VARS:
+MAP_GLOBAL_VARS:
+//GLOBAL                                        NUMBER
+
+MVAR_test_var00               :=1;    //      (0)
+MVAR_test_var01               :=2;    //      (1)
+MVAR_test_var02               :=3;    //      (2)
+MVAR_test_var03               :=4;    //      (3)
+MVAR_test_var04               :=5 ;    //      (4)
+// Comments
+MVAR_test_var05               :=6;    //      (5)
+MVAR_test_var06               :=7;    //      (6)
+MVAR_test_var07               :=8;    //      (7)
+MVAR_test_var08               :=9;    //      (8)
+MVAR_test_var09               :=10;    //      (9)
+
+GAME_GLOBAL_VARS:
+
+GVAR_test_gvar00               :=10;    //      (0)
+GVAR_test_gvar01               :=9;    //      (1)
+GVAR_test_gvar02               :=8;    //      (2)
+GVAR_test_gvar03               :=7;    //      (3)
+GVAR_test_gvar04               :=6 ;    //      (4)
+// Comments
+GVAR_test_gvar05               :=5;    //      (5)
+GVAR_test_gvar06               :=4;    //      (6)
+GVAR_test_gvar07               :=3;    //      (7)
+GVAR_test_gvar08               :=2;    //      (8)
+GVAR_test_gvar09               :=1;    //      (9)

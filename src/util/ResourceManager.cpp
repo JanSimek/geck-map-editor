@@ -61,7 +61,7 @@ const sf::Texture& ResourceManager::texture(const std::string& filename) {
         //        texture->create(frame.width(), frame.height());
         //        texture->update(&frame.rgba[0]);
 
-        texture->loadFromImage(frm->image(_pal.get()));
+        texture->loadFromImage(imageFromFrm(frm, _pal.get()));
 
         auto loaded = _textures.insert(std::make_pair(filename, std::move(texture)));
 
@@ -98,6 +98,65 @@ T* ResourceManager::get(const std::string& filepath) {
 
 void ResourceManager::add(const std::string& filepath, std::unique_ptr<IFile> file) {
     _resources.insert({ filepath, std::move(file) });
+}
+
+const sf::Image ResourceManager::imageFromFrm(Frm* frm, Pal* pal) {
+
+    spdlog::debug("Stitching {} texture from {} directions", frm->filename(), frm->directions().size());
+
+    constexpr int RGBA = 4;
+
+    auto colors = pal->palette();
+
+    // find maximum width and height
+    unsigned maxWidth = frm->maxFrameWidth();
+    unsigned maxHeight = frm->maxFrameHeight();
+
+    sf::Image image{};
+    image.create(frm->width(), frm->height(), { 0, 0, 0, 0 });
+
+    int yOffset = 0;
+    for (const auto& direction : frm->directions()) {
+        int xOffset = 0;
+
+        for (const Frame& frame : direction.frames()) {
+
+            for (int x = 0; x < frame.width(); x++) {
+                for (int y = 0; y < frame.height(); y++) {
+
+                    uint8_t paletteIndex = frame.index(x, y);
+                    geck::Rgb color = colors[paletteIndex];
+
+                    constexpr uint8_t white = 255;
+                    constexpr uint8_t opaque_alpha = 255;
+
+                    uint8_t r, g, b, a;
+                    if (color.r == white && color.g == white && color.b == white) {
+                        // transparent
+                        r = 0;
+                        g = 0;
+                        b = 0;
+                        a = 0;
+                    } else {
+                        constexpr int brightness = 4; // brightness modifier
+                        r = color.r * brightness;
+                        g = color.g * brightness;
+                        b = color.b * brightness;
+                        a = opaque_alpha;
+                    }
+
+                    image.setPixel(
+                        maxWidth * xOffset + x,
+                        maxHeight * yOffset + y,
+                        { r, g, b, a });
+                }
+            }
+            xOffset++;
+        }
+        yOffset++;
+    }
+
+    return image;
 }
 
 } // namespace geck

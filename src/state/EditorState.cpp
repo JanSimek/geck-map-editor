@@ -17,6 +17,7 @@
 #include "../reader/frm/FrmReader.h"
 #include "../reader/lst/LstReader.h"
 #include "../reader/map/MapReader.h"
+#include "../reader/gam/GamReader.h"
 
 #include "../writer/map/MapWriter.h"
 
@@ -24,6 +25,7 @@
 #include "../format/frm/Frame.h"
 #include "../format/frm/Frm.h"
 #include "../format/lst/Lst.h"
+#include "../format/gam/Gam.h"
 
 #include "../util/FileHelper.h"
 #include "LoadingState.h"
@@ -32,14 +34,14 @@ namespace geck {
 
 EditorState::EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map)
     : _appData(appData)
-    , _view({ 0.f, 0.f }, sf::Vector2f(appData->window->getSize())) {
+    , _view({ 0.f, 0.f }, sf::Vector2f(appData->window->getSize()))
+    , _dataPath(FileHelper::getInstance().fallout2DataPath()) {
     _map = std::move(map);
     centerViewOnMap();
 }
 
 void EditorState::init() {
-    std::filesystem::path data_path = FileHelper::getInstance().fallout2DataPath();
-    std::filesystem::path map_directory = data_path / "maps";
+    std::filesystem::path map_directory = _dataPath / "maps";
 
     if (!std::filesystem::is_directory(map_directory)) {
         pfd::message("Invalid Fallout 2 directory",
@@ -51,10 +53,12 @@ void EditorState::init() {
     }
 
     loadMapSprites();
+
+    loadScriptVars();
 }
 
 void geck::EditorState::saveMap() {
-    MapWriter map_writer;
+    MapWriter map_writer{ _dataPath };
     // TODO: show file dialog
     map_writer.openFile("test.map");
     map_writer.write(_map->getMapFile());
@@ -139,8 +143,6 @@ void geck::EditorState::loadMapSprites() {
 
     spdlog::stopwatch sw;
 
-    const auto data_path = FileHelper::getInstance().fallout2DataPath();
-
     _appData->window->setTitle(_map->filename() + " - GECK::Mapper");
 
     _objects.clear();
@@ -149,10 +151,10 @@ void geck::EditorState::loadMapSprites() {
 
     // Data
 
-    MapReader map_reader;
+    MapReader map_reader{ _dataPath };
 
     LstReader lst_reader;
-    auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
+    auto lst = lst_reader.openFile(_dataPath / "art/tiles/tiles.lst");
 
     // Tiles
     // TODO: create tile atlas like in Falltergeist Tilemap.cpp
@@ -262,6 +264,18 @@ void geck::EditorState::loadMapSprites() {
     }
 
     spdlog::info("Map sprites loaded in {:.3} seconds", sw);
+}
+
+void EditorState::loadScriptVars() {
+
+    // Global variables
+    GamReader gam_reader{};
+    auto gam_filename = _map->filename().substr(0, _map->filename().find(".")) + ".gam";
+    auto gam_file = gam_reader.openFile(_dataPath / "maps" / gam_filename);
+
+    for (int index = 0; index < _map->getMapFile().header.num_global_vars; index++) {
+        _mvars.emplace(gam_file->mvarKey(index), gam_file->mvarValue(index));
+    }
 }
 
 std::vector<bool> calculateBitset(const sf::Image& img) {
@@ -401,19 +415,20 @@ void geck::EditorState::showMapInfoPanel() {
         ImGui::InputScalar(label, ImGuiDataType_U32, value, NULL, NULL, NULL, ImGuiInputTextFlags_ReadOnly);
     };
 
+    constexpr float left_column_width = 0.35f;
+
     if (ImGui::CollapsingHeader("Map header")) {
 
+        ImGui::PushItemWidth(ImGui::GetWindowWidth() * left_column_width);
         ImGui::LabelText("Property", "Value");
-
-        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.45f);
 
         ImGui::InputText("Filename", &mapInfo.header.filename, ImGuiInputTextFlags_ReadOnly);
         addInputScalar("Map elevations", &elevations);
         addInputScalar("Player default position", &mapInfo.header.player_default_position);
         addInputScalar("Player default elevation", &mapInfo.header.player_default_elevation);
         addInputScalar("Player default orientation", &mapInfo.header.player_default_orientation);
-        addInputScalar("Local variables #", &mapInfo.header.num_local_vars);
         addInputScalar("Global variables #", &mapInfo.header.num_global_vars);
+        addInputScalar("Local variables #", &mapInfo.header.num_local_vars);
         addInputScalar("Map script", &mapInfo.header.script_id);
         addInputScalar("Darkness", &mapInfo.header.darkness);
         addInputScalar("Map ID", &mapInfo.header.map_id);
@@ -422,7 +437,18 @@ void geck::EditorState::showMapInfoPanel() {
         ImGui::Checkbox("Save game map", &isSavegame);
     }
 
+    if (ImGui::CollapsingHeader("Map global variables")) {
+
+        ImGui::PushItemWidth(ImGui::GetWindowWidth() * left_column_width);
+        ImGui::LabelText("Variable", "Value");
+
+        for (auto& [key, value] : _mvars) {
+            addInputScalar(key.c_str(), &value);
+        }
+    }
+
     if (ImGui::CollapsingHeader("Map scripts")) {
+        // TODO
     }
 
     ImGui::End(); // Map Information

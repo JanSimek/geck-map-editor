@@ -58,9 +58,12 @@ void Application::initUI() {
 
     const std::filesystem::path resources_path = FileHelper::getInstance().resourcesPath();
 
+    constexpr float font_size = 18.0f;
+    constexpr float icon_size = 16.0f;
+
     // default UI font
     std::filesystem::path main_font = resources_path / FONT_MAIN;
-    io.Fonts->AddFontFromFileTTF(main_font.string().c_str(), 18.0f);
+    io.Fonts->AddFontFromFileTTF(main_font.string().c_str(), font_size);
 
     // icon font - merge in icons from Font Awesome
     static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
@@ -70,7 +73,7 @@ void Application::initUI() {
     icons_config.GlyphOffset = ImVec2(0, 1);
 
     std::filesystem::path icon_font = resources_path / FONT_ICON;
-    io.Fonts->AddFontFromFileTTF(icon_font.string().c_str(), 16.0f, &icons_config, icons_ranges);
+    io.Fonts->AddFontFromFileTTF(icon_font.string().c_str(), icon_size, &icons_config, icons_ranges);
 
     if (!ImGui::SFML::UpdateFontTexture()) {
         spdlog::error("Unable to load custom ImGui font");

@@ -1,6 +1,7 @@
 [submodule "external/spdlog"]
 	path = external/spdlog
 	url = https://github.com/gabime/spdlog.git
+	ignore = dirty
 [submodule "external/portable-file-dialogs"]
 	path = external/portable-file-dialogs
 	url = https://github.com/samhocevar/portable-file-dialogs.git

@@ -11,7 +11,7 @@ std::unique_ptr<geck::Pal> geck::PalReader::read() {
     constexpr size_t filesize = 0x00008300; // KLAMATH: up to "additional table #1"
 
     std::array<uint8_t, filesize> buf;
-    io::read(stream, buf.data(), buf.size());
+    io::read(_stream, buf.data(), buf.size());
 
     auto pal = std::make_unique<Pal>();
 

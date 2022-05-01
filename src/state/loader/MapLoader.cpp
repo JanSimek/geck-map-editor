@@ -5,8 +5,8 @@
 
 #include "../../reader/map/MapReader.h"
 #include "../../format/map/Map.h"
+#include "../../format/map/Tile.h"
 #include "../../format/lst/Lst.h"
-#include "../../editor/Tile.h"
 #include "../../format/frm/Direction.h"
 #include "../../reader/lst/LstReader.h"
 #include "../../util/FileHelper.h"
@@ -15,10 +15,10 @@
 
 namespace geck {
 
-MapLoader::MapLoader(const std::filesystem::path& mapFile, int elevation, std::function<void(std::unique_ptr<Map>)> onLoad)
+MapLoader::MapLoader(const std::filesystem::path& mapFile, int elevation, std::function<void(std::unique_ptr<Map>)> onLoadCallback)
     : _mapPath(mapFile)
     , _elevation(elevation)
-    , _onLoad(onLoad) {
+    , _onLoadCallback(onLoadCallback) {
 }
 
 void MapLoader::load() {
@@ -47,7 +47,7 @@ void MapLoader::load() {
 
     setProgress("Parsing map file");
 
-    MapReader map_reader;
+    MapReader map_reader{ data_path };
     _map = map_reader.openFile(_mapPath);
 
     LstReader lst_reader;
@@ -113,7 +113,7 @@ bool MapLoader::isDone() {
 }
 
 void MapLoader::onDone() {
-    _onLoad(std::move(_map));
+    _onLoadCallback(std::move(_map));
 }
 
 } // namespace geck

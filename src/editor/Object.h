@@ -13,9 +13,6 @@ struct MapObject;
 
 class Object {
 private:
-    // TODO: not here -> component
-    std::string _frm;
-
     sf::Sprite _sprite;
 
     std::shared_ptr<MapObject> mapObject;

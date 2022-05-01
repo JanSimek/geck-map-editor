@@ -35,7 +35,7 @@ std::unique_ptr<Pro> ProReader::read() {
             break;
     }
 
-    switch ((Pro::OBJECT_TYPE)type) {
+    switch (static_cast<Pro::OBJECT_TYPE>(type)) {
         case Pro::OBJECT_TYPE::ITEM:
         case Pro::OBJECT_TYPE::CRITTER:
         case Pro::OBJECT_TYPE::SCENERY:
@@ -47,8 +47,7 @@ std::unique_ptr<Pro> ProReader::read() {
             break;
     }
 
-    switch ((Pro::OBJECT_TYPE)type) {
-            //    {
+    switch (static_cast<Pro::OBJECT_TYPE>(type)) {
         case Pro::OBJECT_TYPE::ITEM: {
             uint32_t subtypeId = read_be_u32();
             pro->setObjectSubtypeId(subtypeId);
@@ -264,15 +263,13 @@ std::unique_ptr<Pro> ProReader::read() {
             break;
         }
     }
-    //    }
     return pro;
 }
 
-std::unique_ptr<Pro> ProReader::loadPro(unsigned int PID) {
+std::unique_ptr<Pro> ProReader::loadPro(const std::filesystem::path& dataPath, unsigned int PID) {
     unsigned int typeId = PID >> 24;
 
-    const auto data_path = FileHelper::getInstance().fallout2DataPath();
-    auto listFile = data_path;
+    auto listFile = dataPath;
 
     switch (static_cast<Pro::OBJECT_TYPE>(typeId)) {
         case Pro::OBJECT_TYPE::ITEM:
@@ -331,8 +328,7 @@ std::unique_ptr<Pro> ProReader::loadPro(unsigned int PID) {
     };
     proFilename /= protoName;
     if (!proFilename.empty()) {
-        ProReader pro_reader;
-        return pro_reader.openFile(data_path / proFilename);
+        return openFile(dataPath / proFilename);
     } else {
         throw std::runtime_error{ "Couldn't load PRO file " + protoName };
     }

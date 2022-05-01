@@ -29,9 +29,9 @@ std::unique_ptr<Lst> LstReader::read() {
     // leading/trailing whitespace around each entry. This parser tries
     // to skip all of that so that the output contains clean, trimmed
     // entries.
-    while (!stream.eof()) {
-        stream.read(buf.data(), buf.size());
-        auto avail = stream.gcount();
+    while (!_stream.eof()) {
+        _stream.read(buf.data(), buf.size());
+        auto avail = _stream.gcount();
 
         for (int i = 0; i < avail; ++i) {
             char c = buf[i];
