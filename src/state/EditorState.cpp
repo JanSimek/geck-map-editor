@@ -35,8 +35,8 @@ namespace geck {
 EditorState::EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map)
     : _appData(appData)
     , _view({ 0.f, 0.f }, sf::Vector2f(appData->window->getSize()))
-    , _dataPath(FileHelper::getInstance().fallout2DataPath()) {
-    _map = std::move(map);
+    , _dataPath(FileHelper::getInstance().fallout2DataPath())
+    , _map(std::move(map)) {
     centerViewOnMap();
 }
 
@@ -61,8 +61,11 @@ void geck::EditorState::saveMap() {
     MapWriter map_writer{ _dataPath };
     // TODO: show file dialog
     map_writer.openFile("test.map");
-    map_writer.write(_map->getMapFile());
-    spdlog::info("Saved map test.map");
+    if (map_writer.write(_map->getMapFile())) {
+        spdlog::info("Saved map test.map");
+    } else {
+        spdlog::error("Failed to save map test.map");
+    }
 }
 
 void geck::EditorState::openMap() {
@@ -278,7 +281,7 @@ void EditorState::loadScriptVars() {
     }
 
     int map_script_id = _map->getMapFile().header.script_id;
-    if (map_script_id >= 0) {
+    if (map_script_id > 0) {
         LstReader lst_reader{};
         auto scripts = lst_reader.openFile(_dataPath / "scripts" / "scripts.lst", std::ifstream::in);
         _mapScriptName = scripts->at(map_script_id - 1); // script id starts at 1

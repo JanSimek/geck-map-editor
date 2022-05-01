@@ -104,8 +104,6 @@ const sf::Image ResourceManager::imageFromFrm(Frm* frm, Pal* pal) {
 
     spdlog::debug("Stitching {} texture from {} directions", frm->filename(), frm->directions().size());
 
-    constexpr int RGBA = 4;
-
     auto colors = pal->palette();
 
     // find maximum width and height

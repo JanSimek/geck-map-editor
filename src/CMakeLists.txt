@@ -49,7 +49,7 @@ add_executable (geck-mapper
 ###################################
 # GECK Library "Vault"
 ###################################
-add_library(vault
+add_library(vault STATIC
 
     util/io.h
 
