@@ -18,7 +18,7 @@ private:
     std::shared_ptr<MapObject> mapObject;
 
 public:
-    const MapObject& getMapObject() const;
+    MapObject& getMapObject();
     void setMapObject(std::shared_ptr<MapObject> newMapObject);
 
     void setSprite(sf::Sprite sprite);

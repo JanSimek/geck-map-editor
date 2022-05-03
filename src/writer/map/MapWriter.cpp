@@ -110,6 +110,7 @@ bool MapWriter::write(const Map::MapFile& map) {
         auto objectsOnElevation = map.map_objects.at(elev).size();
         write_be_32(objectsOnElevation);
 
+        // TODO: sort objects by their position
         for (size_t i = 0; i < objectsOnElevation; i++) {
             const auto& object = map.map_objects.at(elev)[i];
             writeObject(*object);

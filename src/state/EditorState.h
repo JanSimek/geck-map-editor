@@ -25,25 +25,30 @@ private:
     void renderMainMenu();
     void centerViewOnMap();
 
-    void loadMapSprites();
-    void loadScriptVars();
-    void createNewMap();
+    void loadSprites();
+    void loadTileSprites();
+    void loadObjectSprites();
 
-    std::filesystem::path _dataPath;
+    void loadScriptVars();
+
+    void createNewMap();
 
     std::vector<sf::Sprite> _floorSprites;
     std::vector<sf::Sprite> _roofSprites;
+    std::vector<sf::Sprite> _selectableTileSprites;
 
     std::vector<Object> _objects;
 
     std::shared_ptr<AppData> _appData;
     sf::View _view;
+    std::filesystem::path _dataPath;
 
     int _currentElevation = 0;
     std::unique_ptr<Map> _map;
-    std::string _mapScriptName;
+    std::string _mapScriptName{ "no script" };
 
     //    std::unordered_map<std::string, uint32_t> _gvars;
+    //    std::unordered_map<std::string, uint32_t> _lvars;
     std::unordered_map<std::string, uint32_t> _mvars;
 
     bool _showObjects = true;
@@ -57,10 +62,19 @@ private:
     sf::Vector2i _lastMousePos{ 0, 0 }; // panning
     EditorAction _currentAction = EditorAction::NONE;
 
-    void showMapInfoPanel();
+    int _selectedObjectIndex = -1;
+    std::vector<int> _selectedTileIndexes;
 
     void openMap();
     void saveMap();
+
+    bool selectObject(sf::Vector2f worldPos);
+    bool selectTile(sf::Vector2f worldPos);
+    bool isSpriteClicked(const sf::Vector2f& worldPos, const sf::Sprite& sprite);
+    void highlightSprite(Object& object, const sf::Color& color);
+
+    void showTilesPanel();
+    void showMapInfoPanel();
 
 public:
     EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map);

@@ -50,8 +50,7 @@ void MapLoader::load() {
     MapReader map_reader{ data_path };
     _map = map_reader.openFile(_mapPath);
 
-    LstReader lst_reader;
-    auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
+    // Tiles
 
     if (_elevation == -1) { // TODO: no magic numbers
         uint32_t default_elevation = _map->getMapFile().header.player_default_elevation;
@@ -59,23 +58,28 @@ void MapLoader::load() {
         _elevation = default_elevation;
     }
 
+    LstReader lst_reader;
+    auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
+
+    //    auto tiles = _map->tiles().at(_elevation);
+    //    for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; tileNumber++) {
+    //        setProgress("Loading map tile texture " + std::to_string(tileNumber + 1) + " of " + std::to_string(geck::Map::TILES_PER_ELEVATION));
+    //        auto tile = tiles.at(tileNumber);
+    //        if (tile.getFloor() != Map::EMPTY_TILE) {
+    //            ResourceManager::getInstance().insert("art/tiles/" + lst->at(tile.getFloor()));
+    //        }
+    //        if (tile.getRoof() != Map::EMPTY_TILE) {
+    //            ResourceManager::getInstance().insert("art/tiles/" + lst->at(tile.getRoof()));
+    //        }
+    //    }
+
     // Tiles
-    auto tiles = _map->tiles().at(_elevation);
-    for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; tileNumber++) {
+    size_t tile_number = 1;
+    size_t tiles_total = lst->list().size();
 
-        setProgress("Loading map tile texture " + std::to_string(tileNumber + 1) + " of " + std::to_string(geck::Map::TILES_PER_ELEVATION));
-
-        auto tile = tiles.at(tileNumber);
-
-        // floor
-        if (tile.getFloor() != Map::EMPTY_TILE) {
-            ResourceManager::getInstance().insert("art/tiles/" + lst->at(tile.getFloor()));
-        }
-
-        // roof
-        if (tile.getRoof() != Map::EMPTY_TILE) {
-            ResourceManager::getInstance().insert("art/tiles/" + lst->at(tile.getRoof()));
-        }
+    for (const auto& tile : lst->list()) {
+        setProgress("Loading map tile texture " + std::to_string(tile_number++) + " of " + std::to_string(tiles_total));
+        ResourceManager::getInstance().insert("art/tiles/" + tile);
     }
 
     // Objects

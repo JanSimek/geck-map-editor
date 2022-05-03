@@ -52,7 +52,7 @@ void EditorState::init() {
         return;
     }
 
-    loadMapSprites();
+    loadSprites();
 
     loadScriptVars();
 }
@@ -142,67 +142,14 @@ void EditorState::renderMainMenu() {
     }
 }
 
-void geck::EditorState::loadMapSprites() {
-
-    spdlog::stopwatch sw;
-
-    _appData->window->setTitle(_map->filename() + " - GECK::Mapper");
-
-    _objects.clear();
-    _floorSprites.clear();
-    _roofSprites.clear();
-
-    // Data
-
-    MapReader map_reader{ _dataPath };
-
-    LstReader lst_reader;
-    auto lst = lst_reader.openFile(_dataPath / "art/tiles/tiles.lst");
-
-    // Tiles
-    // TODO: create tile atlas like in Falltergeist Tilemap.cpp
-    for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; ++tileNumber) {
-        auto tile = _map->tiles().at(_currentElevation).at(tileNumber);
-
-        // Positioning
-
-        // geometry constants
-        //        const TILE_WIDTH = 80
-        //        const TILE_HEIGHT = 36
-        //        const HEX_GRID_SIZE = 200 // hex grid is 200x200
-
-        unsigned int tileX = static_cast<unsigned>(ceil(((double)tileNumber) / 100));
-        unsigned int tileY = tileNumber % 100;
-        unsigned int x = (100 - tileY - 1) * 48 + 32 * (tileX - 1);
-        unsigned int y = tileX * 24 + (tileY - 1) * 12 + 1;
-
-        // floor
-        if (tile.getFloor() != Map::EMPTY_TILE) {
-            sf::Sprite floor_sprite;
-            std::string floor_texture_path = "art/tiles/" + lst->at(tile.getFloor());
-            floor_sprite.setTexture(ResourceManager::getInstance().texture(floor_texture_path));
-            floor_sprite.setPosition(x, y);
-            _floorSprites.push_back(std::move(floor_sprite));
-        }
-
-        // roof
-        if (tile.getRoof() != Map::EMPTY_TILE) {
-            sf::Sprite roof_sprite;
-            std::string roof_texture_path = "art/tiles/" + lst->at(tile.getRoof());
-            roof_sprite.setTexture(ResourceManager::getInstance().texture(roof_texture_path));
-
-            constexpr int roofOffset = 96; // "roof height"
-            roof_sprite.setPosition(x, y - roofOffset);
-
-            _roofSprites.push_back(std::move(roof_sprite));
-        }
-    }
-
-    auto hexgrid = geck::HexagonGrid();
-
+void geck::EditorState::loadObjectSprites() {
     // Objects
     if (_map->objects().empty())
         return;
+
+    auto hexgrid = geck::HexagonGrid();
+
+    MapReader map_reader{ _dataPath };
 
     for (const auto& object : _map->objects().at(_currentElevation)) {
         if (object->position == -1)
@@ -210,25 +157,19 @@ void geck::EditorState::loadMapSprites() {
 
         const std::string frmName = map_reader.FIDtoFrmName(object->frm_pid);
 
-        if (frmName.empty()) {
-            spdlog::error("Empty FRM file path on hex number " + std::to_string(object->position));
-            continue; // this should probably never happen
-        }
-
         sf::Sprite object_sprite;
         object_sprite.setTexture(ResourceManager::getInstance().texture(frmName));
 
-        //        int hexPos = object->hexPosition();
-        //        float x = hexPos % 200;
-        //        float y = hexPos / 200;
+        // int hexPos = object->hexPosition();
+        // float x = hexPos % 200;
+        // float y = hexPos / 200;
+        // Point point = hexToScreen(x, y);
 
-        //        Point point = hexToScreen(x, y);
+        spdlog::debug("Loading sprite {}", frmName);
 
         const geck::Hex* hex = hexgrid.grid().at(object->position).get();
 
         const auto& frm = ResourceManager::getInstance().get<Frm>(frmName);
-
-        spdlog::info("Loading sprite {}", frmName);
 
         // center on the hex
         auto direction_index = object->direction;
@@ -259,12 +200,77 @@ void geck::EditorState::loadMapSprites() {
             // Y
             (float)hex->y() + direction.shiftY() - height);
 
-        Object entity;
-        entity.setSprite(std::move(object_sprite));
-        entity.setMapObject(object);
-
-        _objects.push_back(std::move(entity));
+        _objects.emplace_back(Object{});
+        _objects.back().setSprite(std::move(object_sprite));
+        _objects.back().setMapObject(object);
     }
+}
+
+// Tiles
+// TODO: create tile atlas like in Falltergeist Tilemap.cpp
+void geck::EditorState::loadTileSprites() {
+    LstReader lst_reader;
+    const auto& lst = lst_reader.openFile(_dataPath / "art/tiles/tiles.lst");
+
+    for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; ++tileNumber) {
+        auto tile = _map->tiles().at(_currentElevation).at(tileNumber);
+
+        // Positioning
+
+        // geometry constants
+        // const TILE_WIDTH = 80
+        // const TILE_HEIGHT = 36
+        // const HEX_GRID_SIZE = 200 // hex grid is 200x200 (roof+floor)
+
+        unsigned int tileX = static_cast<unsigned>(ceil(((double)tileNumber) / 100));
+        unsigned int tileY = tileNumber % 100;
+        unsigned int x = (100 - tileY - 1) * 48 + 32 * (tileX - 1);
+        unsigned int y = tileX * 24 + (tileY - 1) * 12 + 1;
+
+        const auto& createTileSprite = [&](const uint16_t tile_id, int offset = 0) {
+            sf::Sprite tile_sprite;
+            std::string texture_path = "art/tiles/" + lst->at(tile_id);
+            tile_sprite.setTexture(ResourceManager::getInstance().texture(texture_path));
+            tile_sprite.setPosition(x, y - offset);
+            return tile_sprite;
+        };
+
+        // floor
+        if (tile.getFloor() != Map::EMPTY_TILE) {
+            _floorSprites.push_back(createTileSprite(tile.getFloor()));
+        }
+
+        // roof
+        if (tile.getRoof() != Map::EMPTY_TILE) {
+            constexpr int roofOffset = 96; // "roof height"
+            _roofSprites.push_back(createTileSprite(tile.getRoof(), roofOffset));
+        }
+    }
+
+    // selectable tiles
+    for (int tile_id = 2; tile_id < lst->list().size(); tile_id++) { // skip reserved.frm and grid000.frm
+        sf::Sprite tile_sprite;
+        std::string texture_path = "art/tiles/" + lst->at(tile_id);
+        tile_sprite.setTexture(ResourceManager::getInstance().texture(texture_path));
+        _selectableTileSprites.push_back(tile_sprite);
+    }
+}
+
+void geck::EditorState::loadSprites() {
+
+    spdlog::stopwatch sw;
+
+    _appData->window->setTitle(_map->filename() + " - GECK::Mapper");
+
+    _objects.clear();
+    _floorSprites.clear();
+    _roofSprites.clear();
+
+    // Data
+
+    loadTileSprites();
+
+    loadObjectSprites();
 
     spdlog::info("Map sprites loaded in {:.3} seconds", sw);
 }
@@ -301,6 +307,103 @@ std::vector<bool> calculateBitset(const sf::Image& img) {
         }
 
     return retVal;
+}
+
+bool geck::EditorState::selectObject(sf::Vector2f worldPos) {
+    int newly_selected_object_index = -1;
+
+    for (int i = 0; i < _objects.size(); i++) {
+        auto object_sprite = _objects.at(i).getSprite();
+
+        if (isSpriteClicked(worldPos, object_sprite)) {
+            if (newly_selected_object_index == -1) {
+                newly_selected_object_index = i;
+            } else {
+                const int position1 = _objects.at(newly_selected_object_index).getMapObject().position;
+                const int position2 = _objects.at(i).getMapObject().position;
+                if (position1 < position2) {
+                    newly_selected_object_index = i;
+                }
+            }
+        }
+    }
+
+    if (newly_selected_object_index != -1) {
+        auto& selected_object = _objects.at(newly_selected_object_index);
+
+        if (newly_selected_object_index == _selectedObjectIndex) {
+            // unselect
+            highlightSprite(selected_object, sf::Color::White);
+            _selectedObjectIndex = -1;
+        } else {
+            if (_selectedObjectIndex != -1) {
+                // turn off highlight of previously selected object
+                auto& former_selected_object = _objects.at(_selectedObjectIndex);
+                highlightSprite(former_selected_object, sf::Color::White);
+            }
+
+            // select
+            _selectedObjectIndex = newly_selected_object_index;
+            highlightSprite(selected_object, sf::Color::Magenta);
+
+            for (int tile_index : _selectedTileIndexes) {
+                _floorSprites.at(tile_index).setColor(sf::Color::White);
+            }
+            _selectedTileIndexes.clear();
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// TODO: select roof tiles
+bool EditorState::selectTile(sf::Vector2f worldPos) {
+    for (int i = 0; i < _floorSprites.size(); i++) {
+        auto& tile = _floorSprites.at(i);
+        // mouse is within the tile rect
+        if (isSpriteClicked(worldPos, tile)) {
+            if (std::count(_selectedTileIndexes.begin(), _selectedTileIndexes.end(), i)) {
+                tile.setColor(sf::Color::White);
+                std::remove(_selectedTileIndexes.begin(), _selectedTileIndexes.end(), i);
+                return false;
+            } else {
+                tile.setColor(sf::Color::Magenta);
+                _selectedTileIndexes.push_back(i);
+
+                if (_selectedObjectIndex != -1) {
+                    auto& selected_object = _objects.at(_selectedObjectIndex);
+                    highlightSprite(selected_object, sf::Color::White);
+                    _selectedObjectIndex = -1;
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool geck::EditorState::isSpriteClicked(const sf::Vector2f& worldPos, const sf::Sprite& sprite) {
+    if (sprite.getGlobalBounds().contains(worldPos)) {
+
+        const auto& image = sprite.getTexture()->copyToImage();
+        const auto& bitsets = calculateBitset(image);
+
+        const auto& x = worldPos.x - sprite.getGlobalBounds().left;
+        const auto& y = worldPos.y - sprite.getGlobalBounds().top;
+
+        int w = image.getSize().x;
+        if (!bitsets[w * y + x]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void EditorState::highlightSprite(Object& object, const sf::Color& color) {
+    sf::Sprite sprite = object.getSprite();
+    sprite.setColor(color);
+    object.setSprite(sprite);
 }
 
 void EditorState::handleEvent(const sf::Event& event) {
@@ -345,45 +448,21 @@ void EditorState::handleEvent(const sf::Event& event) {
     // Zoom
     if (event.type == sf::Event::MouseWheelScrolled && event.mouseWheelScroll.wheel == sf::Mouse::Wheel::VerticalWheel) {
         float delta = event.mouseWheelScroll.delta;
-        _view.zoom(1.0f - delta * 0.1f);
+        _view.zoom(1.0f - delta * 0.05f);
     }
 
     // Left mouse click
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Left) {
 
-        const sf::Color BASE_COLOR = { 200, 0, 0 }; // get the current mouse position in the window
-
-        sf::Vector2i pixelPos = sf::Mouse::getPosition(*_appData->window);
+        sf::Vector2i mousePos = sf::Mouse::getPosition(*_appData->window);
 
         // convert it to world coordinates
-        sf::Vector2f worldPos = _appData->window->mapPixelToCoords(pixelPos);
+        sf::Vector2f worldPos = _appData->window->mapPixelToCoords(mousePos);
 
-        for (auto& tile : _floorSprites) {
-            // mouse is within the tile rect
-            if (tile.getGlobalBounds().contains(worldPos)) {
+        bool object_selected = selectObject(worldPos);
 
-                const auto& image = tile.getTexture()->copyToImage();
-                const auto bitsets = calculateBitset(image);
-
-                const auto& x = worldPos.x - tile.getGlobalBounds().left;
-                const auto& y = worldPos.y - tile.getGlobalBounds().top;
-
-                spdlog::info("image size {}x{}", image.getSize().x, image.getSize().y);
-                spdlog::info("texture size {}x{}", tile.getTexture()->getSize().x, tile.getTexture()->getSize().y);
-
-                spdlog::info("Worldpos x = {}, y = {}", worldPos.x, worldPos.y);
-                spdlog::info("Globalbounds x = {}, y = {}", tile.getGlobalBounds().left, tile.getGlobalBounds().top);
-
-                spdlog::info("Pixel x = {}, y = {}", x, y);
-                auto pixel = image.getPixel(x, y);
-
-                spdlog::info("Pixel color = {}, {}, {}, {}", pixel.r, pixel.g, pixel.b, pixel.a);
-                int w = image.getSize().x;
-                if (!bitsets[w * y + x]) {
-                    tile.setColor(BASE_COLOR);
-                    break;
-                }
-            }
+        if (!object_selected) {
+            bool tile_selected = selectTile(worldPos);
         }
     }
 
@@ -439,9 +518,7 @@ void geck::EditorState::showMapInfoPanel() {
         addInputScalar("Player default orientation", &mapInfo.header.player_default_orientation);
         addInputScalar("Global variables #", &mapInfo.header.num_global_vars);
         addInputScalar("Local variables #", &mapInfo.header.num_local_vars);
-        if (mapInfo.header.script_id >= 0) {
-            ImGui::InputText("Map script", &_mapScriptName, ImGuiInputTextFlags_ReadOnly);
-        }
+        ImGui::InputText("Map script", &_mapScriptName, ImGuiInputTextFlags_ReadOnly);
         addInputScalar("Map script ID", &mapInfo.header.script_id);
         addInputScalar("Darkness", &mapInfo.header.darkness);
         addInputScalar("Map ID", &mapInfo.header.map_id);
@@ -465,6 +542,34 @@ void geck::EditorState::showMapInfoPanel() {
     }
 
     ImGui::End(); // Map Information
+
+    if (_selectedObjectIndex != -1) {
+        ImGui::Begin("Selected object");
+
+        auto& selected_object = _objects.at(_selectedObjectIndex);
+        ImGui::Image(selected_object.getSprite(), sf::Color::White, sf::Color::Green);
+
+        ImGui::End(); // Selected object
+    }
+}
+
+void geck::EditorState::showTilesPanel() {
+    ImGui::Begin("Tiles");
+
+    float content_width = ImGui::GetContentRegionAvail().x;
+    const float item_width = Tile::TILE_WIDTH;
+    int columns = content_width / item_width;
+    if (columns == 0) {
+        columns = 1;
+    }
+    ImGui::Columns(columns, nullptr, false);
+
+    for (const auto& tile : _selectableTileSprites) {
+        ImGui::ImageButton(tile);
+        ImGui::NextColumn();
+    }
+
+    ImGui::End();
 }
 
 /**
@@ -476,38 +581,23 @@ void EditorState::render(const float& dt) {
 
     _appData->window->setView(_view);
 
-    for (const auto& sprite : _floorSprites) {
-        _appData->window->draw(sprite);
+    for (const auto& floor : _floorSprites) {
+        _appData->window->draw(floor);
     }
 
     if (_showObjects) {
-        for (const auto& obj : _objects) {
-            _appData->window->draw(obj.getSprite());
+        for (const auto& object : _objects) {
+            _appData->window->draw(object.getSprite());
         }
     }
 
     if (_showRoof) {
-        for (const auto& sprite : _roofSprites) {
-            _appData->window->draw(sprite);
+        for (const auto& roof : _roofSprites) {
+            _appData->window->draw(roof);
         }
     }
 
-    // auto boldFont = io.Fonts->Fonts[0];
-    // ImGui::PushFont(0);
-    // TODO: create a widget
-    //    ImGui::Begin("Floor tiles");
-    //    int rowWidth = 0;
-    //    for (const auto& floorTile : _floorSprites) {
-    //        rowWidth += floorTile.getTextureRect().width;
-    //        if (!(rowWidth >= ImGui::GetWindowContentRegionWidth())) {
-    //            ImGui::SameLine();
-    //        } else {
-    //            rowWidth = 0;
-    //        }
-    //        ImGui::ImageButton(floorTile);
-    //    }
-    //    ImGui::End();
-    //    ImGui::PopFont();
+    showTilesPanel();
 
     showMapInfoPanel();
 }
@@ -553,7 +643,7 @@ void EditorState::createNewMap() {
     }
     _map->setTiles(std::move(tiles));
 
-    loadMapSprites();
+    loadSprites();
 }
 
 } // namespace geck

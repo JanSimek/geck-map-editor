@@ -15,7 +15,7 @@ class Tile;
 
 class MapReader : public FileParser<Map> {
 public:
-    std::string FIDtoFrmName(unsigned int FID);
+    const std::string FIDtoFrmName(unsigned int FID) const;
 
     MapReader(const std::filesystem::path& dataPath);
 

@@ -27,7 +27,7 @@
 
 namespace geck {
 
-std::string MapReader::FIDtoFrmName(unsigned int FID) {
+const std::string MapReader::FIDtoFrmName(unsigned int FID) const {
     /*const*/ auto baseId = FID & 0x00FFFFFF; // FIXME? 0x00000FFF;
     /*const*/ auto type = static_cast<FRM_TYPE>(FID >> 24);
 

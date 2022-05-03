@@ -48,7 +48,7 @@ void ResourceManager::insert(const std::string& filename) {
 }
 
 const sf::Texture& ResourceManager::texture(const std::string& filename) {
-    auto found = _textures.find(filename);
+    const auto& found = _textures.find(filename);
 
     if (found == _textures.end()) {
         auto frm = get<Frm>(filename); // TODO: check extension?

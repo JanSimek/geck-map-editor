@@ -2,7 +2,7 @@
 
 namespace geck {
 
-const MapObject& Object::getMapObject() const {
+MapObject& Object::getMapObject() {
     return *mapObject; //.get();
 }
 
