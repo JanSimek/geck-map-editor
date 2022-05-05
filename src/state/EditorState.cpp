@@ -147,62 +147,24 @@ void geck::EditorState::loadObjectSprites() {
     if (_map->objects().empty())
         return;
 
-    auto hexgrid = geck::HexagonGrid();
-
     MapReader map_reader{ _dataPath };
 
     for (const auto& object : _map->objects().at(_currentElevation)) {
         if (object->position == -1)
             continue; // object inside an inventory/container
 
-        const std::string frmName = map_reader.FIDtoFrmName(object->frm_pid);
+        const std::string frm_name = map_reader.FIDtoFrmName(object->frm_pid);
 
-        sf::Sprite object_sprite;
-        object_sprite.setTexture(ResourceManager::getInstance().texture(frmName));
+        spdlog::debug("Loading sprite {}", frm_name);
 
-        // int hexPos = object->hexPosition();
-        // float x = hexPos % 200;
-        // float y = hexPos / 200;
-        // Point point = hexToScreen(x, y);
+        const auto& frm = ResourceManager::getInstance().get<Frm>(frm_name);
 
-        spdlog::debug("Loading sprite {}", frmName);
-
-        const geck::Hex* hex = hexgrid.grid().at(object->position).get();
-
-        const auto& frm = ResourceManager::getInstance().get<Frm>(frmName);
-
-        // center on the hex
-        auto direction_index = object->direction;
-
-        // FIXME: ??? one scrblk on arcaves.map
-        if (frm->directions().size() <= direction_index) {
-            spdlog::error("Object has orientation index {} but the FRM has only [{}] orientations", direction_index, frm->directions().size());
-            direction_index = 0;
-        }
-
-        // Take the first frame of the direction
-        auto first_frame = frm->directions().at(direction_index).frames().at(0);
-
-        uint16_t left = 0;
-        uint16_t top = direction_index * frm->maxFrameHeight();
-        uint16_t width = first_frame.width();
-        uint16_t height = first_frame.height();
-
-        object_sprite.setTextureRect({ left, top, width, height });
-
-        auto direction = frm->directions().at(direction_index);
-
-        // center on the hex
-        object_sprite.setPosition(
-            // X
-            (float)hex->x() + direction.shiftX() - (width / 2),
-
-            // Y
-            (float)hex->y() + direction.shiftY() - height);
-
-        _objects.emplace_back(Object{});
+        _objects.emplace_back(Object{ frm });
+        sf::Sprite object_sprite{ ResourceManager::getInstance().texture(frm_name) };
         _objects.back().setSprite(std::move(object_sprite));
+        _objects.back().setHexPosition(_hexgrid.grid().at(object->position).get());
         _objects.back().setMapObject(object);
+        _objects.back().setDirection(object->direction);
     }
 }
 
@@ -310,48 +272,47 @@ std::vector<bool> calculateBitset(const sf::Image& img) {
 }
 
 bool geck::EditorState::selectObject(sf::Vector2f worldPos) {
-    int newly_selected_object_index = -1;
+
+    std::optional<std::reference_wrapper<Object>> newly_selected_object;
 
     for (int i = 0; i < _objects.size(); i++) {
-        auto object_sprite = _objects.at(i).getSprite();
+        auto& iterated_object = _objects.at(i);
 
-        if (isSpriteClicked(worldPos, object_sprite)) {
-            if (newly_selected_object_index == -1) {
-                newly_selected_object_index = i;
-            } else {
-                const int position1 = _objects.at(newly_selected_object_index).getMapObject().position;
-                const int position2 = _objects.at(i).getMapObject().position;
+        if (isSpriteClicked(worldPos, iterated_object.getSprite())) {
+
+            if (iterated_object.isSelected()) {
+                iterated_object.unselect();
+                _selectedObject = {};
+                break;
+            }
+
+            if (newly_selected_object) {
+
+                const int position1 = newly_selected_object->get().getMapObject().position;
+                const int position2 = iterated_object.getMapObject().position;
+
+                // select the foremost object
                 if (position1 < position2) {
-                    newly_selected_object_index = i;
+                    newly_selected_object = iterated_object;
                 }
+            } else {
+                newly_selected_object = iterated_object;
             }
         }
     }
-
-    if (newly_selected_object_index != -1) {
-        auto& selected_object = _objects.at(newly_selected_object_index);
-
-        if (newly_selected_object_index == _selectedObjectIndex) {
-            // unselect
-            highlightSprite(selected_object, sf::Color::White);
-            _selectedObjectIndex = -1;
-        } else {
-            if (_selectedObjectIndex != -1) {
-                // turn off highlight of previously selected object
-                auto& former_selected_object = _objects.at(_selectedObjectIndex);
-                highlightSprite(former_selected_object, sf::Color::White);
-            }
-
-            // select
-            _selectedObjectIndex = newly_selected_object_index;
-            highlightSprite(selected_object, sf::Color::Magenta);
-
-            for (int tile_index : _selectedTileIndexes) {
-                _floorSprites.at(tile_index).setColor(sf::Color::White);
-            }
-            _selectedTileIndexes.clear();
-            return true;
+    if (newly_selected_object) {
+        if (_selectedObject) {
+            _selectedObject->get().unselect();
         }
+        _selectedObject = newly_selected_object;
+        _selectedObject->get().select();
+
+        // clear selected tiles
+        for (int tile_index : _selectedTileIndexes) {
+            _floorSprites.at(tile_index).setColor(sf::Color::White);
+        }
+        _selectedTileIndexes.clear();
+        return true;
     }
 
     return false;
@@ -365,16 +326,15 @@ bool EditorState::selectTile(sf::Vector2f worldPos) {
         if (isSpriteClicked(worldPos, tile)) {
             if (std::count(_selectedTileIndexes.begin(), _selectedTileIndexes.end(), i)) {
                 tile.setColor(sf::Color::White);
-                std::remove(_selectedTileIndexes.begin(), _selectedTileIndexes.end(), i);
+                _selectedTileIndexes.erase(std::remove(_selectedTileIndexes.begin(), _selectedTileIndexes.end(), i));
                 return false;
             } else {
                 tile.setColor(sf::Color::Magenta);
                 _selectedTileIndexes.push_back(i);
 
-                if (_selectedObjectIndex != -1) {
-                    auto& selected_object = _objects.at(_selectedObjectIndex);
-                    highlightSprite(selected_object, sf::Color::White);
-                    _selectedObjectIndex = -1;
+                if (_selectedObject) {
+                    _selectedObject->get().unselect();
+                    _selectedObject = {};
                 }
                 return true;
             }
@@ -400,12 +360,6 @@ bool geck::EditorState::isSpriteClicked(const sf::Vector2f& worldPos, const sf::
     return false;
 }
 
-void EditorState::highlightSprite(Object& object, const sf::Color& color) {
-    sf::Sprite sprite = object.getSprite();
-    sprite.setColor(color);
-    object.setSprite(sprite);
-}
-
 void EditorState::handleEvent(const sf::Event& event) {
     if (event.type == sf::Event::KeyPressed) {
         switch (event.key.code) {
@@ -424,6 +378,12 @@ void EditorState::handleEvent(const sf::Event& event) {
             case sf::Keyboard::O: // Ctrl+O
                 if (event.key.control)
                     openMap();
+                break;
+            case sf::Keyboard::R: // R
+                if (_selectedObject) {
+                    _selectedObject->get().rotate();
+                }
+
                 break;
             case sf::Keyboard::Escape:
                 _quit = true;
@@ -459,10 +419,19 @@ void EditorState::handleEvent(const sf::Event& event) {
         // convert it to world coordinates
         sf::Vector2f worldPos = _appData->window->mapPixelToCoords(mousePos);
 
-        bool object_selected = selectObject(worldPos);
+        bool moving_object = _selectedObject.has_value();        // some object was already selected
+        bool selected_different_object = selectObject(worldPos); // another object was selected instead
 
-        if (!object_selected) {
-            bool tile_selected = selectTile(worldPos);
+        // still have the original selected and clicked on an empty space
+        moving_object = moving_object && !selected_different_object && _selectedObject.has_value();
+
+        auto position_clicked = _hexgrid.positionAt(worldPos.x, worldPos.y);
+        if (moving_object && position_clicked != -1) {
+            _selectedObject->get().setHexPosition(_hexgrid.grid().at(position_clicked).get());
+        }
+
+        if (!_selectedObject && !moving_object) {
+            selectTile(worldPos);
         }
     }
 
@@ -470,9 +439,17 @@ void EditorState::handleEvent(const sf::Event& event) {
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Right) {
         _currentAction = EditorAction::PANNING;
         _lastMousePos = sf::Mouse::getPosition(*_appData->window);
+
+        if (_cursor.loadFromSystem(sf::Cursor::SizeAll)) {
+            _appData->window->setMouseCursor(_cursor);
+        }
     }
     if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Button::Right) {
         _currentAction = EditorAction::NONE;
+
+        if (_cursor.loadFromSystem(sf::Cursor::Arrow)) {
+            _appData->window->setMouseCursor(_cursor);
+        }
     }
     if (_currentAction == EditorAction::PANNING) {
         sf::Vector2f mousePos = sf::Vector2f{ sf::Mouse::getPosition(*_appData->window) - _lastMousePos };
@@ -542,15 +519,6 @@ void geck::EditorState::showMapInfoPanel() {
     }
 
     ImGui::End(); // Map Information
-
-    if (_selectedObjectIndex != -1) {
-        ImGui::Begin("Selected object");
-
-        auto& selected_object = _objects.at(_selectedObjectIndex);
-        ImGui::Image(selected_object.getSprite(), sf::Color::White, sf::Color::Green);
-
-        ImGui::End(); // Selected object
-    }
 }
 
 void geck::EditorState::showTilesPanel() {
@@ -600,6 +568,17 @@ void EditorState::render(const float& dt) {
     showTilesPanel();
 
     showMapInfoPanel();
+
+    if (_selectedObject) {
+        ImGui::Begin("Selected object");
+
+        auto& selected_map_object = _selectedObject->get().getMapObject();
+        ImGui::Image(_selectedObject->get().getSprite(), sf::Color::White, sf::Color::Green);
+        ImGui::InputInt("Position", &selected_map_object.position, 0, 0);
+        ImGui::InputInt("Position", &selected_map_object.position, 0, 0);
+
+        ImGui::End(); // Selected object
+    }
 }
 
 void EditorState::centerViewOnMap() {

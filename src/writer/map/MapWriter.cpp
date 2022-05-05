@@ -70,9 +70,9 @@ bool MapWriter::write(const Map::MapFile& map) {
 
         // round number of script to be divisible by 16
         int remainder = number_of_scripts % 16;
-        int scripts_in_section = (remainder == 0 ? number_of_scripts : number_of_scripts + 16 - remainder);
+        uint32_t scripts_in_section = (remainder == 0 ? number_of_scripts : number_of_scripts + 16 - remainder);
 
-        for (int i = 0; i < scripts_in_section; i++) {
+        for (uint32_t i = 0; i < scripts_in_section; i++) {
 
             if (i < number_of_scripts) {
                 writeScript(script_section.at(i));

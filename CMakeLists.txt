@@ -48,6 +48,11 @@ if (Catch2_FOUND)
     enable_testing()
 endif()
 
+# Enable verbose compiler warnings
+add_compile_options(
+  $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+)
 
 ##################################################
 # show build configuration overview

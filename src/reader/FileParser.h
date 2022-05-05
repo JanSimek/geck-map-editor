@@ -17,7 +17,7 @@ public:
         this->_path = path;
 
         if (!_stream.is_open()) {
-            spdlog::error("Could not read dat file {}", _path.string());
+            throw std::runtime_error{ "Could not read dat file {}" };
         }
 
         return read();

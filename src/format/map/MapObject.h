@@ -7,7 +7,6 @@
 
 namespace geck {
 
-// TODO: default values?
 // scenery, walls, items, containers, keys and critters
 struct MapObject {
     uint32_t unknown0; // falltergeist OID ?

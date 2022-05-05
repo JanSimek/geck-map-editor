@@ -4,7 +4,10 @@
 #include <memory>
 #include <filesystem>
 #include <thread>
+#include <optional>
 
+#include "../editor/Object.h"
+#include "../editor/HexagonGrid.h"
 #include "../util/ResourceManager.h"
 #include "State.h"
 
@@ -12,7 +15,6 @@ namespace geck {
 
 struct AppData;
 class Map;
-class Object;
 
 class EditorState : public State {
 private:
@@ -33,6 +35,7 @@ private:
 
     void createNewMap();
 
+    HexagonGrid _hexgrid;
     std::vector<sf::Sprite> _floorSprites;
     std::vector<sf::Sprite> _roofSprites;
     std::vector<sf::Sprite> _selectableTileSprites;
@@ -61,8 +64,9 @@ private:
 
     sf::Vector2i _lastMousePos{ 0, 0 }; // panning
     EditorAction _currentAction = EditorAction::NONE;
+    sf::Cursor _cursor;
 
-    int _selectedObjectIndex = -1;
+    std::optional<std::reference_wrapper<Object>> _selectedObject;
     std::vector<int> _selectedTileIndexes;
 
     void openMap();
@@ -71,7 +75,6 @@ private:
     bool selectObject(sf::Vector2f worldPos);
     bool selectTile(sf::Vector2f worldPos);
     bool isSpriteClicked(const sf::Vector2f& worldPos, const sf::Sprite& sprite);
-    void highlightSprite(Object& object, const sf::Color& color);
 
     void showTilesPanel();
     void showMapInfoPanel();

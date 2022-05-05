@@ -58,7 +58,7 @@ uint8_t* Frame::rgba(Pal* pal) {
 
     _rgba.reserve(pixelCount);
 
-    for (size_t i = 0; i < pixelCount; i += RGBA) {
+    for (int i = 0; i < pixelCount; i += RGBA) {
         uint8_t paletteIndex = colorIndexes[i / RGBA];
 
         geck::Rgb color = colors[paletteIndex];

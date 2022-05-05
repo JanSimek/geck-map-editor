@@ -10,6 +10,8 @@ At the current stage this is nothing more than a map viewer but one day it will 
 
 This repository contains dependencies as git submodules. When you clone the repository make sure to use the `--recursive` flag or once cloned download submodules with `git submodule update --init --recursive`
 
+Make sure to use the Release and not the Debug version if you are not a developer as the Release version is much much faster in loading maps.
+
 ### Linux
 
 ```bash
@@ -40,7 +42,9 @@ It's currently not possible to load assets directly from master.dat and critter.
 
 Use arrow keys or right-click and drag to pan the view.
 
-Make sure to use the Release and not the Debug version if you are not a developer as the Release version is much much faster in loading maps.
+Left mouse click on an object to select it followed by a click on en empty tile to place it there.
+
+<kbd>Ctrl</kbd> + <kbd>R</kbd> to rotate selected object
 
 ## Compatibility
 

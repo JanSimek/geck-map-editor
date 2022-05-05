@@ -18,6 +18,8 @@ public:
     HexagonGrid();
 
     const std::vector<std::unique_ptr<Hex>>& grid() const;
+
+    uint32_t positionAt(uint32_t x, uint32_t y);
 };
 
 } // namespace geck

@@ -7,13 +7,13 @@ namespace geck {
 
 class Gam {
 public:
-    const std::string& gvarKey(int index) const;
+    const std::string& gvarKey(size_t index) const;
     int gvarValue(const std::string& key);
-    int gvarValue(int index);
+    int gvarValue(size_t index);
 
-    const std::string& mvarKey(int index) const;
+    const std::string& mvarKey(size_t index) const;
     int mvarValue(const std::string& key);
-    int mvarValue(int index);
+    int mvarValue(size_t index);
 
     void addMvar(const std::string& key, int value);
     void addGvar(const std::string& key, int value);
