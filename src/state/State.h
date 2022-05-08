@@ -1,10 +1,10 @@
 #pragma once
 
 namespace sf {
-class Window;
-class RenderTarget;
 class Event;
 } // namespace sf
+
+namespace geck {
 
 class State {
 public:
@@ -17,3 +17,5 @@ public:
 
     virtual bool quit() const { return false; }
 };
+
+} // namespace geck

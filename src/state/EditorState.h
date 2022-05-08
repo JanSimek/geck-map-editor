@@ -19,10 +19,9 @@ class Map;
 class EditorState : public State {
 private:
     EditorState(const std::shared_ptr<AppData>& appData);
-    enum class EditorAction {
-        NONE,
-        PANNING
-    };
+
+    void openMap();
+    void saveMap();
 
     void renderMainMenu();
     void centerViewOnMap();
@@ -35,12 +34,24 @@ private:
 
     void createNewMap();
 
+    bool selectObject(sf::Vector2f worldPos);
+    bool selectTile(sf::Vector2f worldPos);
+    bool isSpriteClicked(const sf::Vector2f& worldPos, const sf::Sprite& sprite);
+
+    void showTilesPanel();
+    void showMapInfoPanel();
+
+    enum class EditorAction {
+        NONE,
+        PANNING
+    };
+
     HexagonGrid _hexgrid;
     std::vector<sf::Sprite> _floorSprites;
     std::vector<sf::Sprite> _roofSprites;
     std::vector<sf::Sprite> _selectableTileSprites;
 
-    std::vector<Object> _objects;
+    std::vector<std::shared_ptr<Object>> _objects;
 
     std::shared_ptr<AppData> _appData;
     sf::View _view;
@@ -66,18 +77,8 @@ private:
     EditorAction _currentAction = EditorAction::NONE;
     sf::Cursor _cursor;
 
-    std::optional<std::reference_wrapper<Object>> _selectedObject;
+    std::optional<std::shared_ptr<Object>> _selectedObject;
     std::vector<int> _selectedTileIndexes;
-
-    void openMap();
-    void saveMap();
-
-    bool selectObject(sf::Vector2f worldPos);
-    bool selectTile(sf::Vector2f worldPos);
-    bool isSpriteClicked(const sf::Vector2f& worldPos, const sf::Sprite& sprite);
-
-    void showTilesPanel();
-    void showMapInfoPanel();
 
 public:
     EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map);

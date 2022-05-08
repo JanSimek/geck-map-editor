@@ -10,7 +10,6 @@
 
 #include "../ui/util.h"
 
-#include "../editor/HexagonGrid.h"
 #include "../editor/Object.h"
 
 #include "../reader/dat/DatReader.h"
@@ -26,9 +25,13 @@
 #include "../format/frm/Frm.h"
 #include "../format/lst/Lst.h"
 #include "../format/gam/Gam.h"
+#include "../format/map/Tile.h"
+
+#include "loader/MapLoader.h"
 
 #include "../util/FileHelper.h"
 #include "LoadingState.h"
+#include "StateMachine.h"
 
 namespace geck {
 
@@ -159,12 +162,15 @@ void geck::EditorState::loadObjectSprites() {
 
         const auto& frm = ResourceManager::getInstance().get<Frm>(frm_name);
 
-        _objects.emplace_back(Object{ frm });
+        // TODO: use _objects.insert(v.begin(), Object{ frm }); for flat objects
+        //       which should be rendered first
+
+        _objects.emplace_back(std::make_shared<Object>(frm));
         sf::Sprite object_sprite{ ResourceManager::getInstance().texture(frm_name) };
-        _objects.back().setSprite(std::move(object_sprite));
-        _objects.back().setHexPosition(_hexgrid.grid().at(object->position).get());
-        _objects.back().setMapObject(object);
-        _objects.back().setDirection(object->direction);
+        _objects.back()->setSprite(std::move(object_sprite));
+        _objects.back()->setHexPosition(_hexgrid.grid().at(object->position));
+        _objects.back()->setMapObject(object);
+        _objects.back()->setDirection(object->direction);
     }
 }
 
@@ -273,23 +279,25 @@ std::vector<bool> calculateBitset(const sf::Image& img) {
 
 bool geck::EditorState::selectObject(sf::Vector2f worldPos) {
 
-    std::optional<std::reference_wrapper<Object>> newly_selected_object;
+    // TODO: use ranges ?
+    // filter and then max_element using the position property
+    std::optional<std::shared_ptr<Object>> newly_selected_object;
 
     for (int i = 0; i < _objects.size(); i++) {
         auto& iterated_object = _objects.at(i);
 
-        if (isSpriteClicked(worldPos, iterated_object.getSprite())) {
+        if (isSpriteClicked(worldPos, iterated_object->getSprite())) {
 
-            if (iterated_object.isSelected()) {
-                iterated_object.unselect();
+            if (iterated_object->isSelected()) {
+                iterated_object->unselect();
                 _selectedObject = {};
                 break;
             }
 
             if (newly_selected_object) {
 
-                const int position1 = newly_selected_object->get().getMapObject().position;
-                const int position2 = iterated_object.getMapObject().position;
+                const int position1 = newly_selected_object->get()->getMapObject().position;
+                const int position2 = iterated_object->getMapObject().position;
 
                 // select the foremost object
                 if (position1 < position2) {
@@ -302,10 +310,10 @@ bool geck::EditorState::selectObject(sf::Vector2f worldPos) {
     }
     if (newly_selected_object) {
         if (_selectedObject) {
-            _selectedObject->get().unselect();
+            _selectedObject->get()->unselect();
         }
         _selectedObject = newly_selected_object;
-        _selectedObject->get().select();
+        _selectedObject->get()->select();
 
         // clear selected tiles
         for (int tile_index : _selectedTileIndexes) {
@@ -333,7 +341,7 @@ bool EditorState::selectTile(sf::Vector2f worldPos) {
                 _selectedTileIndexes.push_back(i);
 
                 if (_selectedObject) {
-                    _selectedObject->get().unselect();
+                    _selectedObject->get()->unselect();
                     _selectedObject = {};
                 }
                 return true;
@@ -381,7 +389,7 @@ void EditorState::handleEvent(const sf::Event& event) {
                 break;
             case sf::Keyboard::R: // R
                 if (_selectedObject) {
-                    _selectedObject->get().rotate();
+                    _selectedObject->get()->rotate();
                 }
 
                 break;
@@ -427,7 +435,12 @@ void EditorState::handleEvent(const sf::Event& event) {
 
         auto position_clicked = _hexgrid.positionAt(worldPos.x, worldPos.y);
         if (moving_object && position_clicked != -1) {
-            _selectedObject->get().setHexPosition(_hexgrid.grid().at(position_clicked).get());
+
+            _selectedObject->get()->setHexPosition(_hexgrid.grid().at(position_clicked));
+
+            std::stable_sort(_objects.begin(), _objects.end(), [](const auto obj1, const auto obj2) {
+                return obj1->getMapObject().position < obj2->getMapObject().position;
+            });
         }
 
         if (!_selectedObject && !moving_object) {
@@ -555,7 +568,7 @@ void EditorState::render(const float& dt) {
 
     if (_showObjects) {
         for (const auto& object : _objects) {
-            _appData->window->draw(object.getSprite());
+            _appData->window->draw(object->getSprite());
         }
     }
 
@@ -572,9 +585,8 @@ void EditorState::render(const float& dt) {
     if (_selectedObject) {
         ImGui::Begin("Selected object");
 
-        auto& selected_map_object = _selectedObject->get().getMapObject();
-        ImGui::Image(_selectedObject->get().getSprite(), sf::Color::White, sf::Color::Green);
-        ImGui::InputInt("Position", &selected_map_object.position, 0, 0);
+        auto& selected_map_object = _selectedObject->get()->getMapObject();
+        ImGui::Image(_selectedObject->get()->getSprite(), sf::Color::White, sf::Color::Green);
         ImGui::InputInt("Position", &selected_map_object.position, 0, 0);
 
         ImGui::End(); // Selected object

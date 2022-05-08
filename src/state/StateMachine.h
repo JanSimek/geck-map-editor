@@ -2,9 +2,10 @@
 
 #include <memory>
 #include <stack>
-#include "../state/State.h"
 
 namespace geck {
+
+class State;
 
 class StateMachine {
 private:

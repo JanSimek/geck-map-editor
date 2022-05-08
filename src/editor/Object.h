@@ -7,12 +7,12 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "format/frm/Frm.h"
+#include "editor/Hex.h"
 
 namespace geck {
 
 struct MapObject;
-class Hex;
+class Frm;
 
 class Object {
 private:
@@ -21,8 +21,7 @@ private:
     std::shared_ptr<MapObject> _mapObject;
 
     const Frm* _frm;
-    int _direction = 0;
-
+    int _direction;
     bool _selected;
 
 public:
@@ -34,7 +33,7 @@ public:
     void setSprite(sf::Sprite sprite);
     const sf::Sprite& getSprite() const;
 
-    void setHexPosition(geck::Hex* hex);
+    void setHexPosition(const Hex& hex);
     void setDirection(int direction); // TODO: enum
     void rotate();
 

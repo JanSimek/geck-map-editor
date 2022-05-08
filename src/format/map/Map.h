@@ -10,10 +10,10 @@
 
 #include "../IFile.h"
 #include "MapScript.h"
+#include "Tile.h"
 
 namespace geck {
 
-class Tile;
 struct MapObject;
 
 class Map : public IFile {

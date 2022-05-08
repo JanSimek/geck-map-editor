@@ -5,11 +5,13 @@
 #include <SFML/Window/Event.hpp>
 #include <portable-file-dialogs.h>
 
+#include "state/EditorState.h"
 #include "state/LoadingState.h"
 #include "state/StateMachine.h"
 #include "state/loader/MapLoader.h"
 #include "ui/util.h"
 #include "util/FileHelper.h"
+#include "format/map/Map.h"
 
 namespace geck {
 
@@ -48,7 +50,13 @@ void Application::initUI() {
         throw std::runtime_error{ "Error initializing SFML-ImGui" };
     }
 
+    constexpr auto scale_factor = 1.0f; // default
+
+    ImGui::GetStyle().ScaleAllSizes(scale_factor);
+
     ImGuiIO& io = ImGui::GetIO();
+
+    io.FontGlobalScale = scale_factor;
 
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
                                                       //    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls

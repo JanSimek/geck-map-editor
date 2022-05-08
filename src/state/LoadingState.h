@@ -1,19 +1,13 @@
 #pragma once
 
 #include "../Application.h"
-#include "../editor/Object.h"
 #include "../util/FileHelper.h"
-#include "EditorState.h"
 #include "State.h"
-#include "StateMachine.h"
 #include "loader/Loader.h"
-#include "loader/MapLoader.h"
-#include "../format/map/Map.h"
-#include "../format/map/Tile.h"
 
+#include <SFML/Graphics.hpp>
 #include <spdlog/spdlog.h>
 #include <memory>
-#include <thread>
 
 namespace geck {
 

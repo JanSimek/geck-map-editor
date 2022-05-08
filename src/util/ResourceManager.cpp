@@ -8,7 +8,6 @@
 
 #include "../format/frm/Direction.h"
 #include "../format/frm/Frame.h"
-#include "../format/frm/Frm.h"
 
 namespace geck {
 

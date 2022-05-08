@@ -1,8 +1,10 @@
 ﻿cmake_minimum_required (VERSION 3.22)
 
-project (geck-mapper 
+project (
+    geck-mapper # this will be the ${PROJECT_NAME}
+    VERSION 0.1 # this will provide ${PROJECT_VERSION}
+    DESCRIPTION "A map editor for Fallout 2"
     LANGUAGES CXX
-    VERSION 0.1
 )
 
 set(CMAKE_CXX_STANDARD 20)
@@ -51,7 +53,7 @@ endif()
 # Enable verbose compiler warnings
 add_compile_options(
   $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
-  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic>
 )
 
 ##################################################

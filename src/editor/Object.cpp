@@ -1,5 +1,4 @@
 #include "Object.h"
-#include "editor/Hex.h"
 #include "editor/HexagonGrid.h"
 #include "format/map/MapObject.h"
 #include "format/frm/Direction.h"
@@ -12,7 +11,9 @@
 namespace geck {
 
 Object::Object(const Frm* frm)
-    : _frm(frm) {
+    : _frm(frm)
+    , _direction(0)
+    , _selected(false) {
 }
 
 MapObject& Object::getMapObject() {
@@ -31,15 +32,15 @@ const sf::Sprite& Object::getSprite() const {
     return _sprite;
 }
 
-void Object::setHexPosition(Hex* hex) {
+void Object::setHexPosition(const Hex& hex) {
 
     // center on the hex
-    float x = static_cast<float>(hex->x() - (width() / 2) + shiftX());
-    float y = static_cast<float>(hex->y() - height() + shiftY());
+    float x = static_cast<float>(hex.x() - (width() / 2) + shiftX());
+    float y = static_cast<float>(hex.y() - height() + shiftY());
 
     _sprite.setPosition(x, y);
     if (_mapObject != nullptr) {
-        _mapObject->position = hex->position();
+        _mapObject->position = hex.position();
     }
 }
 

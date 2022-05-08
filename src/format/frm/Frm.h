@@ -9,7 +9,6 @@
 namespace geck {
 
 class Direction;
-class Pal;
 
 class Frm : public IFile {
 private:

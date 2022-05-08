@@ -8,16 +8,13 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../../util/FileHelper.h"
 #include "../../format/map/Map.h"
+#include "../../format/msg/Msg.h"
 #include "../../format/map/Tile.h"
-#include "../../format/map/MapObject.h"
 #include "../../format/pro/Pro.h"
 #include "../../reader/pro/ProReader.h"
 #include "../../reader/lst/LstReader.h"
-#include "../../util/FileHelper.h"
-
-#include "../../format/msg/Msg.h"
-
 #include "../../writer/map/MapWriter.h"
 
 // FIXME: Windows conflict
@@ -27,6 +24,7 @@
 
 namespace geck {
 
+// TODO: move out of here
 const std::string MapReader::FIDtoFrmName(unsigned int FID) const {
     /*const*/ auto baseId = FID & 0x00FFFFFF; // FIXME? 0x00000FFF;
     /*const*/ auto type = static_cast<FRM_TYPE>(FID >> 24);
@@ -129,11 +127,13 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
     uint32_t objectTypeId = object->pro_pid >> 24;
     uint32_t objectId = 0x00FFFFFF & object->pro_pid;
 
-    ProReader pro_reader{};
+    ProReader pro_reader{}; // TODO: instead use a callback passed to the MapReader
 
     switch (static_cast<Pro::OBJECT_TYPE>(objectTypeId)) {
         case Pro::OBJECT_TYPE::ITEM: {
-            uint32_t subtype_id = pro_reader.loadPro(_dataPath, object->pro_pid)->objectSubtypeId();
+            auto pro = pro_reader.loadPro(_dataPath, object->pro_pid);
+
+            uint32_t subtype_id = pro->objectSubtypeId();
             switch (static_cast<Pro::ITEM_TYPE>(subtype_id)) {
                 case Pro::ITEM_TYPE::AMMO:        // ammo
                 case Pro::ITEM_TYPE::MISC:        // charges - have strangely high values, or negative.
@@ -168,7 +168,10 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
         } break;
 
         case Pro::OBJECT_TYPE::SCENERY: {
-            uint32_t subtype_id = pro_reader.loadPro(_dataPath, object->pro_pid)->objectSubtypeId();
+
+            auto pro = pro_reader.loadPro(_dataPath, object->pro_pid);
+
+            uint32_t subtype_id = pro->objectSubtypeId();
             switch (static_cast<Pro::SCENERY_TYPE>(subtype_id)) {
                 case Pro::SCENERY_TYPE::LADDER_TOP:
                 case Pro::SCENERY_TYPE::LADDER_BOTTOM:

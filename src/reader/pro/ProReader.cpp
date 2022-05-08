@@ -13,19 +13,14 @@ std::unique_ptr<Pro> ProReader::read() {
 
     auto pro = std::make_unique<Pro>();
 
-    int32_t PID = read_be_u32();
-    int32_t type = (PID & 0x0F000000) >> 24;
+    pro->header.PID = read_be_i32();
+    pro->header.message_id = read_be_u32();
+    pro->header.FID = read_be_i32();
+    pro->header.light_distance = read_be_u32();
+    pro->header.light_intensity = read_be_u32();
+    pro->header.flags = read_be_u32();
 
-    int32_t messageId = read_be_u32();
-    pro->setMessageId(messageId);
-
-    read_be_u32(); //    _FID            = stream.int32();
-
-    read_be_u32(); //    _lightDistance  = stream.uint32();
-    read_be_u32(); //    _lightIntencity = stream.uint32();
-    read_be_u32(); //    _flags          = stream.uint32();
-
-    switch (static_cast<Pro::OBJECT_TYPE>(type)) {
+    switch (pro->type()) {
         case Pro::OBJECT_TYPE::TILE:
         case Pro::OBJECT_TYPE::MISC:
             break;
@@ -34,7 +29,7 @@ std::unique_ptr<Pro> ProReader::read() {
             break;
     }
 
-    switch (static_cast<Pro::OBJECT_TYPE>(type)) {
+    switch (pro->type()) {
         case Pro::OBJECT_TYPE::ITEM:
         case Pro::OBJECT_TYPE::CRITTER:
         case Pro::OBJECT_TYPE::SCENERY:
@@ -46,7 +41,7 @@ std::unique_ptr<Pro> ProReader::read() {
             break;
     }
 
-    switch (static_cast<Pro::OBJECT_TYPE>(type)) {
+    switch (pro->type()) {
         case Pro::OBJECT_TYPE::ITEM: {
             uint32_t subtypeId = read_be_u32();
             pro->setObjectSubtypeId(subtypeId);

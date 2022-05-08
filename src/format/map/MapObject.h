@@ -9,6 +9,7 @@ namespace geck {
 
 // scenery, walls, items, containers, keys and critters
 struct MapObject {
+
     uint32_t unknown0; // falltergeist OID ?
     int32_t position;  // hex position
     uint32_t x;

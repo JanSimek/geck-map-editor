@@ -2,7 +2,7 @@
 ###################################
 # GECK Mapper executable
 ###################################
-add_executable (geck-mapper
+add_executable (${PROJECT_NAME}
 
     main.cpp
 
@@ -19,6 +19,9 @@ add_executable (geck-mapper
     state/StateMachine.cpp
 
     state/State.h
+
+    state/ConfigurationState.h
+    state/ConfigurationState.cpp
 
     state/EditorState.h
     state/EditorState.cpp
@@ -155,7 +158,7 @@ target_link_libraries(vault PRIVATE
     spdlog::spdlog_header_only
 )
 
-target_link_libraries(geck-mapper PRIVATE
+target_link_libraries(${PROJECT_NAME} PRIVATE
     sfml-system sfml-graphics sfml-window
     imgui::imgui
     ImGui-SFML::ImGui-SFML
@@ -165,18 +168,18 @@ target_link_libraries(geck-mapper PRIVATE
     vault
 )
 
-target_include_directories(geck-mapper PRIVATE ${imgui_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${imgui_SOURCE_DIR})
 
 # copy shared external libraries to the build directory for Windows builds
 if(WIN32)
     add_custom_command(
-        TARGET geck-mapper POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:geck-mapper> $<TARGET_FILE_DIR:geck-mapper>
+        TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:${PROJECT_NAME}> $<TARGET_FILE_DIR:${PROJECT_NAME}>
         COMMAND_EXPAND_LISTS
     )
 endif()
 
 add_custom_command(
-    TARGET geck-mapper POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:geck-mapper>/resources
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:${PROJECT_NAME}>/resources
 )

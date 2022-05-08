@@ -5,7 +5,6 @@
 #include "../../util/io.h"
 #include "../lst/Lst.h"
 #include "../../format/map/MapObject.h"
-#include "Tile.h"
 
 namespace geck {
 

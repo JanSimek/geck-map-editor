@@ -3,13 +3,13 @@
 #include <memory>
 #include <vector>
 
-#include "Hex.h"
-
 namespace geck {
+
+class Hex;
 
 class HexagonGrid {
 private:
-    std::vector<std::unique_ptr<Hex>> _grid;
+    std::vector<Hex> _grid;
 
 public:
     static constexpr int GRID_WIDTH = 200;
@@ -17,7 +17,7 @@ public:
 
     HexagonGrid();
 
-    const std::vector<std::unique_ptr<Hex>>& grid() const;
+    const std::vector<Hex>& grid() const;
 
     uint32_t positionAt(uint32_t x, uint32_t y);
 };

@@ -7,7 +7,6 @@ namespace geck {
 class Pro {
 private:
     unsigned int _objectSubtypeId;
-    uint32_t _messageId;
 
 public:
     enum class OBJECT_TYPE : uint32_t {
@@ -38,11 +37,19 @@ public:
         GENERIC
     };
 
+    struct ProHeader {
+        int32_t PID;
+        uint32_t message_id;
+        int32_t FID;
+        uint32_t light_distance;
+        uint32_t light_intensity;
+        uint32_t flags;
+    } header;
+
     unsigned int objectSubtypeId();
     void setObjectSubtypeId(unsigned int objectSubtypeId);
 
-    uint32_t messageId() const;
-    void setMessageId(uint32_t newMessageId);
+    const OBJECT_TYPE type() const;
 };
 
 } // namespace geck
