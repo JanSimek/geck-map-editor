@@ -3,6 +3,8 @@
 #include <array>
 #include <fstream>
 
+#include "../IFile.h"
+
 namespace geck {
 
 struct Rgb {
@@ -11,8 +13,11 @@ struct Rgb {
     uint8_t b;
 };
 
-class Pal {
+class Pal : public IFile {
 public:
+    Pal(const std::filesystem::path path)
+        : IFile(path) { }
+
     static constexpr unsigned NUM_PALETTE_COLORS = 256;
     static constexpr unsigned NUM_CONVERSION_VALUES = 32768;
 

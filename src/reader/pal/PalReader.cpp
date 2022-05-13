@@ -13,7 +13,7 @@ std::unique_ptr<geck::Pal> geck::PalReader::read() {
     std::array<uint8_t, filesize> buf;
     io::read(_stream, buf.data(), buf.size());
 
-    auto pal = std::make_unique<Pal>();
+    auto pal = std::make_unique<Pal>(_path);
 
     // TODO: static colors, e.g. monitors, slime, fire,...
     // https://github.com/falltergeist/falltergeist/blob/39a6cee826c4588cac10919786c939f222684b94/src/Format/Pal/File.cpp

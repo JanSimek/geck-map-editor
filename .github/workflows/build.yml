@@ -83,5 +83,5 @@ jobs:
 
       - name: Run tests
         shell: bash
-        run: cd build && ctest
+        run: cd build && ctest --output-on-failure
 # TODO: release and publish artifacts: https://github.com/cristianadam/HelloWorld/blob/master/.github/workflows/build_cmake.yml

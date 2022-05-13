@@ -95,7 +95,7 @@ std::unique_ptr<Lst> LstReader::read() {
         list.emplace_back(std::move(cur));
     }
 
-    auto lst = std::make_unique<Lst>();
+    auto lst = std::make_unique<Lst>(_path);
     lst->setList(std::move(list));
     return lst;
 }

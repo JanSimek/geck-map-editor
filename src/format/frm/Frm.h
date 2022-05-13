@@ -27,6 +27,19 @@ private:
 public:
     Frm(const std::filesystem::path& path);
 
+    static constexpr char STANDING_ANIMATION_SUFFIX[] = "aa.frm";
+
+    enum class FRM_TYPE : char {
+        ITEM = 0,
+        CRITTER,
+        SCENERY,
+        WALL,
+        TILE,
+        MISC,
+        INTERFACE,
+        INVENTORY
+    };
+
     // TODO : enum
     //    north_east,
     //    east,

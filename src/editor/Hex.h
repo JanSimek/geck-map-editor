@@ -14,6 +14,8 @@ public:
     static constexpr int HEX_WIDTH = 16;
     static constexpr int HEX_HEIGHT = 12;
 
+    static constexpr int HEX_OUT_OF_MAP = -1;
+
     Hex(int x, int y, uint32_t position);
 
     int x() const;

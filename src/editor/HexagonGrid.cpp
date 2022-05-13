@@ -36,7 +36,7 @@ uint32_t HexagonGrid::positionAt(uint32_t x, uint32_t y) {
             return i;
         }
     }
-    return -1;
+    return Hex::HEX_OUT_OF_MAP;
 }
 
 } // namespace geck

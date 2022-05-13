@@ -6,8 +6,8 @@
 class IFile {
 public:
     IFile(const std::filesystem::path& path)
-        : _path(path)
-        , _filename(path.filename().string()) { }
+        : _filename(path.filename().string())
+        , _path(path) { }
     virtual ~IFile() = default;
 
     const std::string& filename() { return _filename; }

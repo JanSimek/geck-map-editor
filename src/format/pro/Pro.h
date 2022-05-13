@@ -2,13 +2,18 @@
 
 #include <istream>
 
+#include "../IFile.h"
+
 namespace geck {
 
-class Pro {
+class Pro : public IFile {
 private:
     unsigned int _objectSubtypeId;
 
 public:
+    Pro(const std::string& path)
+        : IFile(path) { }
+
     enum class OBJECT_TYPE : uint32_t {
         ITEM = 0,
         CRITTER,
@@ -50,6 +55,8 @@ public:
     void setObjectSubtypeId(unsigned int objectSubtypeId);
 
     const OBJECT_TYPE type() const;
+
+    const std::string typeToString() const;
 };
 
 } // namespace geck

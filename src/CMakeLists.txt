@@ -11,8 +11,12 @@ add_executable (${PROJECT_NAME}
 
     util/ResourceManager.h
     util/ResourceManager.cpp
+
     util/FileHelper.h
     util/FileHelper.cpp
+
+    util/ProHelper.h
+    util/ProHelper.cpp
 
     # States
     state/StateMachine.h

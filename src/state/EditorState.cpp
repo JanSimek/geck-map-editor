@@ -15,7 +15,6 @@
 #include "../reader/dat/DatReader.h"
 #include "../reader/frm/FrmReader.h"
 #include "../reader/lst/LstReader.h"
-#include "../reader/map/MapReader.h"
 #include "../reader/gam/GamReader.h"
 
 #include "../writer/map/MapWriter.h"
@@ -26,12 +25,18 @@
 #include "../format/lst/Lst.h"
 #include "../format/gam/Gam.h"
 #include "../format/map/Tile.h"
+#include "../format/msg/Msg.h"
+#include "../format/pro/Pro.h"
+#include "../format/map/MapObject.h"
 
 #include "loader/MapLoader.h"
 
 #include "../util/FileHelper.h"
+#include "../util/ProHelper.h"
+
 #include "LoadingState.h"
 #include "StateMachine.h"
+#include "reader/msg/MsgReader.h"
 
 namespace geck {
 
@@ -150,17 +155,15 @@ void geck::EditorState::loadObjectSprites() {
     if (_map->objects().empty())
         return;
 
-    MapReader map_reader{ _dataPath };
-
     for (const auto& object : _map->objects().at(_currentElevation)) {
         if (object->position == -1)
             continue; // object inside an inventory/container
 
-        const std::string frm_name = map_reader.FIDtoFrmName(object->frm_pid);
+        const std::string frm_name = ResourceManager::getInstance().FIDtoFrmName(object->frm_pid);
 
         spdlog::debug("Loading sprite {}", frm_name);
 
-        const auto& frm = ResourceManager::getInstance().get<Frm>(frm_name);
+        const auto& frm = ResourceManager::getInstance().getResource<Frm>(frm_name);
 
         // TODO: use _objects.insert(v.begin(), Object{ frm }); for flat objects
         //       which should be rendered first
@@ -427,14 +430,14 @@ void EditorState::handleEvent(const sf::Event& event) {
         // convert it to world coordinates
         sf::Vector2f worldPos = _appData->window->mapPixelToCoords(mousePos);
 
-        bool moving_object = _selectedObject.has_value();        // some object was already selected
-        bool selected_different_object = selectObject(worldPos); // another object was selected instead
+        bool object_already_selected = _selectedObject.has_value(); // some object was already selected
+        bool selected_different_object = selectObject(worldPos);    // another object was selected instead
 
         // still have the original selected and clicked on an empty space
-        moving_object = moving_object && !selected_different_object && _selectedObject.has_value();
+        bool moving_object = object_already_selected && !selected_different_object && _selectedObject.has_value();
 
         auto position_clicked = _hexgrid.positionAt(worldPos.x, worldPos.y);
-        if (moving_object && position_clicked != -1) {
+        if (moving_object && position_clicked != Hex::HEX_OUT_OF_MAP) {
 
             _selectedObject->get()->setHexPosition(_hexgrid.grid().at(position_clicked));
 
@@ -443,13 +446,14 @@ void EditorState::handleEvent(const sf::Event& event) {
             });
         }
 
-        if (!_selectedObject && !moving_object) {
+        if (!_selectedObject && !moving_object && !object_already_selected) {
             selectTile(worldPos);
         }
     }
 
     // Panning
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Right) {
+
         _currentAction = EditorAction::PANNING;
         _lastMousePos = sf::Mouse::getPosition(*_appData->window);
 
@@ -556,6 +560,30 @@ void geck::EditorState::showTilesPanel() {
 /**
  * TODO: draw only sprites visible in the current view
  */
+void geck::EditorState::showSelectedObjPanel() {
+    ImGui::Begin("Selected object");
+
+    ImGui::Image(_selectedObject->get()->getSprite(), sf::Color::White, sf::Color::Green);
+
+    auto& selected_map_object = _selectedObject->get()->getMapObject();
+    int32_t PID = selected_map_object.pro_pid;
+
+    ProReader pro_reader{};
+    auto pro = ResourceManager::getInstance().loadResource(ProHelper::basePath(PID), pro_reader);
+
+    auto msg = ProHelper::msgFile(pro->type());
+    std::string message = msg->message(pro->header.message_id).text;
+    ImGui::InputText("Name", &message, ImGuiInputTextFlags_ReadOnly);
+
+    std::string pro_str = pro->typeToString();
+    ImGui::InputText("Type", &pro_str, ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputScalar("Message ID", ImGuiDataType_U32, &pro->header.message_id, NULL, NULL, NULL, ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputInt("Position", &selected_map_object.position, 0, 0);
+    ImGui::InputScalar("Proto PID", ImGuiDataType_U32, &selected_map_object.pro_pid, NULL, NULL, NULL, ImGuiInputTextFlags_ReadOnly);
+
+    ImGui::End();
+}
+
 void EditorState::render(const float& dt) {
 
     renderMainMenu();
@@ -583,13 +611,7 @@ void EditorState::render(const float& dt) {
     showMapInfoPanel();
 
     if (_selectedObject) {
-        ImGui::Begin("Selected object");
-
-        auto& selected_map_object = _selectedObject->get()->getMapObject();
-        ImGui::Image(_selectedObject->get()->getSprite(), sf::Color::White, sf::Color::Green);
-        ImGui::InputInt("Position", &selected_map_object.position, 0, 0);
-
-        ImGui::End(); // Selected object
+        showSelectedObjPanel(); // Selected object
     }
 }
 
@@ -617,10 +639,10 @@ void EditorState::createNewMap() {
     auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
 
     std::string texture_path = "art/tiles/" + lst->at(floorTileIndex);
-    ResourceManager::getInstance().insert(texture_path);
+    ResourceManager::getInstance().insertTexture(texture_path);
 
     texture_path = "art/tiles/" + lst->at(roofTileIndex);
-    ResourceManager::getInstance().insert(texture_path);
+    ResourceManager::getInstance().insertTexture(texture_path);
 
     std::map<int, std::vector<Tile>> tiles;
     for (auto elevation = 0; elevation < elevations; ++elevation) {

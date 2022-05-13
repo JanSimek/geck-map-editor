@@ -40,6 +40,7 @@ private:
 
     void showTilesPanel();
     void showMapInfoPanel();
+    void showSelectedObjPanel();
 
     enum class EditorAction {
         NONE,

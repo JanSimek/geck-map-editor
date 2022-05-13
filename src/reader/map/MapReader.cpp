@@ -24,78 +24,8 @@
 
 namespace geck {
 
-// TODO: move out of here
-const std::string MapReader::FIDtoFrmName(unsigned int FID) const {
-    /*const*/ auto baseId = FID & 0x00FFFFFF; // FIXME? 0x00000FFF;
-    /*const*/ auto type = static_cast<FRM_TYPE>(FID >> 24);
-
-    if (type == FRM_TYPE::CRITTER) {
-        baseId = FID & 0x00000FFF;
-        type = static_cast<FRM_TYPE>((FID & 0x0F000000) >> 24); // FIXME: WTF?
-    }
-
-    // TODO: EditorState::_showScrlBlk
-    if (type == FRM_TYPE::MISC && baseId == 1) {
-        static const std::string SCROLL_BLOCKERS_PATH("art/misc/scrblk.frm");
-        // Map scroll blockers
-        return SCROLL_BLOCKERS_PATH;
-    }
-
-    if (type > FRM_TYPE::INVENTORY) {
-        throw std::runtime_error{ "Invalid FRM_TYPE" };
-    }
-
-    // TODO: art/$/
-    static struct TypeArtListDecription {
-        const std::string prefixPath;
-        const std::string lstFilePath;
-    } const frmTypeDescription[] = {
-        { "art/items/", "art/items/items.lst" },
-        { "art/critters/", "art/critters/critters.lst" },
-        { "art/scenery/", "art/scenery/scenery.lst" },
-        { "art/walls/", "art/walls/walls.lst" },
-        { "art/tiles/", "art/tiles/tiles.lst" },
-        { "art/misc/", "art/misc/misc.lst" },
-        { "art/intrface/", "art/intrface/intrface.lst" },
-        { "art/inven/", "art/inven/inven.lst" },
-    };
-
-    const auto& typeArtDescription = frmTypeDescription[static_cast<size_t>(type)];
-
-    const auto lst = lst_frm.at(type).get();
-
-    if (baseId >= lst->list().size()) {
-        throw std::runtime_error{ "LST " + typeArtDescription.lstFilePath + " size " + std::to_string(lst->list().size()) + " <= frmID: " + std::to_string(baseId) + ", frmType: " + std::to_string((unsigned)type) };
-    }
-
-    std::string frmName = lst->list().at(baseId);
-
-    if (type == FRM_TYPE::CRITTER) {
-        // TODO: correct direction and posture
-        return typeArtDescription.prefixPath + frmName.substr(0, 6) + "aa.frm";
-    }
-    return typeArtDescription.prefixPath + frmName;
-}
-
-MapReader::MapReader(const std::filesystem::path& dataPath)
-    : _dataPath(dataPath) {
-    spdlog::info("Initializing MapReader");
-
-    std::unordered_map<FRM_TYPE, std::string> frm_lists({
-        { FRM_TYPE::ITEM, "art/items/items.lst" },
-        { FRM_TYPE::CRITTER, "art/critters/critters.lst" },
-        { FRM_TYPE::SCENERY, "art/scenery/scenery.lst" },
-        { FRM_TYPE::WALL, "art/walls/walls.lst" },
-        { FRM_TYPE::TILE, "art/tiles/tiles.lst" },
-        { FRM_TYPE::MISC, "art/misc/misc.lst" },
-        { FRM_TYPE::INTERFACE, "art/intrface/intrface.lst" },
-        { FRM_TYPE::INVENTORY, "art/inven/inven.lst" },
-    });
-
-    LstReader lst_reader{};
-    for (const auto& lst : frm_lists) {
-        lst_frm.emplace(std::make_pair(lst.first, std::move(lst_reader.openFile(_dataPath / lst.second))));
-    }
+MapReader::MapReader(std::function<Pro*(uint32_t)> proLoadCallback)
+    : _proLoadCallback(proLoadCallback) {
 }
 
 std::unique_ptr<MapObject> MapReader::readMapObject() {
@@ -127,11 +57,11 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
     uint32_t objectTypeId = object->pro_pid >> 24;
     uint32_t objectId = 0x00FFFFFF & object->pro_pid;
 
-    ProReader pro_reader{}; // TODO: instead use a callback passed to the MapReader
+    auto pro = _proLoadCallback(object->pro_pid);
 
     switch (static_cast<Pro::OBJECT_TYPE>(objectTypeId)) {
         case Pro::OBJECT_TYPE::ITEM: {
-            auto pro = pro_reader.loadPro(_dataPath, object->pro_pid);
+            //            auto pro = _proLoadCallback(object->pro_pid);
 
             uint32_t subtype_id = pro->objectSubtypeId();
             switch (static_cast<Pro::ITEM_TYPE>(subtype_id)) {
@@ -169,7 +99,7 @@ std::unique_ptr<MapObject> MapReader::readMapObject() {
 
         case Pro::OBJECT_TYPE::SCENERY: {
 
-            auto pro = pro_reader.loadPro(_dataPath, object->pro_pid);
+            //            auto pro = _proLoadCallback(object->pro_pid);
 
             uint32_t subtype_id = pro->objectSubtypeId();
             switch (static_cast<Pro::SCENERY_TYPE>(subtype_id)) {

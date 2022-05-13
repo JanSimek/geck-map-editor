@@ -3,13 +3,19 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
 
+#include "../../reader/pro/ProReader.h"
 #include "../../reader/map/MapReader.h"
+#include "../../reader/lst/LstReader.h"
+
+#include "../../format/pro/Pro.h"
 #include "../../format/map/Map.h"
 #include "../../format/map/Tile.h"
 #include "../../format/lst/Lst.h"
 #include "../../format/frm/Direction.h"
-#include "../../reader/lst/LstReader.h"
+#include "../../format/frm/Direction.h"
+
 #include "../../util/FileHelper.h"
+#include "../../util/ProHelper.h"
 #include "../../util/ResourceManager.h"
 #include "portable-file-dialogs.h"
 
@@ -45,9 +51,19 @@ void MapLoader::load() {
 
     setStatus("Loading map " + _mapPath.filename().string());
 
+    LstReader lst_reader{};
+
+    // TODO: move to a new loader that is called only once per application start
+    for (const auto& lst_path : { "art/items/items.lst", "art/critters/critters.lst", "art/scenery/scenery.lst", "art/walls/walls.lst", "art/tiles/tiles.lst", "art/misc/misc.lst", "art/intrface/intrface.lst", "art/inven/inven.lst" }) {
+        ResourceManager::getInstance().loadResource(lst_path, lst_reader);
+    }
+
     setProgress("Parsing map file");
 
-    MapReader map_reader{ data_path };
+    MapReader map_reader{ [&](uint32_t PID) {
+        ProReader pro_reader;
+        return ResourceManager::getInstance().loadResource(ProHelper::basePath(PID), pro_reader);
+    } };
     _map = map_reader.openFile(_mapPath);
 
     // Tiles
@@ -58,7 +74,6 @@ void MapLoader::load() {
         _elevation = default_elevation;
     }
 
-    LstReader lst_reader;
     auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
 
     //    auto tiles = _map->tiles().at(_elevation);
@@ -79,7 +94,7 @@ void MapLoader::load() {
 
     for (const auto& tile : lst->list()) {
         setProgress("Loading map tile texture " + std::to_string(tile_number++) + " of " + std::to_string(tiles_total));
-        ResourceManager::getInstance().insert("art/tiles/" + tile);
+        ResourceManager::getInstance().insertTexture("art/tiles/" + tile);
     }
 
     // Objects
@@ -93,9 +108,9 @@ void MapLoader::load() {
         if (object->position == -1)
             continue; // object inside an inventory/container
 
-        const std::string frmName = map_reader.FIDtoFrmName(object->frm_pid);
+        const std::string frmName = ResourceManager::getInstance().FIDtoFrmName(object->frm_pid);
 
-        ResourceManager::getInstance().insert(frmName);
+        ResourceManager::getInstance().insertTexture(frmName);
     }
 
     spdlog::info("Map loader finished after {:.3} seconds", sw);

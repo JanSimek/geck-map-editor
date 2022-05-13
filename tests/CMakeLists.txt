@@ -1,5 +1,8 @@
 
-add_executable(tests test_reading_gam.cpp)
+add_executable(tests
+    test_reading_gam.cpp
+    test_reading_msg.cpp
+)
 target_link_libraries(tests PRIVATE
     Catch2::Catch2WithMain
     spdlog::spdlog_header_only

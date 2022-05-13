@@ -4,7 +4,11 @@
 #include <string>
 #include <filesystem>
 
-class Msg {
+#include "../IFile.h"
+
+namespace geck {
+
+class Msg : public IFile {
 public:
     struct Message {
         int id;
@@ -12,10 +16,14 @@ public:
         std::string text;
     };
 
-    Msg(std::filesystem::path path);
+    Msg(std::filesystem::path path, std::map<int, Message> messages)
+        : IFile(path)
+        , _messages(messages) { }
 
     const Message& message(int id);
 
 private:
     std::map<int, Message> _messages;
 };
+
+} // namespace

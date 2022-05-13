@@ -3,7 +3,7 @@
 #include "../../format/pro/Pro.h"
 #include "../../format/lst/Lst.h"
 #include "../../reader/lst/LstReader.h"
-#include "../../util/FileHelper.h"
+#include "../../util/ResourceManager.h"
 #include "../../util/io.h"
 
 namespace geck {
@@ -11,7 +11,7 @@ namespace geck {
 std::unique_ptr<Pro> ProReader::read() {
     using namespace geck::io;
 
-    auto pro = std::make_unique<Pro>();
+    auto pro = std::make_unique<Pro>(_path);
 
     pro->header.PID = read_be_i32();
     pro->header.message_id = read_be_u32();
@@ -260,71 +260,4 @@ std::unique_ptr<Pro> ProReader::read() {
     return pro;
 }
 
-std::unique_ptr<Pro> ProReader::loadPro(const std::filesystem::path& dataPath, unsigned int PID) {
-    unsigned int typeId = PID >> 24;
-
-    auto listFile = dataPath;
-
-    switch (static_cast<Pro::OBJECT_TYPE>(typeId)) {
-        case Pro::OBJECT_TYPE::ITEM:
-            listFile /= "proto/items/items.lst";
-            break;
-        case Pro::OBJECT_TYPE::CRITTER:
-            listFile /= "proto/critters/critters.lst";
-            break;
-        case Pro::OBJECT_TYPE::SCENERY:
-            listFile /= "proto/scenery/scenery.lst";
-            break;
-        case Pro::OBJECT_TYPE::WALL:
-            listFile /= "proto/walls/walls.lst";
-            break;
-        case Pro::OBJECT_TYPE::TILE:
-            listFile /= "proto/tiles/tiles.lst";
-            break;
-        case Pro::OBJECT_TYPE::MISC:
-            listFile /= "proto/misc/misc.lst";
-            break;
-        default:
-            throw std::runtime_error{ "Wrong PID: " + std::to_string(PID) };
-    }
-
-    LstReader lst_reader;
-    auto lst = lst_reader.openFile(listFile);
-
-    unsigned int index = 0x00000FFF & PID;
-
-    if (index > lst->list().size()) {
-        throw std::runtime_error{ "LST size < PID: " + std::to_string(PID) };
-    }
-
-    std::string protoName = lst->list().at(index - 1);
-
-    std::filesystem::path proFilename;
-    switch (static_cast<Pro::OBJECT_TYPE>(typeId)) {
-        case Pro::OBJECT_TYPE::ITEM:
-            proFilename /= "proto/items";
-            break;
-        case Pro::OBJECT_TYPE::CRITTER:
-            proFilename /= "proto/critters";
-            break;
-        case Pro::OBJECT_TYPE::SCENERY:
-            proFilename /= "proto/scenery";
-            break;
-        case Pro::OBJECT_TYPE::WALL:
-            proFilename /= "proto/walls";
-            break;
-        case Pro::OBJECT_TYPE::TILE:
-            proFilename /= "proto/tiles";
-            break;
-        case Pro::OBJECT_TYPE::MISC:
-            proFilename /= "proto/misc";
-            break;
-    };
-    proFilename /= protoName;
-    if (!proFilename.empty()) {
-        return openFile(dataPath / proFilename);
-    } else {
-        throw std::runtime_error{ "Couldn't load PRO file " + protoName };
-    }
-}
 } // namespace geck

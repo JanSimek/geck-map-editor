@@ -1,6 +1,13 @@
 #pragma once
 
-class MsgReader {
+#include "reader/FileParser.h"
+#include "format/msg/Msg.h"
+
+namespace geck {
+
+class MsgReader : public FileParser<Msg> {
 public:
-    MsgReader();
+    std::unique_ptr<Msg> read() override;
 };
+
+} // namespace geck
