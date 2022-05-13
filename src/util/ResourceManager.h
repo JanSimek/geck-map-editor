@@ -45,11 +45,11 @@ public:
 
         static_assert(std::is_base_of<IFile, Resource>::value, "Resource must derive from IFile");
 
-        if (!exists(basePath)) {
-            _resources.emplace(basePath, std::move(reader.openFile(_dataPath / basePath)));
+        if (!exists(basePath.string())) {
+            _resources.emplace(basePath.string(), std::move(reader.openFile(_dataPath / basePath)));
         }
 
-        return dynamic_cast<Resource*>(_resources.at(basePath).get());
+        return dynamic_cast<Resource*>(_resources.at(basePath.string()).get());
     }
 
     bool exists(const std::string& filename);

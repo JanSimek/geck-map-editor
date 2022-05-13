@@ -1,6 +1,7 @@
 #pragma once
 
 #include <istream>
+#include <filesystem>
 
 #include "../IFile.h"
 
@@ -11,7 +12,7 @@ private:
     unsigned int _objectSubtypeId;
 
 public:
-    Pro(const std::string& path)
+    Pro(std::filesystem::path path)
         : IFile(path) { }
 
     enum class OBJECT_TYPE : uint32_t {
