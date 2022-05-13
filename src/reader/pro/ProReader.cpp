@@ -1,15 +1,10 @@
 #include "ProReader.h"
 
 #include "../../format/pro/Pro.h"
-#include "../../format/lst/Lst.h"
-#include "../../reader/lst/LstReader.h"
-#include "../../util/ResourceManager.h"
-#include "../../util/io.h"
 
 namespace geck {
 
 std::unique_ptr<Pro> ProReader::read() {
-    using namespace geck::io;
 
     auto pro = std::make_unique<Pro>(_path);
 
