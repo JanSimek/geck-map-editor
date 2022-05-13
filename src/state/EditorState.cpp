@@ -16,6 +16,7 @@
 #include "../reader/frm/FrmReader.h"
 #include "../reader/lst/LstReader.h"
 #include "../reader/gam/GamReader.h"
+#include "../reader/pro/ProReader.h"
 
 #include "../writer/map/MapWriter.h"
 
@@ -66,7 +67,10 @@ void EditorState::init() {
 }
 
 void geck::EditorState::saveMap() {
-    MapWriter map_writer{ _dataPath };
+    MapWriter map_writer{ _dataPath, [](int32_t PID) {
+                             ProReader pro_reader{};
+                             return ResourceManager::getInstance().loadResource(ProHelper::basePath(PID), pro_reader);
+                         } };
     // TODO: show file dialog
     map_writer.openFile("test.map");
     if (map_writer.write(_map->getMapFile())) {
