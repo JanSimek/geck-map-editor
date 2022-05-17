@@ -91,7 +91,7 @@ void geck::EditorState::openMap() {
 
 void EditorState::renderMainMenu() {
     if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu(ICON_FA_FILE_ALT " File")) {
+        if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem(ICON_FA_FILE " New map", "Ctrl+N")) {
                 createNewMap();
             }
@@ -108,13 +108,13 @@ void EditorState::renderMainMenu() {
 
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu(ICON_FA_EYE " View")) {
+        if (ImGui::BeginMenu("View")) {
             bool disabled = true;
             ImGui::MenuItemCheckbox("Show objects", &_showObjects);
             ImGui::MenuItemCheckbox("Show critters", &_showCritters, disabled);
             ImGui::MenuItemCheckbox("Show walls", &_showWalls, disabled);
             ImGui::MenuItemCheckbox("Show roofs", &_showRoof);
-            ImGui::MenuItemCheckbox("Show scroll block", &_showScrollBlk, disabled);
+            ImGui::MenuItemCheckbox("Show scroll block", &_showScrollBlk);
 
             if (_map) {
                 ImGui::Separator();
@@ -146,8 +146,13 @@ void EditorState::renderMainMenu() {
             }
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu(ICON_FA_PLAY_CIRCLE " Run")) {
+        if (ImGui::BeginMenu("Run")) {
             // TODO: run in F2 / Falltergeist
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Configuration")) {
+
+            ImGui::OpenPopup("Config");
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -223,7 +228,7 @@ void geck::EditorState::loadTileSprites() {
     }
 
     // selectable tiles
-    for (int tile_id = 2; tile_id < lst->list().size(); tile_id++) { // skip reserved.frm and grid000.frm
+    for (int tile_id = 0; tile_id < lst->list().size(); tile_id++) {
         sf::Sprite tile_sprite;
         std::string texture_path = "art/tiles/" + lst->at(tile_id);
         tile_sprite.setTexture(ResourceManager::getInstance().texture(texture_path));
@@ -290,6 +295,12 @@ bool geck::EditorState::selectObject(sf::Vector2f worldPos) {
     // filter and then max_element using the position property
     std::optional<std::shared_ptr<Object>> newly_selected_object;
 
+    // we are moving selected object to a different location
+    if (_selectedObject && !isSpriteClicked(worldPos, _selectedObject->get()->getSprite())) {
+        return false;
+    }
+
+    // we are clicking on the same area where the selected object is located, so select the one behind or unselect it
     for (int i = 0; i < _objects.size(); i++) {
         auto& iterated_object = _objects.at(i);
 
@@ -496,7 +507,7 @@ void geck::EditorState::showMapInfoPanel() {
     auto mapInfo = _map->getMapFile();
     int elevations = mapInfo.tiles.size();
 
-    ImGui::Begin("Map Information");
+    ImGui::Begin(ICON_FA_MAP_MARKER_ALT " Map Information");
 
     const auto addInputScalar = [](const auto& label, const auto& value) {
         ImGui::InputScalar(label, ImGuiDataType_U32, value, NULL, NULL, NULL, ImGuiInputTextFlags_ReadOnly);
@@ -543,7 +554,7 @@ void geck::EditorState::showMapInfoPanel() {
 }
 
 void geck::EditorState::showTilesPanel() {
-    ImGui::Begin("Tiles");
+    ImGui::Begin(ICON_FA_MAP " Tiles");
 
     float content_width = ImGui::GetContentRegionAvail().x;
     const float item_width = Tile::TILE_WIDTH;
@@ -553,9 +564,30 @@ void geck::EditorState::showTilesPanel() {
     }
     ImGui::Columns(columns, nullptr, false);
 
-    for (const auto& tile : _selectableTileSprites) {
-        ImGui::ImageButton(tile);
+    for (int i = 0; const auto& tile : _selectableTileSprites) {
+
+        // hide reserved.frm and grid000.frm
+        if (i < 2) {
+            ++i;
+            continue;
+        }
+
+        if (ImGui::ImageButton(tile)) {
+            for (auto selectedTileId : _selectedTileIndexes) {
+                LstReader lst_reader{};
+                const auto& lst = lst_reader.openFile(_dataPath / "art/tiles/tiles.lst");
+
+                auto selectedTile = _floorSprites.at(selectedTileId);
+
+                sf::Sprite tile_sprite;
+                std::string texture_path = "art/tiles/" + lst->at(i);
+                tile_sprite.setTexture(ResourceManager::getInstance().texture(texture_path));
+                tile_sprite.setPosition(selectedTile.getPosition().x, selectedTile.getPosition().y);
+                _floorSprites.at(selectedTileId) = tile_sprite;
+            }
+        }
         ImGui::NextColumn();
+        ++i;
     }
 
     ImGui::End();
@@ -600,6 +632,9 @@ void EditorState::render(const float& dt) {
 
     if (_showObjects) {
         for (const auto& object : _objects) {
+            //            if (!_showScrollBlk && object->getMapObject().isBlocker()) {
+            //                continue;
+            //            }
             _appData->window->draw(object->getSprite());
         }
     }
@@ -616,6 +651,10 @@ void EditorState::render(const float& dt) {
 
     if (_selectedObject) {
         showSelectedObjPanel(); // Selected object
+    }
+
+    if (ImGui::BeginPopup("Config")) {
+        ImGui::Text("Hello world");
     }
 }
 

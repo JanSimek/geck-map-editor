@@ -78,6 +78,10 @@ struct MapObject {
     uint32_t exit_position;
     uint32_t exit_elevation;
     uint32_t exit_orientation;
+
+    bool isBlocker() {
+        return flags & 0x00000010;
+    }
 };
 
 } // namespace geck

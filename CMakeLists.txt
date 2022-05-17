@@ -69,3 +69,11 @@ message("${PROJECT_NAME} ${PROJECT_VERSION}
         build dir | ${CMAKE_BINARY_DIR}
    install prefix | ${CMAKE_INSTALL_PREFIX}
 ")
+
+##################################################
+# install dependencies
+
+# import for things like MS Visual Studio redistribution
+include(InstallRequiredSystemLibraries)
+
+#install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ${CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION})

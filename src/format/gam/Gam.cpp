@@ -1,4 +1,6 @@
 #include "Gam.h"
+
+#include <algorithm>
 #include <stdexcept>
 
 namespace geck {

@@ -22,7 +22,7 @@ class Application {
 public:
     inline static const std::string FONT_DIR = "fonts/";
     inline static const std::string FONT_MAIN = FONT_DIR + "SourceSansPro-SemiBold.ttf";
-    inline static const std::string FONT_ICON = FONT_DIR + FONT_ICON_FILE_NAME_FAR;
+    inline static const std::string FONT_ICON = FONT_DIR + FONT_ICON_FILE_NAME_FAS;
 
     Application(const std::filesystem::path& dataPath, const std::filesystem::path& mapPath);
     ~Application();

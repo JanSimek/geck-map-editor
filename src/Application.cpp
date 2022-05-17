@@ -21,6 +21,9 @@ Application::Application(const std::filesystem::path& dataPath, const std::files
     , _stateMachine(std::make_shared<StateMachine>())
     , _appData(std::make_shared<AppData>(AppData{ _window, _stateMachine })) {
 
+    _window->setVerticalSyncEnabled(true);
+    //    _window->setFramerateLimit(60);
+
     // sf::Image icon;
     // icon.loadFromFile((FileHelper::getInstance().resourcesPath() / "icon.png").string());
     //_window->setIcon(600, 600, icon.getPixelsPtr());
@@ -46,7 +49,7 @@ Application::~Application() {
 }
 
 void Application::initUI() {
-    if (!ImGui::SFML::Init(*_window, false)) {
+    if (!ImGui::SFML::Init(*_window)) {
         throw std::runtime_error{ "Error initializing SFML-ImGui" };
     }
 
@@ -66,12 +69,8 @@ void Application::initUI() {
 
     const std::filesystem::path resources_path = FileHelper::getInstance().resourcesPath();
 
-    constexpr float font_size = 18.0f;
+    constexpr float font_size = 20.0f;
     constexpr float icon_size = 16.0f;
-
-    // default UI font
-    std::filesystem::path main_font = resources_path / FONT_MAIN;
-    io.Fonts->AddFontFromFileTTF(main_font.string().c_str(), font_size);
 
     // icon font - merge in icons from Font Awesome
     static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
@@ -79,9 +78,16 @@ void Application::initUI() {
     icons_config.MergeMode = true;
     icons_config.PixelSnapH = true;
     icons_config.GlyphOffset = ImVec2(0, 1);
+    icons_config.GlyphMinAdvanceX = 13.0f; // to make the icon monospaced
+
+    // default UI font
+    std::filesystem::path main_font = resources_path / FONT_MAIN;
+    io.Fonts->AddFontFromFileTTF(main_font.string().c_str(), font_size);
 
     std::filesystem::path icon_font = resources_path / FONT_ICON;
     io.Fonts->AddFontFromFileTTF(icon_font.string().c_str(), icon_size, &icons_config, icons_ranges);
+
+    io.Fonts->Build();
 
     if (!ImGui::SFML::UpdateFontTexture()) {
         spdlog::error("Unable to load custom ImGui font");
