@@ -76,7 +76,7 @@ public:
         }
     }
 
-    void update(const float& dt) override {
+    void update(const float dt) override {
 
         for (const auto& loader : _loaders) {
 
@@ -98,7 +98,7 @@ public:
         text.setPosition(sf::Vector2f(centerX, centerY));
     }
 
-    void render(const float& dt) override {
+    void render(const float dt) override {
         _appData->window->clear(sf::Color::Black);
 
         _appData->window->draw(loadingText);

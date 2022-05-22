@@ -42,7 +42,9 @@ It's currently not possible to load assets directly from master.dat and critter.
 
 Use arrow keys or right-click and drag to pan the view.
 
-Left mouse click on an object to select it followed by a click on en empty tile to place it there.
+Left mouse click on an object to select it followed by a left click on en empty tile to place it there. Right mouse click or left mouse click on the same object unselects it.
+
+Left mouse click on a tile to select it. Right mouse click unselects all tiles.
 
 <kbd>Ctrl</kbd> + <kbd>R</kbd> to rotate selected object
 

@@ -42,6 +42,10 @@ private:
     void showMapInfoPanel();
     void showSelectedObjPanel();
 
+    void unselectAll();
+    void unselectTiles();
+    void unselectObject();
+
     enum class EditorAction {
         NONE,
         PANNING
@@ -74,20 +78,23 @@ private:
 
     bool _quit = false;
 
-    sf::Vector2i _lastMousePos{ 0, 0 }; // panning
+    sf::Vector2i _mouseStartingPosition{ 0, 0 }; // panning started
+    sf::Vector2i _mouseLastPosition{ 0, 0 };     // current panning position
     EditorAction _currentAction = EditorAction::NONE;
     sf::Cursor _cursor;
 
     std::optional<std::shared_ptr<Object>> _selectedObject;
     std::vector<int> _selectedTileIndexes;
 
+    float _fps;
+
 public:
     EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map);
 
     void init() override;
     void handleEvent(const sf::Event& event) override;
-    void update(const float& dt) override;
-    void render(const float& dt) override;
+    void update(const float dt) override;
+    void render(const float dt) override;
 
     bool quit() const override;
 };

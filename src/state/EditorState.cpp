@@ -155,6 +155,12 @@ void EditorState::renderMainMenu() {
             ImGui::OpenPopup("Config");
             ImGui::EndMenu();
         }
+
+        auto fpsTextSize = ImGui::CalcTextSize("%.2f FPS");
+        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - fpsTextSize.x - ImGui::GetStyle().ItemSpacing.x * 2.0f);
+
+        ImGui::Text("%.2f FPS", _fps);
+
         ImGui::EndMainMenuBar();
     }
 }
@@ -307,8 +313,7 @@ bool geck::EditorState::selectObject(sf::Vector2f worldPos) {
         if (isSpriteClicked(worldPos, iterated_object->getSprite())) {
 
             if (iterated_object->isSelected()) {
-                iterated_object->unselect();
-                _selectedObject = {};
+                unselectObject();
                 break;
             }
 
@@ -327,17 +332,12 @@ bool geck::EditorState::selectObject(sf::Vector2f worldPos) {
         }
     }
     if (newly_selected_object) {
-        if (_selectedObject) {
-            _selectedObject->get()->unselect();
-        }
+
+        unselectAll();
+
         _selectedObject = newly_selected_object;
         _selectedObject->get()->select();
 
-        // clear selected tiles
-        for (int tile_index : _selectedTileIndexes) {
-            _floorSprites.at(tile_index).setColor(sf::Color::White);
-        }
-        _selectedTileIndexes.clear();
         return true;
     }
 
@@ -358,10 +358,7 @@ bool EditorState::selectTile(sf::Vector2f worldPos) {
                 tile.setColor(sf::Color::Magenta);
                 _selectedTileIndexes.push_back(i);
 
-                if (_selectedObject) {
-                    _selectedObject->get()->unselect();
-                    _selectedObject = {};
-                }
+                unselectObject();
                 return true;
             }
         }
@@ -409,7 +406,6 @@ void EditorState::handleEvent(const sf::Event& event) {
                 if (_selectedObject) {
                     _selectedObject->get()->rotate();
                 }
-
                 break;
             case sf::Keyboard::Escape:
                 _quit = true;
@@ -466,27 +462,47 @@ void EditorState::handleEvent(const sf::Event& event) {
         }
     }
 
-    // Panning
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Right) {
 
-        _currentAction = EditorAction::PANNING;
-        _lastMousePos = sf::Mouse::getPosition(*_appData->window);
-
-        if (_cursor.loadFromSystem(sf::Cursor::SizeAll)) {
-            _appData->window->setMouseCursor(_cursor);
-        }
+        // Initialize panning
+        _mouseStartingPosition = sf::Mouse::getPosition(*_appData->window);
+        _mouseLastPosition = _mouseStartingPosition;
     }
+
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
+
+        if (_currentAction == EditorAction::PANNING) {
+
+            sf::Vector2f mousePositionDiff = sf::Vector2f{ sf::Mouse::getPosition(*_appData->window) - _mouseLastPosition };
+            _view.move(-1.0f * mousePositionDiff);
+
+        } else {
+            constexpr int panningThreshold = 5;
+
+            int mouseMovedX = std::abs(_mouseStartingPosition.x - _mouseLastPosition.x);
+            int mouseMovedY = std::abs(_mouseStartingPosition.y - _mouseLastPosition.y);
+
+            if (mouseMovedX > panningThreshold || mouseMovedY > panningThreshold) {
+                _currentAction = EditorAction::PANNING;
+                if (_cursor.loadFromSystem(sf::Cursor::SizeAll)) {
+                    _appData->window->setMouseCursor(_cursor);
+                }
+            }
+        }
+        _mouseLastPosition = sf::Mouse::getPosition(*_appData->window);
+    }
+
     if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Button::Right) {
+
+        if (_currentAction != EditorAction::PANNING) {
+            unselectAll();
+        }
+
         _currentAction = EditorAction::NONE;
 
         if (_cursor.loadFromSystem(sf::Cursor::Arrow)) {
             _appData->window->setMouseCursor(_cursor);
         }
-    }
-    if (_currentAction == EditorAction::PANNING) {
-        sf::Vector2f mousePos = sf::Vector2f{ sf::Mouse::getPosition(*_appData->window) - _lastMousePos };
-        _view.move(-1.0f * mousePos);
-        _lastMousePos = sf::Mouse::getPosition(*_appData->window);
     }
 
     // Window resizing
@@ -498,7 +514,7 @@ void EditorState::handleEvent(const sf::Event& event) {
     }
 }
 
-void EditorState::update(const float& dt) { }
+void EditorState::update(const float dt) { }
 
 /**
  * @brief UI widget for displaying properties from the current MAP file
@@ -620,7 +636,27 @@ void geck::EditorState::showSelectedObjPanel() {
     ImGui::End();
 }
 
-void EditorState::render(const float& dt) {
+void EditorState::unselectAll() {
+    unselectObject();
+    unselectTiles();
+}
+
+void EditorState::unselectTiles() {
+    // clear selected tiles
+    for (int tile_index : _selectedTileIndexes) {
+        _floorSprites.at(tile_index).setColor(sf::Color::White);
+    }
+    _selectedTileIndexes.clear();
+}
+
+void EditorState::unselectObject() {
+    if (_selectedObject) {
+        _selectedObject->get()->unselect();
+        _selectedObject = {};
+    }
+}
+
+void EditorState::render(const float dt) {
 
     renderMainMenu();
 
@@ -656,6 +692,8 @@ void EditorState::render(const float& dt) {
     if (ImGui::BeginPopup("Config")) {
         ImGui::Text("Hello world");
     }
+
+    _fps = 1.f / dt;
 }
 
 void EditorState::centerViewOnMap() {

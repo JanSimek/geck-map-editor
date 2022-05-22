@@ -11,10 +11,10 @@ void ConfigurationState::init() {
 void ConfigurationState::handleEvent(const sf::Event& event) {
 }
 
-void ConfigurationState::update(const float& dt) {
+void ConfigurationState::update(const float dt) {
 }
 
-void ConfigurationState::render(const float& dt) {
+void ConfigurationState::render(const float dt) {
 }
 
 bool ConfigurationState::quit() const {
