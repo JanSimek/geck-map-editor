@@ -65,14 +65,11 @@ public:
         std::unordered_map<int, std::vector<std::shared_ptr<MapObject>>> map_objects;
     };
 
-    const std::map<int, std::vector<Tile>>& tiles() const;
-    void setTiles(const std::map<int, std::vector<Tile>>& tiles);
-
     const std::unordered_map<int, std::vector<std::shared_ptr<MapObject>>>& objects() const;
 
     int elevations() const;
 
-    const Map::MapFile& getMapFile() const;
+    MapFile& getMapFile();
     void setMapFile(std::unique_ptr<MapFile> newMapFile);
 
 private:

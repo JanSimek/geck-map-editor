@@ -1,6 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <string_view>
 
 namespace geck {
 
@@ -50,6 +51,23 @@ struct MapScript {
                 return ScriptType::CRITTER;
             default:
                 return ScriptType::UNKNOWN;
+        }
+    }
+
+    static std::string_view toString(ScriptType type) {
+        switch (type) {
+            case ScriptType::SYSTEM:
+                return "System";
+            case ScriptType::SPATIAL:
+                return "Spatial";
+            case ScriptType::TIMER:
+                return "Timer";
+            case ScriptType::ITEM:
+                return "Item";
+            case ScriptType::CRITTER:
+                return "Critter";
+            default:
+                return "Unknown";
         }
     }
 };

@@ -66,7 +66,7 @@ void EditorState::init() {
     loadScriptVars();
 }
 
-void geck::EditorState::saveMap() {
+void EditorState::saveMap() {
     MapWriter map_writer{ _dataPath, [](int32_t PID) {
                              ProReader pro_reader{};
                              return ResourceManager::getInstance().loadResource(ProHelper::basePath(PID), pro_reader);
@@ -80,7 +80,7 @@ void geck::EditorState::saveMap() {
     }
 }
 
-void geck::EditorState::openMap() {
+void EditorState::openMap() {
     auto loading_state = std::make_unique<LoadingState>(_appData);
     loading_state->addLoader(std::make_unique<MapLoader>("", -1, [&](auto map) {
         _appData->stateMachine->push(std::make_unique<EditorState>(_appData, std::move(map)), true);
@@ -165,7 +165,7 @@ void EditorState::renderMainMenu() {
     }
 }
 
-void geck::EditorState::loadObjectSprites() {
+void EditorState::loadObjectSprites() {
     // Objects
     if (_map->objects().empty())
         return;
@@ -194,12 +194,11 @@ void geck::EditorState::loadObjectSprites() {
 
 // Tiles
 // TODO: create tile atlas like in Falltergeist Tilemap.cpp
-void geck::EditorState::loadTileSprites() {
-    LstReader lst_reader;
-    const auto& lst = lst_reader.openFile(_dataPath / "art/tiles/tiles.lst");
+void EditorState::loadTileSprites() {
+    const auto& lst = ResourceManager::getInstance().getResource<Lst, std::string>("art/tiles/tiles.lst");
 
     for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; ++tileNumber) {
-        auto tile = _map->tiles().at(_currentElevation).at(tileNumber);
+        auto tile = _map->getMapFile().tiles.at(_currentElevation).at(tileNumber);
 
         // Positioning
 
@@ -222,15 +221,19 @@ void geck::EditorState::loadTileSprites() {
         };
 
         // floor
-        if (tile.getFloor() != Map::EMPTY_TILE) {
-            _floorSprites.push_back(createTileSprite(tile.getFloor()));
+        uint16_t floorId = tile.getFloor();
+        if (floorId == Map::EMPTY_TILE) {
+            sf::Sprite tile_sprite;
+            tile_sprite.setTexture(ResourceManager::getInstance().texture("art/tiles/blank.frm"));
+            tile_sprite.setPosition(x, y);
+            _floorSprites[tileNumber] = tile_sprite;
+        } else {
+            _floorSprites[tileNumber] = createTileSprite(floorId);
         }
 
         // roof
-        if (tile.getRoof() != Map::EMPTY_TILE) {
-            constexpr int roofOffset = 96; // "roof height"
-            _roofSprites.push_back(createTileSprite(tile.getRoof(), roofOffset));
-        }
+        constexpr int roofOffset = 96; // "roof height"
+        _roofSprites[tileNumber] = createTileSprite(tile.getRoof(), roofOffset);
     }
 
     // selectable tiles
@@ -242,15 +245,15 @@ void geck::EditorState::loadTileSprites() {
     }
 }
 
-void geck::EditorState::loadSprites() {
+void EditorState::loadSprites() {
 
     spdlog::stopwatch sw;
 
     _appData->window->setTitle(_map->filename() + " - GECK::Mapper");
 
     _objects.clear();
-    _floorSprites.clear();
-    _roofSprites.clear();
+    _floorSprites = {};
+    _roofSprites = {};
 
     // Data
 
@@ -280,7 +283,7 @@ void EditorState::loadScriptVars() {
     }
 }
 
-std::vector<bool> calculateBitset(const sf::Image& img) {
+std::vector<bool> EditorState::calculateBitset(const sf::Image& img) {
     sf::Vector2u imgSize = img.getSize();
 
     std::vector<bool> retVal(imgSize.x * imgSize.y); // allocate directly
@@ -295,7 +298,7 @@ std::vector<bool> calculateBitset(const sf::Image& img) {
     return retVal;
 }
 
-bool geck::EditorState::selectObject(sf::Vector2f worldPos) {
+bool EditorState::selectObject(sf::Vector2f worldPos) {
 
     // TODO: use ranges ?
     // filter and then max_element using the position property
@@ -355,7 +358,7 @@ bool EditorState::selectTile(sf::Vector2f worldPos) {
                 _selectedTileIndexes.erase(std::remove(_selectedTileIndexes.begin(), _selectedTileIndexes.end(), i));
                 return false;
             } else {
-                tile.setColor(sf::Color::Magenta);
+                tile.setColor(sf::Color::Red);
                 _selectedTileIndexes.push_back(i);
 
                 unselectObject();
@@ -363,10 +366,11 @@ bool EditorState::selectTile(sf::Vector2f worldPos) {
             }
         }
     }
+
     return false;
 }
 
-bool geck::EditorState::isSpriteClicked(const sf::Vector2f& worldPos, const sf::Sprite& sprite) {
+bool EditorState::isSpriteClicked(const sf::Vector2f& worldPos, const sf::Sprite& sprite) {
     if (sprite.getGlobalBounds().contains(worldPos)) {
 
         const auto& image = sprite.getTexture()->copyToImage();
@@ -519,7 +523,7 @@ void EditorState::update(const float dt) { }
 /**
  * @brief UI widget for displaying properties from the current MAP file
  */
-void geck::EditorState::showMapInfoPanel() {
+void EditorState::showMapInfoPanel() {
     auto mapInfo = _map->getMapFile();
     int elevations = mapInfo.tiles.size();
 
@@ -569,7 +573,7 @@ void geck::EditorState::showMapInfoPanel() {
     ImGui::End(); // Map Information
 }
 
-void geck::EditorState::showTilesPanel() {
+void EditorState::showTilesPanel() {
     ImGui::Begin(ICON_FA_MAP " Tiles");
 
     float content_width = ImGui::GetContentRegionAvail().x;
@@ -590,13 +594,13 @@ void geck::EditorState::showTilesPanel() {
 
         if (ImGui::ImageButton(tile)) {
             for (auto selectedTileId : _selectedTileIndexes) {
-                LstReader lst_reader{};
-                const auto& lst = lst_reader.openFile(_dataPath / "art/tiles/tiles.lst");
+                const auto& lst = ResourceManager::getInstance().getResource<Lst, std::string>("art/tiles/tiles.lst");
 
-                auto selectedTile = _floorSprites.at(selectedTileId);
+                _map->getMapFile().tiles.at(_currentElevation).at(selectedTileId).setFloor(i);
 
                 sf::Sprite tile_sprite;
                 std::string texture_path = "art/tiles/" + lst->at(i);
+                auto selectedTile = _floorSprites.at(selectedTileId);
                 tile_sprite.setTexture(ResourceManager::getInstance().texture(texture_path));
                 tile_sprite.setPosition(selectedTile.getPosition().x, selectedTile.getPosition().y);
                 _floorSprites.at(selectedTileId) = tile_sprite;
@@ -612,7 +616,7 @@ void geck::EditorState::showTilesPanel() {
 /**
  * TODO: draw only sprites visible in the current view
  */
-void geck::EditorState::showSelectedObjPanel() {
+void EditorState::showSelectedObjPanel() {
     ImGui::Begin("Selected object");
 
     ImGui::Image(_selectedObject->get()->getSprite(), sf::Color::White, sf::Color::Green);
@@ -735,7 +739,7 @@ void EditorState::createNewMap() {
             tiles[elevation].push_back(tile);
         }
     }
-    _map->setTiles(std::move(tiles));
+    _map->getMapFile().tiles = tiles;
 
     loadSprites();
 }

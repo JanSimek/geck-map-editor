@@ -35,13 +35,13 @@ int main(int argc, char** argv) {
         spdlog::info("User selected data directory: {}", dir);
         FileHelper::getInstance().setFallout2DataPath(dir);
     }
-    spdlog::info("Fallout 2 data path: {}", FileHelper::getInstance().fallout2DataPath().string());
 
     // TODO: get real path to the binary
     std::filesystem::path resources_path = std::filesystem::weakly_canonical(argv[0]).parent_path();
     resources_path /= "resources";
 
-    spdlog::info("Resources path: {}", resources_path.string());
+    spdlog::info("{:<20} {}", "Fallout 2 data path:", FileHelper::getInstance().fallout2DataPath().string());
+    spdlog::info("{:<20} {}", "Resources path:", resources_path.string());
 
     FileHelper::getInstance().setResourcesPath(resources_path);
 

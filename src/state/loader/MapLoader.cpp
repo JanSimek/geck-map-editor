@@ -30,7 +30,6 @@ MapLoader::MapLoader(const std::filesystem::path& mapFile, int elevation, std::f
 void MapLoader::load() {
 
     // TODO: open from resource manager
-    spdlog::stopwatch sw;
 
     ResourceManager::getInstance().setDataPath(FileHelper::getInstance().fallout2DataPath()); // FIXME: move
     const auto data_path = FileHelper::getInstance().fallout2DataPath();
@@ -49,6 +48,9 @@ void MapLoader::load() {
         }
     }
 
+    spdlog::stopwatch stopwatch_chunk;
+    spdlog::stopwatch stopwatch_total;
+
     setStatus("Loading map " + _mapPath.filename().string());
 
     LstReader lst_reader{};
@@ -66,13 +68,16 @@ void MapLoader::load() {
     } };
     _map = map_reader.openFile(_mapPath);
 
-    // Tiles
-
     if (_elevation == -1) { // TODO: no magic numbers
         uint32_t default_elevation = _map->getMapFile().header.player_default_elevation;
         spdlog::info("Using defaul map elevation {}", default_elevation);
         _elevation = default_elevation;
     }
+
+    spdlog::info("... map file parsed in {:.3} seconds", stopwatch_chunk);
+    stopwatch_chunk.reset();
+
+    // Tiles
 
     auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
 
@@ -97,6 +102,9 @@ void MapLoader::load() {
         ResourceManager::getInstance().insertTexture("art/tiles/" + tile);
     }
 
+    spdlog::info("... tile textures loaded in {:.3} seconds", stopwatch_chunk);
+    stopwatch_chunk.reset();
+
     // Objects
     size_t objectNumber = 1;
     size_t objectsTotal = _map->objects().at(_elevation).size();
@@ -113,7 +121,13 @@ void MapLoader::load() {
         ResourceManager::getInstance().insertTexture(frmName);
     }
 
-    spdlog::info("Map loader finished after {:.3} seconds", sw);
+    ResourceManager::getInstance().insertTexture("art/tiles/blank.frm");
+
+    spdlog::info("... objects loaded in {:.3} seconds", stopwatch_chunk);
+    stopwatch_chunk.reset();
+
+    spdlog::info("=======================================");
+    spdlog::info("Map loader finished after {:.3} seconds", stopwatch_total);
 
     done = true;
 }

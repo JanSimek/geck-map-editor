@@ -17,6 +17,9 @@ public:
 
     uint16_t getFloor() const;
     uint16_t getRoof() const;
+
+    void setFloor(uint16_t newFloor);
+    void setRoof(uint16_t newRoof);
 };
 
 } // namespace geck

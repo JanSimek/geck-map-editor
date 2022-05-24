@@ -5,16 +5,17 @@
 #include <filesystem>
 #include <thread>
 #include <optional>
+#include <array>
 
+#include "State.h"
 #include "../editor/Object.h"
 #include "../editor/HexagonGrid.h"
 #include "../util/ResourceManager.h"
-#include "State.h"
+#include "../format/map/Map.h"
 
 namespace geck {
 
 struct AppData;
-class Map;
 
 class EditorState : public State {
 private:
@@ -37,6 +38,7 @@ private:
     bool selectObject(sf::Vector2f worldPos);
     bool selectTile(sf::Vector2f worldPos);
     bool isSpriteClicked(const sf::Vector2f& worldPos, const sf::Sprite& sprite);
+    std::vector<bool> calculateBitset(const sf::Image& img);
 
     void showTilesPanel();
     void showMapInfoPanel();
@@ -52,8 +54,8 @@ private:
     };
 
     HexagonGrid _hexgrid;
-    std::vector<sf::Sprite> _floorSprites;
-    std::vector<sf::Sprite> _roofSprites;
+    std::array<sf::Sprite, Map::TILES_PER_ELEVATION> _floorSprites;
+    std::array<sf::Sprite, Map::TILES_PER_ELEVATION> _roofSprites;
     std::vector<sf::Sprite> _selectableTileSprites;
 
     std::vector<std::shared_ptr<Object>> _objects;

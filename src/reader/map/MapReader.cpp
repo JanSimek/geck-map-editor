@@ -1,6 +1,7 @@
 #include "MapReader.h"
 
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/bundled/color.h>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -186,7 +187,7 @@ std::unique_ptr<Map> MapReader::read() {
     std::string filename = read_str(16);
     map_file->header.filename = filename;
 
-    spdlog::info("Loading map {} from {}", filename, _path.string());
+    spdlog::info("Loading map {} from {}", fmt::format(fmt::fg(fmt::color::green) | fmt::emphasis::bold, filename), _path.string());
 
     map_file->header.player_default_position = read_be_u32();
     map_file->header.player_default_elevation = read_be_u32();
@@ -231,31 +232,31 @@ std::unique_ptr<Map> MapReader::read() {
 
     for (auto elevation = 0; elevation < elevations; ++elevation) {
         spdlog::info("Loading tiles at elevation {}", elevation);
-        for (auto i = 0U; i < Map::TILES_PER_ELEVATION; ++i) {
+
+        map_file->tiles[elevation].reserve(Map::TILES_PER_ELEVATION);
+
+        for (auto tile_index = 0U; tile_index < Map::TILES_PER_ELEVATION; ++tile_index) {
             uint16_t roof = read_be_u16();
             uint16_t floor = read_be_u16();
 
-            Tile tile(floor, roof);
-            map_file->tiles[elevation].push_back(tile);
+            map_file->tiles[elevation].emplace_back(floor, roof);
         }
     }
-
-    map->setTiles(std::move(map_file->tiles));
 
     // SCRIPTS SECTION
     // Each section contains 16 slots for scripts
     spdlog::info("Loading map scripts");
-    for (unsigned i = 0; i < Map::SCRIPT_SECTIONS; i++) {
-        uint32_t count = read_be_u32(); // total number of scripts in section
-        map_file->scripts_in_section[i] = count;
+    for (unsigned script_section = 0; script_section < Map::SCRIPT_SECTIONS; script_section++) {
+        uint32_t script_section_count = read_be_u32(); // total number of scripts in section
+        map_file->scripts_in_section[script_section] = script_section_count;
 
-        spdlog::info("Script group " + std::to_string(i) + " has " + std::to_string(count) + " scripts");
+        spdlog::info("... script section {} has {} scripts", MapScript::toString(static_cast<MapScript::ScriptType>(script_section)), script_section_count);
 
-        if (count > 0) {
-            uint32_t loop = count;
+        if (script_section_count > 0) {
+            uint32_t loop = script_section_count;
             // find the next multiple of 16 higher than the count
-            if (count % 16 > 0) {
-                loop += 16 - count % 16;
+            if (script_section_count % 16 > 0) {
+                loop += 16 - script_section_count % 16;
             }
 
             uint32_t check = 0;
@@ -301,8 +302,8 @@ std::unique_ptr<Map> MapReader::read() {
                 map_script.unknown15 = read_be_u32();        // unknown 15
                 map_script.unknown16 = read_be_u32();        // unknown 16
 
-                if (j < count) {
-                    map_file->map_scripts[i].push_back(map_script);
+                if (j < script_section_count) {
+                    map_file->map_scripts[script_section].push_back(map_script);
                 }
 
                 if ((j % 16) == 15) {
@@ -311,14 +312,14 @@ std::unique_ptr<Map> MapReader::read() {
                     // number of scripts in this batch (sequence)
                     uint32_t cur_check = read_be_u32();
 
-                    spdlog::info("Current script check for sequence " + std::to_string(i) + " is " + std::to_string(cur_check) + ", j = " + std::to_string(j));
+                    spdlog::debug("Current script check for sequence {} is {}, j = {}", script_section, cur_check, j);
 
                     check += cur_check;
 
                     read_be_u32(); // uknown
                 }
             }
-            if (check != count) {
+            if (check != script_section_count) {
                 throw std::runtime_error{ "Error reading scripts: check is incorrect" };
             }
         }
@@ -331,7 +332,7 @@ std::unique_ptr<Map> MapReader::read() {
     for (auto elev = 0; elev < elevations; ++elev) {
         auto objectsOnElevation = read_be_u32();
 
-        spdlog::info("Loading {} map objects on elevation {}", objectsOnElevation, elev);
+        spdlog::info("... loading {} map objects on elevation {}", objectsOnElevation, elev);
         for (size_t j = 0; j != objectsOnElevation; ++j) {
 
             std::unique_ptr<MapObject> object = readMapObject();
