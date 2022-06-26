@@ -21,6 +21,7 @@ public:
     static constexpr unsigned ROWS = 100;
     static constexpr unsigned COLS = 100;
     static constexpr unsigned TILES_PER_ELEVATION = ROWS * COLS;
+    static constexpr unsigned TILES_TOTAL = TILES_PER_ELEVATION * 2; // roof + floor
 
     static constexpr int EMPTY_TILE = 1;
     static constexpr int SCRIPT_SECTIONS = 5;
@@ -74,8 +75,6 @@ public:
 
 private:
     std::unique_ptr<MapFile> mapFile;
-
-    std::map<int, std::vector<Tile>> _tiles;
 };
 
 } // namespace geck

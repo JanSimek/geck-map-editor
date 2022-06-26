@@ -17,8 +17,4 @@ void ConfigurationState::update(const float dt) {
 void ConfigurationState::render(const float dt) {
 }
 
-bool ConfigurationState::quit() const {
-    return false;
-}
-
 } // namespace geck

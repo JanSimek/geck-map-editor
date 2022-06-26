@@ -9,7 +9,7 @@
 namespace geck {
 
 std::unique_ptr<Gam> GamReader::read() {
-    auto gam = std::make_unique<Gam>();
+    auto gam = std::make_unique<Gam>(_path);
 
     const std::regex regex_key_value(R"~(^\s*(\w+)\s*:=(\d+)\s*;)~");
     const std::regex regex_gvars_start(R"~(^\s*GAME_GLOBAL_VARS:)~"); // GVARS

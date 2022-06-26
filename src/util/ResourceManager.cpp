@@ -62,7 +62,7 @@ const sf::Texture& ResourceManager::texture(const std::string& filename) {
 
         texture->loadFromImage(imageFromFrm(frm, pal));
 
-        auto loaded = _textures.insert(std::make_pair(filename, std::move(texture)));
+        auto loaded = _textures.emplace(filename, std::move(texture));
 
         if (loaded.second) {
             return *loaded.first->second; // uh huh

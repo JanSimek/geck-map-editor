@@ -23,8 +23,6 @@ private:
 
     std::vector<std::unique_ptr<Loader>> _loaders;
 
-    bool _quit = false;
-
 public:
     LoadingState(const std::shared_ptr<AppData>& appData)
         : _appData(appData) {
@@ -65,10 +63,10 @@ public:
             switch (event.key.code) {
                 case sf::Keyboard::Q: // Ctrl+Q
                     if (event.key.control)
-                        _quit = true;
+                        quit();
                     break;
                 case sf::Keyboard::Escape:
-                    _quit = true;
+                    quit();
                     break;
                 default:
                     break;
@@ -105,9 +103,9 @@ public:
         _appData->window->draw(progressText);
     }
 
-    bool quit() const override {
-        return _loaders.empty() || _quit;
-    }
+    //    bool isRunning() const override {
+    //        return _loaders.empty() || _quit;
+    //    }
 };
 
 } // namespace geck

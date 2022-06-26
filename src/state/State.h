@@ -15,7 +15,11 @@ public:
     virtual void update(const float dt) = 0;
     virtual void render(const float dt) = 0;
 
-    virtual bool quit() const { return false; }
+    virtual void quit() { _quit = true; }
+    virtual bool isRunning() const { return !_quit; }
+
+protected:
+    bool _quit = false;
 };
 
 } // namespace geck

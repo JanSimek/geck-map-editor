@@ -4,7 +4,7 @@
 
 #include "../../util/io.h"
 #include "../lst/Lst.h"
-#include "../../format/map/MapObject.h"
+#include "../map/MapObject.h"
 
 namespace geck {
 
@@ -21,7 +21,7 @@ void Map::setMapFile(std::unique_ptr<MapFile> newMapFile) {
 }
 
 int Map::elevations() const {
-    return _tiles.size();
+    return mapFile->tiles.size();
 }
 
 } // namespace geck

@@ -17,12 +17,11 @@ namespace geck {
 
 Application::Application(const std::filesystem::path& dataPath, const std::filesystem::path& mapPath)
     : _running(false)
-    , _window(std::make_unique<sf::RenderWindow>(sf::VideoMode(1280, 960), "GECK::Mapper"))
+    , _window(std::make_unique<sf::RenderWindow>(sf::VideoMode(1280, 960), "Gecko"))
     , _stateMachine(std::make_shared<StateMachine>())
     , _appData(std::make_shared<AppData>(AppData{ _window, _stateMachine })) {
 
     _window->setVerticalSyncEnabled(true);
-    //    _window->setFramerateLimit(60);
 
     // sf::Image icon;
     // icon.loadFromFile((FileHelper::getInstance().resourcesPath() / "icon.png").string());
@@ -120,8 +119,10 @@ void Application::update(float dt) {
     if (!_stateMachine->empty()) {
         _stateMachine->top().update(dt);
 
-        if (_stateMachine->top().quit())
+        if (!_stateMachine->top().isRunning())
             _running = false;
+    } else {
+        _running = false;
     }
 
     ImGui::SFML::Update(*_window, _deltaClock.getElapsedTime());

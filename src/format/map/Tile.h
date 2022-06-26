@@ -12,6 +12,7 @@ private:
 public:
     static constexpr unsigned TILE_WIDTH = 80;
     static constexpr unsigned TILE_HEIGHT = 36;
+    static constexpr int ROOF_OFFSET = 96; // "roof height"
 
     Tile(uint16_t floor, uint16_t roof);
 

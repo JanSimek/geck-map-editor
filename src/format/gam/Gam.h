@@ -3,10 +3,14 @@
 #include <string>
 #include <vector>
 
+#include "../IFile.h"
+
 namespace geck {
 
-class Gam {
+class Gam : public IFile {
 public:
+    Gam(const std::filesystem::path& path);
+
     const std::string& gvarKey(size_t index) const;
     int gvarValue(const std::string& key);
     int gvarValue(size_t index);

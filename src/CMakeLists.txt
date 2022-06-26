@@ -40,6 +40,16 @@ add_executable (${PROJECT_NAME}
     ui/util.h
     ui/IconsFontAwesome5.h
 
+    ui/panel/Panel.h
+    ui/panel/MainMenuPanel.h
+    ui/panel/MainMenuPanel.cpp
+    ui/panel/TileSelectionPanel.h
+    ui/panel/TileSelectionPanel.cpp
+    ui/panel/MapInfoPanel.h
+    ui/panel/MapInfoPanel.cpp
+    ui/panel/SelectedObjectPanel.h
+    ui/panel/SelectedObjectPanel.cpp
+
     editor/Object.h
     editor/Object.cpp
 

@@ -5,6 +5,10 @@
 
 namespace geck {
 
+Gam::Gam(const std::filesystem::path& path)
+    : IFile(path) {
+}
+
 const std::string& Gam::gvarKey(size_t index) const {
     return _gvars.at(index).first;
 }

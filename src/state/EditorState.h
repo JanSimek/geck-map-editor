@@ -12,6 +12,9 @@
 #include "../editor/HexagonGrid.h"
 #include "../util/ResourceManager.h"
 #include "../format/map/Map.h"
+#include "util/Signal.h"
+
+#include "ui/panel/Panel.h"
 
 namespace geck {
 
@@ -21,28 +24,18 @@ class EditorState : public State {
 private:
     EditorState(const std::shared_ptr<AppData>& appData);
 
-    void openMap();
-    void saveMap();
-
-    void renderMainMenu();
     void centerViewOnMap();
 
     void loadSprites();
     void loadTileSprites();
     void loadObjectSprites();
 
-    void loadScriptVars();
-
-    void createNewMap();
-
     bool selectObject(sf::Vector2f worldPos);
-    bool selectTile(sf::Vector2f worldPos);
+    bool selectFloorTile(sf::Vector2f worldPos);
+    bool selectRoofTile(sf::Vector2f worldPos);
+    bool selectTile(sf::Vector2f worldPos, std::array<sf::Sprite, Map::TILES_PER_ELEVATION>& sprites, std::vector<int>& selectedIndexes);
     bool isSpriteClicked(const sf::Vector2f& worldPos, const sf::Sprite& sprite);
     std::vector<bool> calculateBitset(const sf::Image& img);
-
-    void showTilesPanel();
-    void showMapInfoPanel();
-    void showSelectedObjPanel();
 
     void unselectAll();
     void unselectTiles();
@@ -53,10 +46,16 @@ private:
         PANNING
     };
 
+    enum class SelectionType {
+        ALL,
+        FLOOR_TILES,
+        ROOF_TILES,
+        OBJECTS
+    };
+
     HexagonGrid _hexgrid;
     std::array<sf::Sprite, Map::TILES_PER_ELEVATION> _floorSprites;
     std::array<sf::Sprite, Map::TILES_PER_ELEVATION> _roofSprites;
-    std::vector<sf::Sprite> _selectableTileSprites;
 
     std::vector<std::shared_ptr<Object>> _objects;
 
@@ -66,11 +65,6 @@ private:
 
     int _currentElevation = 0;
     std::unique_ptr<Map> _map;
-    std::string _mapScriptName{ "no script" };
-
-    //    std::unordered_map<std::string, uint32_t> _gvars;
-    //    std::unordered_map<std::string, uint32_t> _lvars;
-    std::unordered_map<std::string, uint32_t> _mvars;
 
     bool _showObjects = true;
     bool _showCritters = true;
@@ -78,27 +72,36 @@ private:
     bool _showWalls = true;
     bool _showScrollBlk = false;
 
-    bool _quit = false;
-
     sf::Vector2i _mouseStartingPosition{ 0, 0 }; // panning started
     sf::Vector2i _mouseLastPosition{ 0, 0 };     // current panning position
     EditorAction _currentAction = EditorAction::NONE;
     sf::Cursor _cursor;
 
     std::optional<std::shared_ptr<Object>> _selectedObject;
-    std::vector<int> _selectedTileIndexes;
+    Signal<std::shared_ptr<Object>> objectSelected;
 
-    float _fps;
+    // TODO: merge 2*Map::TILES_PER_ELEVATION
+    std::vector<int> _selectedRoofTileIndexes;
+    std::vector<int> _selectedFloorTileIndexes;
+
+    sf::Sprite _fakeTileSprite; // used for checking tile selection
+
+    //    std::vector<std::unique_ptr<Panel>> _panels;
+    std::vector<std::shared_ptr<Panel>> _panels;
+    void setUpSignals();
 
 public:
     EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map);
+
+    void createNewMap();
+    void openMap();
+    void saveMap();
+    void quit() override;
 
     void init() override;
     void handleEvent(const sf::Event& event) override;
     void update(const float dt) override;
     void render(const float dt) override;
-
-    bool quit() const override;
 };
 
 } // namespace geck
