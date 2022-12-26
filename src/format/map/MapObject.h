@@ -80,7 +80,8 @@ struct MapObject {
     uint32_t exit_orientation;
 
     bool isBlocker() {
-        return flags & 0x00000010;
+        auto baseId = frm_pid & 0x00FFFFFF;
+        return baseId == 1 && flags & 0x00000010;
     }
 };
 
