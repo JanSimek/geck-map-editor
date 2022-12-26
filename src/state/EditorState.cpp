@@ -3,6 +3,8 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <imgui-SFML.h>
+#include "imgui_internal.h"
+
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
 #include <cmath> // ceil
@@ -13,6 +15,7 @@
 #include "../ui/panel/TileSelectionPanel.h"
 #include "../ui/panel/MapInfoPanel.h"
 #include "../ui/panel/SelectedObjectPanel.h"
+#include "../ui/panel/Toolbar.h"
 
 #include "../editor/Object.h"
 
@@ -115,6 +118,23 @@ void geck::EditorState::setUpSignals() {
         unselectTiles();
     });
 
+    static ImGuiAxis toolbar_axis = ImGuiAxis_X;
+    auto toolbar = std::make_shared<Toolbar>("Toolbar", &toolbar_axis);
+
+    Signal<> selectionModeRoof;
+    selectionModeRoof.connect([this]() { spdlog::info("Selection mode: ROOF"); });
+    toolbar->addButton(ICON_FA_CHEVRON_UP, std::move(selectionModeRoof));
+
+    Signal<> selectionModeTiles;
+    selectionModeTiles.connect([this]() { spdlog::info("Selection mode: TILES"); });
+    toolbar->addButton(ICON_FA_GRIP_LINES, std::move(selectionModeTiles));
+
+    Signal<> selectionModeAll;
+    selectionModeAll.connect([this]() { spdlog::info("Selection mode: ALL"); });
+    toolbar->addButton(ICON_FA_OBJECT_GROUP, std::move(selectionModeAll));
+
+    _panels.emplace_back(std::move(toolbar));
+
     _panels.emplace_back(std::move(tile_selection_panel));
 
     _panels.emplace_back(std::make_unique<MapInfoPanel>(_map.get()));
@@ -195,8 +215,6 @@ void EditorState::loadObjectSprites() {
 // TODO: create tile atlas like in Falltergeist Tilemap.cpp
 void EditorState::loadTileSprites() {
     const auto& lst = ResourceManager::getInstance().getResource<Lst, std::string>("art/tiles/tiles.lst");
-
-    _map->getMapFile().tiles.at(_currentElevation);
 
     for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; ++tileNumber) {
         auto tile = _map->getMapFile().tiles.at(_currentElevation).at(tileNumber);
@@ -305,7 +323,6 @@ bool EditorState::selectObject(sf::Vector2f worldPos) {
         }
     }
     if (newly_selected_object) {
-
         unselectAll();
 
         _selectedObject = newly_selected_object;
@@ -325,10 +342,11 @@ bool EditorState::selectFloorTile(sf::Vector2f worldPos) {
 }
 
 bool EditorState::selectRoofTile(sf::Vector2f worldPos) {
-    return false;
+
+    return selectTile(worldPos, _roofSprites, _selectedRoofTileIndexes, true);
 }
 
-bool EditorState::selectTile(sf::Vector2f worldPos, std::array<sf::Sprite, Map::TILES_PER_ELEVATION>& sprites, std::vector<int>& selectedIndexes) {
+bool EditorState::selectTile(sf::Vector2f worldPos, std::array<sf::Sprite, Map::TILES_PER_ELEVATION>& sprites, std::vector<int>& selectedIndexes, bool selectingRoof = false) {
 
     for (int i = 0; i < Map::TILES_PER_ELEVATION; i++) {
 
@@ -337,6 +355,9 @@ bool EditorState::selectTile(sf::Vector2f worldPos, std::array<sf::Sprite, Map::
         _fakeTileSprite.setPosition(tile.getPosition());
 
         if (isSpriteClicked(worldPos, _fakeTileSprite)) {
+            if (selectingRoof && _map->getMapFile().tiles.at(_currentElevation).at(i).getRoof() == Map::EMPTY_TILE) {
+                return false;
+            }
             if (std::count(selectedIndexes.begin(), selectedIndexes.end(), i)) {
 
                 tile.setColor(sf::Color::White);
@@ -426,27 +447,26 @@ void EditorState::handleEvent(const sf::Event& event) {
     // Left mouse click
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Left) {
 
-        sf::Vector2i mousePos = sf::Mouse::getPosition(*_appData->window);
+        sf::Vector2i mouse_pos = sf::Mouse::getPosition(*_appData->window);
 
         // convert it to world coordinates
-        sf::Vector2f worldPos = _appData->window->mapPixelToCoords(mousePos);
+        sf::Vector2f world_pos = _appData->window->mapPixelToCoords(mouse_pos);
 
         bool object_already_selected = _selectedObject.has_value(); // some object was already selected
 
         bool roof_selected = false;
         if (!object_already_selected && _showRoof) {
-            roof_selected = selectTile(worldPos, _roofSprites, _selectedRoofTileIndexes);
+            roof_selected = selectRoofTile(world_pos);
         }
 
         if (!roof_selected) {
-            bool selected_different_object = selectObject(worldPos); // another object was selected instead
+            bool selected_different_object = selectObject(world_pos); // another object was selected instead
 
             // still have the original selected and clicked on an empty space
             bool moving_object = object_already_selected && !selected_different_object && _selectedObject.has_value();
 
-            auto position_clicked = _hexgrid.positionAt(worldPos.x, worldPos.y);
+            auto position_clicked = _hexgrid.positionAt(world_pos.x, world_pos.y);
             if (moving_object && position_clicked != Hex::HEX_OUT_OF_MAP) {
-
                 _selectedObject->get()->setHexPosition(_hexgrid.grid().at(position_clicked));
 
                 std::stable_sort(_objects.begin(), _objects.end(), [](const auto obj1, const auto obj2) {
@@ -455,7 +475,7 @@ void EditorState::handleEvent(const sf::Event& event) {
             }
 
             if (!_selectedObject && !moving_object && !object_already_selected) {
-                selectTile(worldPos, _floorSprites, _selectedFloorTileIndexes);
+                selectTile(world_pos, _floorSprites, _selectedFloorTileIndexes);
             }
         }
     }
@@ -553,9 +573,9 @@ void EditorState::render(const float dt) {
 
     if (_showObjects) {
         for (const auto& object : _objects) {
-            //            if (!_showScrollBlk && object->getMapObject().isBlocker()) {
-            //                continue;
-            //            }
+            if (!_showScrollBlk && object->getMapObject().isBlocker()) {
+                continue;
+            }
             _appData->window->draw(object->getSprite());
         }
     }

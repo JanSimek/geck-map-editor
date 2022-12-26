@@ -10,7 +10,6 @@
 #include "reader/lst/LstReader.h"
 #include "reader/gam/GamReader.h"
 #include "util/ResourceManager.h"
-#include "util/FileHelper.h"
 
 namespace geck {
 

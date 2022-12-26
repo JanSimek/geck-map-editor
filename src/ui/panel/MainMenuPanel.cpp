@@ -77,10 +77,11 @@ void MainMenuPanel::render(float dt) {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Run")) {
-            // TODO: run in F2 / Falltergeist
+            // TODO: run in sfall / fallout2-ce
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Configuration")) {
+            // TODO: configuration panel
             ImGui::EndMenu();
         }
 

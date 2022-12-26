@@ -43,12 +43,14 @@ add_executable (${PROJECT_NAME}
     ui/panel/Panel.h
     ui/panel/MainMenuPanel.h
     ui/panel/MainMenuPanel.cpp
-    ui/panel/TileSelectionPanel.h
-    ui/panel/TileSelectionPanel.cpp
     ui/panel/MapInfoPanel.h
     ui/panel/MapInfoPanel.cpp
     ui/panel/SelectedObjectPanel.h
-    ui/panel/SelectedObjectPanel.cpp
+    ui/panel/SelectedObjectPanel.cpp    
+    ui/panel/TileSelectionPanel.h
+    ui/panel/TileSelectionPanel.cpp
+    ui/panel/Toolbar.h
+    ui/panel/Toolbar.cpp
 
     editor/Object.h
     editor/Object.cpp

@@ -5,13 +5,13 @@
 #include <SFML/Window/Event.hpp>
 #include <portable-file-dialogs.h>
 
+#include "imgui_internal.h"
 #include "state/EditorState.h"
 #include "state/LoadingState.h"
 #include "state/StateMachine.h"
 #include "state/loader/MapLoader.h"
 #include "ui/util.h"
 #include "util/FileHelper.h"
-#include "format/map/Map.h"
 
 namespace geck {
 
@@ -134,6 +134,7 @@ void Application::update(float dt) {
 void geck::Application::renderDockingUI() {
     const bool enableDocking = ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
     if (enableDocking) {
+
         ImGuiDockNodeFlags window_flags = ImGuiDockNodeFlags_PassthruCentralNode;
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), window_flags);
     }

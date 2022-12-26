@@ -33,7 +33,7 @@ private:
     bool selectObject(sf::Vector2f worldPos);
     bool selectFloorTile(sf::Vector2f worldPos);
     bool selectRoofTile(sf::Vector2f worldPos);
-    bool selectTile(sf::Vector2f worldPos, std::array<sf::Sprite, Map::TILES_PER_ELEVATION>& sprites, std::vector<int>& selectedIndexes);
+    bool selectTile(sf::Vector2f worldPos, std::array<sf::Sprite, Map::TILES_PER_ELEVATION>& sprites, std::vector<int>& selectedIndexes, bool roof);
     bool isSpriteClicked(const sf::Vector2f& worldPos, const sf::Sprite& sprite);
     std::vector<bool> calculateBitset(const sf::Image& img);
 
@@ -47,11 +47,13 @@ private:
     };
 
     enum class SelectionType {
-        ALL,
+        NOTHING,
         FLOOR_TILES,
         ROOF_TILES,
         OBJECTS
     };
+
+    SelectionType _currentSelection = SelectionType::NOTHING;
 
     HexagonGrid _hexgrid;
     std::array<sf::Sprite, Map::TILES_PER_ELEVATION> _floorSprites;
@@ -70,7 +72,7 @@ private:
     bool _showCritters = true;
     bool _showRoof = true;
     bool _showWalls = true;
-    bool _showScrollBlk = false;
+    bool _showScrollBlk = true;
 
     sf::Vector2i _mouseStartingPosition{ 0, 0 }; // panning started
     sf::Vector2i _mouseLastPosition{ 0, 0 };     // current panning position
@@ -86,7 +88,6 @@ private:
 
     sf::Sprite _fakeTileSprite; // used for checking tile selection
 
-    //    std::vector<std::unique_ptr<Panel>> _panels;
     std::vector<std::shared_ptr<Panel>> _panels;
     void setUpSignals();
 
