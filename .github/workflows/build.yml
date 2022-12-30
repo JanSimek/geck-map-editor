@@ -31,15 +31,10 @@ jobs:
               name: "Windows Clang",
               cc: clang-cl,
               cxx: clang-cl,
-            }
+            }s
           - { os: ubuntu-latest, name: "Linux Clang", cc: clang, cxx: clang++ }
           - { os: ubuntu-latest, name: "Linux GCC", cc: gcc-10, cxx: g++-10 }
-        # - {
-        #     os: macos-latest,
-        #     name: "OS X GCC",
-        #     cc: clang,
-        #     cxx: clang++,
-        #   }
+          - { os: macos-latest, name: "OS X Clang", cc: clang, cxx: clang++ }
 
     steps:
       - name: Checkout repository
@@ -52,6 +47,8 @@ jobs:
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
             vcpkg install --triplet x64-windows sfml
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install sfml
           else
             set -e
             sudo apt-get update

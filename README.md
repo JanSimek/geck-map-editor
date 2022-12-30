@@ -34,7 +34,15 @@ vcpkg.exe integrate install
 vcpkg.exe install --triplet x64-windows sfml
 ```
 
-Now just open and build the project in Visual Studio.
+Now just open the project in Visual Studio (File > Open > CMake...) and then build it (Build > Build All).
+
+### OS X
+
+The easiest way to install SFML is using Homebrew.
+
+```bash
+brew install sfml
+```
 
 ## Usage
 
