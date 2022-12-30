@@ -3,7 +3,6 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <imgui-SFML.h>
-#include "imgui_internal.h"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
@@ -118,8 +117,7 @@ void geck::EditorState::setUpSignals() {
         unselectTiles();
     });
 
-    static ImGuiAxis toolbar_axis = ImGuiAxis_X;
-    auto toolbar = std::make_shared<Toolbar>("Toolbar", &toolbar_axis);
+    auto toolbar = std::make_shared<Toolbar>("Toolbar", Toolbar::ORIENTATION::VERTICAL);
 
     Signal<> selectionModeRoof;
     selectionModeRoof.connect([this]() { spdlog::info("Selection mode: ROOF"); });

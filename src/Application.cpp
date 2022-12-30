@@ -134,7 +134,6 @@ void Application::update(float dt) {
 void geck::Application::renderDockingUI() {
     const bool enableDocking = ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
     if (enableDocking) {
-
         ImGuiDockNodeFlags window_flags = ImGuiDockNodeFlags_PassthruCentralNode;
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), window_flags);
     }
