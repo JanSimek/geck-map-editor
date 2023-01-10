@@ -1,6 +1,7 @@
 ﻿#include "EditorState.h"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <imgui_stdlib.h>
 #include <imgui-SFML.h>
 
@@ -116,7 +117,7 @@ void geck::EditorState::setUpSignals() {
         }
         unselectTiles();
     });
-
+/*
     auto toolbar = std::make_shared<Toolbar>("Toolbar", Toolbar::ORIENTATION::VERTICAL);
 
     Signal<> selectionModeRoof;
@@ -132,6 +133,7 @@ void geck::EditorState::setUpSignals() {
     toolbar->addButton(ICON_FA_OBJECT_GROUP, std::move(selectionModeAll));
 
     _panels.emplace_back(std::move(toolbar));
+*/
 
     _panels.emplace_back(std::move(tile_selection_panel));
 
@@ -560,6 +562,27 @@ void EditorState::unselectObject() {
 void EditorState::render(const float dt) {
 
     _appData->window->setView(_view);
+
+
+    ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)ImGui::GetMainViewport();
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+    float height = ImGui::GetFrameHeight();
+
+    if (ImGui::BeginViewportSideBar("##SecondaryMenuBar", viewport, ImGuiDir_Up, height, window_flags)) {
+        if (ImGui::BeginMenuBar()) {
+            ImGui::Text("Happy secondary menu bar");
+            ImGui::EndMenuBar();
+        }
+        ImGui::End();
+    }
+
+    if (ImGui::BeginViewportSideBar("##MainStatusBar", viewport, ImGuiDir_Down, height, window_flags)) {
+        if (ImGui::BeginMenuBar()) {
+            ImGui::Text("Happy status bar");
+            ImGui::EndMenuBar();
+        }
+        ImGui::End();
+    }
 
     for (auto& panel : _panels) {
         panel->render(dt);
