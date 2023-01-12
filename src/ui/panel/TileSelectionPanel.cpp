@@ -4,7 +4,6 @@
 
 #include "format/lst/Lst.h"
 #include "format/map/Tile.h"
-#include "ui/IconsFontAwesome5.h"
 #include "ui/util.h"
 #include "util/ResourceManager.h"
 

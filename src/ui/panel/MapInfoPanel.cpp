@@ -24,7 +24,7 @@ void MapInfoPanel::render(float dt) {
     auto mapInfo = _map->getMapFile();
     int elevations = mapInfo.tiles.size();
 
-    ImGui::Begin(ICON_FA_MAP_MARKER_ALT " Map Information");
+    ImGui::Begin(ICON_FA_MAP_LOCATION " Map Information" );
 
     const auto addInputScalar = [](const auto& label, const auto& value) {
         ImGui::InputScalar(label, ImGuiDataType_U32, value, NULL, NULL, NULL, ImGuiInputTextFlags_ReadOnly);

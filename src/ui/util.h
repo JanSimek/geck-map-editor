@@ -1,7 +1,7 @@
 #pragma once
 
 #include <imgui.h>
-#include "IconsFontAwesome5.h" // from https://github.com/juliettef/IconFontCppHeaders
+#include "IconsFontAwesome6.h" // from https://github.com/juliettef/IconFontCppHeaders
 
 namespace ImGui {
 inline void SetupImGuiStyle() {
@@ -68,7 +68,7 @@ inline bool MenuItemCheckbox(const char* name_, bool* pB_, bool disabled = false
     ImGui::SameLine();
 
     if (*pB_) {
-        ImGui::Text(ICON_FA_CHECK_SQUARE);
+        ImGui::Text(ICON_FA_SQUARE_CHECK);
     } else {
         ImGui::Text(ICON_FA_SQUARE);
     }

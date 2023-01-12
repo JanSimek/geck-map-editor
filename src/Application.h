@@ -7,7 +7,7 @@
 #include <shared_mutex>
 
 #include <SFML/Graphics/RenderWindow.hpp>
-#include "ui/IconsFontAwesome5.h"
+#include "ui/IconsFontAwesome6.h"
 
 namespace geck {
 

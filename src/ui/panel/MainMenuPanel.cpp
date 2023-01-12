@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 #include <memory>
-#include "ui/IconsFontAwesome5.h"
+#include "ui/IconsFontAwesome6.h"
 #include "ui/util.h"
 #include "state/LoadingState.h"
 #include "state/EditorState.h"
@@ -22,7 +22,7 @@ void MainMenuPanel::render(float dt) {
             if (ImGui::MenuItem(ICON_FA_FILE " New map", "Ctrl+N")) {
                 menuNewMapClicked.emit();
             }
-            if (ImGui::MenuItem(ICON_FA_SAVE " Save map", "Ctrl+S")) {
+            if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK " Save map", "Ctrl+S")) {
                 menuSaveMapClicked.emit();
             }
             if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN " Open map", "Ctrl+O")) {
@@ -66,7 +66,7 @@ void MainMenuPanel::render(float dt) {
                     ImGui::Text("Map has only 1 elevation");
                 } else {
                     for (int elevation = 0; elevation < _map->elevations(); elevation++) {
-                        std::string text = std::to_string(elevation) + (elevation == _currentElevation ? " " ICON_FA_CHECK_CIRCLE : "");
+                        std::string text = std::to_string(elevation) + (elevation == _currentElevation ? " " ICON_FA_CIRCLE_CHECK : "");
                         if (ImGui::MenuItem(text.c_str()) && _currentElevation != elevation) {
                             menuElevationClicked.emit(elevation);
                         }
