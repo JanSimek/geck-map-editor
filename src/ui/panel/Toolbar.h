@@ -4,6 +4,7 @@
 #include "util/Signal.h"
 
 #include <map>
+#include <vector>
 
 namespace geck {
 
@@ -14,11 +15,17 @@ public:
 
     void render(float dt) override;
 
-    void addButton(const std::string& label, Signal<> callback);
+    void addButton(const std::string& label, Signal<> callback, const std::string& tooltip = "");
 
 private:
 
-    std::map<std::string, Signal<>> _buttonCallback;
+    struct ToolbarButton {
+        std::string title;
+        std::string tooltip;
+        Signal<> callback;
+    };
+
+    std::vector<ToolbarButton> _buttons;
 };
 
 } // namespace geck

@@ -10,6 +10,9 @@ namespace geck {
  * You can connect functions to the signal which will be called when the emit() method
  * on the signal object is invoked.
  * Any argument passed to emit() will be passed to the given functions.
+ *
+ * See https://schneegans.github.io/tutorials/2015/09/20/signal-slot
+ * @author Simon Schneegans
  */
 template <typename... Args>
 class Signal {

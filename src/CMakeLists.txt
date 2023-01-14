@@ -38,7 +38,7 @@ add_executable (${PROJECT_NAME}
 
     # UI
     ui/util.h
-    ui/IconsFontAwesome5.h
+    ui/IconsFontAwesome6.h
 
     ui/panel/Panel.h
     ui/panel/MainMenuPanel.h

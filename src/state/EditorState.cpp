@@ -119,21 +119,29 @@ void geck::EditorState::setUpSignals() {
 
     auto toolbar = std::make_shared<Toolbar>("Toolbar");
 
+    Signal<> selectionModeObjects;
+    selectionModeObjects.connect([this]() { spdlog::info("Selection mode: OBJECTS"); });
+    toolbar->addButton(ICON_FA_OBJECT_GROUP " Object", std::move(selectionModeObjects), "Selection mode: OBJECTS\t(toggle: m)");
+
     Signal<> selectionModeRoof;
     selectionModeRoof.connect([this]() { spdlog::info("Selection mode: ROOF"); });
-    toolbar->addButton(ICON_FA_CHEVRON_UP, std::move(selectionModeRoof));
+    toolbar->addButton(ICON_FA_OBJECT_GROUP " Roof", std::move(selectionModeRoof), "Selection mode: ROOF\t(toggle: m)");
 
     Signal<> selectionModeTiles;
     selectionModeTiles.connect([this]() { spdlog::info("Selection mode: TILES"); });
-    toolbar->addButton(ICON_FA_GRIP_LINES, std::move(selectionModeTiles));
+    toolbar->addButton(ICON_FA_OBJECT_GROUP " Floor", std::move(selectionModeTiles), "Selection mode: TILES\t(toggle: m)");
 
-    Signal<> selectionModeAll;
-    selectionModeAll.connect([this]() { spdlog::info("Selection mode: ALL"); });
-    toolbar->addButton(ICON_FA_OBJECT_GROUP, std::move(selectionModeAll));
+    Signal<EditorState::SelectionType> selectionModeAll;
+    selectionModeAll.connect([this](EditorState::SelectionType selectionMode) { spdlog::info("Selection mode: ALL"); });
+    toolbar->addButton(ICON_FA_OBJECT_GROUP " All", std::move(selectionModeAll), "Selection mode: ALL\t(toggle: m)");
 
     Signal<> rotate;
-    rotate.connect([this]() { spdlog::info("Rotate object"); });
-    toolbar->addButton(ICON_FA_ROTATE, std::move(rotate));
+    rotate.connect([this]() {
+        if (_selectedObject) {
+            _selectedObject->get()->rotate();
+        }
+    });
+    toolbar->addButton(ICON_FA_ROTATE, std::move(rotate), "Rotate selected object\t(Ctrl+R)");
 
     _panels.emplace_back(std::move(toolbar));
 

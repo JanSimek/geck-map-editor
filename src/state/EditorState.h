@@ -47,13 +47,13 @@ private:
     };
 
     enum class SelectionType {
-        NOTHING,
+        ALL,
         FLOOR_TILES,
         ROOF_TILES,
         OBJECTS
     };
 
-    SelectionType _currentSelection = SelectionType::NOTHING;
+    SelectionType _currentSelection = SelectionType::ALL;
 
     HexagonGrid _hexgrid;
     std::array<sf::Sprite, Map::TILES_PER_ELEVATION> _floorSprites;

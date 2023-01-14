@@ -17,10 +17,12 @@ void Toolbar::render(float dt) {
 
     if (ImGui::BeginViewportSideBar("##SecondaryMenuBar", viewport, ImGuiDir_Up, height, window_flags)) {
         if (ImGui::BeginMenuBar()) {
-            ImGui::Text("Happy secondary menu bar");
-            for (auto& button : _buttonCallback) {
-                if (ImGui::SmallButton(button.first.c_str())) {
-                    button.second.emit();
+            for (auto& button : _buttons) {
+                if (ImGui::SmallButton(button.title.c_str())) {
+                    button.callback.emit();
+                }
+                if (ImGui::IsItemHovered() && !button.tooltip.empty()) {
+                    ImGui::SetTooltip("%s", button.tooltip.c_str());
                 }
             }
             ImGui::EndMenuBar();
@@ -28,6 +30,7 @@ void Toolbar::render(float dt) {
         ImGui::End();
     }
 
+    /*
     if (ImGui::BeginViewportSideBar("##MainStatusBar", viewport, ImGuiDir_Down, height, window_flags)) {
         if (ImGui::BeginMenuBar()) {
             ImGui::Text("Happy status bar");
@@ -35,10 +38,12 @@ void Toolbar::render(float dt) {
         }
         ImGui::End();
     }
+    */
 }
 
-void Toolbar::addButton(const std::string& label, Signal<> callback) {
-    _buttonCallback[label] = std::move(callback);
+void Toolbar::addButton(const std::string& label, Signal<> callback, const std::string& tooltip) {
+    _buttons.push_back({ label, tooltip, std::move(callback) });
+    //_buttonCallback[label] = std::move(callback);
 }
 
 } // namespace geck
