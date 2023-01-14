@@ -15,17 +15,19 @@ public:
 
     void render(float dt) override;
 
-    void addButton(const std::string& label, Signal<> callback, const std::string& tooltip = "");
+    void addButton(std::function<std::string ()> labelGetter, Signal<> callback, const std::string& tooltip = "");
 
 private:
 
     struct ToolbarButton {
-        std::string title;
+        std::function<std::string()> labelGetter;
         std::string tooltip;
         Signal<> callback;
     };
 
     std::vector<ToolbarButton> _buttons;
+
+
 };
 
 } // namespace geck

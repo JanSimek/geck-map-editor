@@ -21,6 +21,7 @@ namespace geck {
 struct AppData;
 
 class EditorState : public State {
+
 private:
     EditorState(const std::shared_ptr<AppData>& appData);
 
@@ -41,19 +42,21 @@ private:
     void unselectTiles();
     void unselectObject();
 
+    enum class SelectionMode : int {
+        ALL,
+        FLOOR_TILES,
+        ROOF_TILES,
+        OBJECTS,
+
+        NUM_SELECTION_TYPES
+    };
+
     enum class EditorAction {
         NONE,
         PANNING
     };
 
-    enum class SelectionType {
-        ALL,
-        FLOOR_TILES,
-        ROOF_TILES,
-        OBJECTS
-    };
-
-    SelectionType _currentSelection = SelectionType::ALL;
+    SelectionMode _currentSelectionMode = SelectionMode::ALL;
 
     HexagonGrid _hexgrid;
     std::array<sf::Sprite, Map::TILES_PER_ELEVATION> _floorSprites;
@@ -92,6 +95,7 @@ private:
     void setUpSignals();
 
 public:
+
     EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map);
 
     void createNewMap();

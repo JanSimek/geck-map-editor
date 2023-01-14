@@ -114,26 +114,40 @@ void geck::EditorState::setUpSignals() {
             tile_sprite.setPosition(selectedTile.getPosition().x, selectedTile.getPosition().y);
             _floorSprites.at(selectedTileId) = tile_sprite;
         }
+        for (auto selectedTileId : _selectedRoofTileIndexes) {
+
+            _map->getMapFile().tiles.at(_currentElevation).at(selectedTileId).setRoof(newTileId);
+
+            sf::Sprite tile_sprite;
+            std::string texture_path = "art/tiles/" + lst->at(newTileId);
+
+            auto selectedTile = _roofSprites.at(selectedTileId);
+            tile_sprite.setTexture(ResourceManager::getInstance().texture(texture_path));
+            tile_sprite.setPosition(selectedTile.getPosition().x, selectedTile.getPosition().y);
+            _roofSprites.at(selectedTileId) = tile_sprite;
+        }
         unselectTiles();
     });
 
     auto toolbar = std::make_shared<Toolbar>("Toolbar");
 
-    Signal<> selectionModeObjects;
-    selectionModeObjects.connect([this]() { spdlog::info("Selection mode: OBJECTS"); });
-    toolbar->addButton(ICON_FA_OBJECT_GROUP " Object", std::move(selectionModeObjects), "Selection mode: OBJECTS\t(toggle: m)");
-
-    Signal<> selectionModeRoof;
-    selectionModeRoof.connect([this]() { spdlog::info("Selection mode: ROOF"); });
-    toolbar->addButton(ICON_FA_OBJECT_GROUP " Roof", std::move(selectionModeRoof), "Selection mode: ROOF\t(toggle: m)");
-
-    Signal<> selectionModeTiles;
-    selectionModeTiles.connect([this]() { spdlog::info("Selection mode: TILES"); });
-    toolbar->addButton(ICON_FA_OBJECT_GROUP " Floor", std::move(selectionModeTiles), "Selection mode: TILES\t(toggle: m)");
-
-    Signal<EditorState::SelectionType> selectionModeAll;
-    selectionModeAll.connect([this](EditorState::SelectionType selectionMode) { spdlog::info("Selection mode: ALL"); });
-    toolbar->addButton(ICON_FA_OBJECT_GROUP " All", std::move(selectionModeAll), "Selection mode: ALL\t(toggle: m)");
+    Signal<> selectionMode;
+    selectionMode.connect([this]() {
+        _currentSelectionMode = static_cast<SelectionMode>((static_cast<int>(_currentSelectionMode) + 1) % static_cast<int>(SelectionMode::NUM_SELECTION_TYPES));
+    });
+    toolbar->addButton([this]() {
+        switch(_currentSelectionMode) {
+        case SelectionMode::OBJECTS:
+            return ICON_FA_OBJECT_GROUP " Objects";
+        case SelectionMode::FLOOR_TILES:
+            return ICON_FA_OBJECT_GROUP " Floor";
+        case SelectionMode::ROOF_TILES:
+            return ICON_FA_OBJECT_GROUP " Roof";
+        case SelectionMode::ALL:
+        default:
+            return ICON_FA_OBJECT_GROUP " All";
+        }
+    }, std::move(selectionMode), "Selection mode\t(toggle: m)");
 
     Signal<> rotate;
     rotate.connect([this]() {
@@ -141,7 +155,7 @@ void geck::EditorState::setUpSignals() {
             _selectedObject->get()->rotate();
         }
     });
-    toolbar->addButton(ICON_FA_ROTATE, std::move(rotate), "Rotate selected object\t(Ctrl+R)");
+    toolbar->addButton([]() { return ICON_FA_ROTATE; }, std::move(rotate), "Rotate selected object\t(Ctrl+R)");
 
     _panels.emplace_back(std::move(toolbar));
 
@@ -348,7 +362,7 @@ bool EditorState::selectObject(sf::Vector2f worldPos) {
 }
 
 bool EditorState::selectFloorTile(sf::Vector2f worldPos) {
-    return false;
+    return selectTile(worldPos, _floorSprites, _selectedFloorTileIndexes, false);
 }
 
 bool EditorState::selectRoofTile(sf::Vector2f worldPos) {
@@ -356,7 +370,7 @@ bool EditorState::selectRoofTile(sf::Vector2f worldPos) {
     return selectTile(worldPos, _roofSprites, _selectedRoofTileIndexes, true);
 }
 
-bool EditorState::selectTile(sf::Vector2f worldPos, std::array<sf::Sprite, Map::TILES_PER_ELEVATION>& sprites, std::vector<int>& selectedIndexes, bool selectingRoof = false) {
+bool EditorState::selectTile(sf::Vector2f worldPos, std::array<sf::Sprite, Map::TILES_PER_ELEVATION>& sprites, std::vector<int>& selectedIndexes, bool selectingRoof) {
 
     for (int i = 0; i < Map::TILES_PER_ELEVATION; i++) {
 
@@ -464,28 +478,36 @@ void EditorState::handleEvent(const sf::Event& event) {
 
         bool object_already_selected = _selectedObject.has_value(); // some object was already selected
 
+        // FIXME: disable selecting objects through roof
         bool roof_selected = false;
-        if (!object_already_selected && _showRoof) {
+        if (!object_already_selected && _showRoof && (_currentSelectionMode == SelectionMode::ALL || _currentSelectionMode == SelectionMode::ROOF_TILES)) {
             roof_selected = selectRoofTile(world_pos);
         }
 
-        if (!roof_selected) {
-            bool selected_different_object = selectObject(world_pos); // another object was selected instead
+        if (!roof_selected && _currentSelectionMode != SelectionMode::ROOF_TILES) {
+            bool moving_object = false;
+            if (_currentSelectionMode != SelectionMode::ALL && _currentSelectionMode != SelectionMode::OBJECTS) {
+                unselectObject();
+            } else {
+                bool selected_different_object = selectObject(world_pos); // another object was selected instead
 
-            // still have the original selected and clicked on an empty space
-            bool moving_object = object_already_selected && !selected_different_object && _selectedObject.has_value();
+                // still have the original selected and clicked on an empty space
+                moving_object = object_already_selected && !selected_different_object && _selectedObject.has_value();
 
-            auto position_clicked = _hexgrid.positionAt(world_pos.x, world_pos.y);
-            if (moving_object && position_clicked != Hex::HEX_OUT_OF_MAP) {
-                _selectedObject->get()->setHexPosition(_hexgrid.grid().at(position_clicked));
+                auto position_clicked = _hexgrid.positionAt(world_pos.x, world_pos.y);
+                if (moving_object && position_clicked != Hex::HEX_OUT_OF_MAP) {
+                    _selectedObject->get()->setHexPosition(_hexgrid.grid().at(position_clicked));
 
-                std::stable_sort(_objects.begin(), _objects.end(), [](const auto obj1, const auto obj2) {
-                    return obj1->getMapObject().position < obj2->getMapObject().position;
-                });
+                    std::stable_sort(_objects.begin(), _objects.end(), [](const auto obj1, const auto obj2) {
+                        return obj1->getMapObject().position < obj2->getMapObject().position;
+                    });
+                }
             }
 
             if (!_selectedObject && !moving_object && !object_already_selected) {
-                selectTile(world_pos, _floorSprites, _selectedFloorTileIndexes);
+                if (_currentSelectionMode == SelectionMode::ALL || _currentSelectionMode == SelectionMode::FLOOR_TILES) {
+                    selectFloorTile(world_pos);
+                }
             }
         }
     }

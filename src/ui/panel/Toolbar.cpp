@@ -18,7 +18,7 @@ void Toolbar::render(float dt) {
     if (ImGui::BeginViewportSideBar("##SecondaryMenuBar", viewport, ImGuiDir_Up, height, window_flags)) {
         if (ImGui::BeginMenuBar()) {
             for (auto& button : _buttons) {
-                if (ImGui::SmallButton(button.title.c_str())) {
+                if (ImGui::SmallButton(button.labelGetter().c_str())) {
                     button.callback.emit();
                 }
                 if (ImGui::IsItemHovered() && !button.tooltip.empty()) {
@@ -41,8 +41,8 @@ void Toolbar::render(float dt) {
     */
 }
 
-void Toolbar::addButton(const std::string& label, Signal<> callback, const std::string& tooltip) {
-    _buttons.push_back({ label, tooltip, std::move(callback) });
+void Toolbar::addButton(std::function<std::string()> labelGetter, Signal<> callback, const std::string& tooltip) {
+    _buttons.push_back({ labelGetter, tooltip, std::move(callback) });
     //_buttonCallback[label] = std::move(callback);
 }
 
