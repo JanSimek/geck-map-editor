@@ -46,14 +46,15 @@ void TileSelectionPanel::render(float dt) {
             continue;
         }
 
-        if (ImGui::ImageButton(tile)) {
+        sf::Vector2 tileSize = tile.getTexture()->getSize();
+        if (ImGui::ImageButton(lst->at(tileIndex).c_str(), tile, { (float) tileSize.x, (float) tileSize.y })) {
             tileClicked.emit(tileIndex);
         }
 
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::Text("Tile #: %d", tileIndex);
-            ImGui::Text("File: %s", lst->at(tileIndex).c_str());
+            ImGui::Text("File  : %s", lst->at(tileIndex).c_str());
             ImGui::EndTooltip();
         }
         ImGui::NextColumn();

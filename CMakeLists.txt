@@ -3,7 +3,7 @@
 project (
     geck-mapper # this will be the ${PROJECT_NAME}
     VERSION 0.1 # this will provide ${PROJECT_VERSION}
-    DESCRIPTION "A map editor for Fallout 2"
+    DESCRIPTION "Map editor for Fallout 2"
     LANGUAGES CXX
 )
 
