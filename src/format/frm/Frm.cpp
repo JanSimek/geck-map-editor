@@ -3,10 +3,7 @@
 #include "Frame.h"
 #include "../pal/Pal.h"
 
-#include <numeric>
 #include <algorithm>
-
-#include <spdlog/spdlog.h>
 
 namespace geck {
 

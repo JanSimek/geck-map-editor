@@ -5,10 +5,9 @@
 #include <vector>
 
 #include "../IFile.h"
+#include "Direction.h"
 
 namespace geck {
-
-class Direction;
 
 class Frm : public IFile {
 private:

@@ -2,10 +2,9 @@
 
 #include <cstdint>
 #include <vector>
+#include "Frame.h"
 
 namespace geck {
-
-class Frame;
 
 class Direction {
 private:
