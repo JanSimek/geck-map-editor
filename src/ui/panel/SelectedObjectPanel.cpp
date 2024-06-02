@@ -6,7 +6,6 @@
 
 #include "format/map/MapObject.h"
 #include "reader/pro/ProReader.h"
-#include "ui/util.h"
 #include "util/ResourceManager.h"
 #include "util/ProHelper.h"
 

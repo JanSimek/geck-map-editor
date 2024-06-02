@@ -3,7 +3,6 @@
 #include <array>
 
 #include "../../format/pal/Pal.h"
-#include "../../util/io.h"
 
 namespace geck {
 
@@ -11,7 +10,7 @@ std::unique_ptr<geck::Pal> geck::PalReader::read() {
     constexpr size_t filesize = 0x00008300; // KLAMATH: up to "additional table #1"
 
     std::array<uint8_t, filesize> buf;
-    io::read(_stream, buf.data(), buf.size());
+    openFile(buf.data(), buf.size());
 
     auto pal = std::make_unique<Pal>(_path);
 

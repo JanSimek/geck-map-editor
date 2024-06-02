@@ -98,7 +98,7 @@ void Application::initUI() {
 void Application::update(float dt) {
     sf::Event event;
     while (_window->pollEvent(event)) {
-        ImGui::SFML::ProcessEvent(event);
+        ImGui::SFML::ProcessEvent(*_window, event);
 
         // don't pass mouse and keyboard presses to states when an ImGui widget is active
         auto& io = ImGui::GetIO();

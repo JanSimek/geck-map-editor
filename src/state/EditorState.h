@@ -93,6 +93,8 @@ private:
 
     std::vector<std::shared_ptr<Panel>> _panels;
     void setUpSignals();
+    void setUpMainMenu();
+    void setUpPanels();
 
 public:
 

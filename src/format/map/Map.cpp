@@ -2,7 +2,6 @@
 
 #include <string>
 
-#include "../../util/io.h"
 #include "../lst/Lst.h"
 #include "../map/MapObject.h"
 

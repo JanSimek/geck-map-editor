@@ -58,45 +58,11 @@ EditorState::EditorState(const std::shared_ptr<AppData>& appData, std::unique_pt
 
 void geck::EditorState::setUpSignals() {
     _panels.clear();
+    setUpMainMenu();
+    setUpPanels();
+}
 
-    auto main_menu = std::make_shared<MainMenuPanel>(_map.get(), _currentElevation);
-    main_menu->menuNewMapClicked.connect_member(this, &EditorState::createNewMap);
-    main_menu->menuSaveMapClicked.connect_member(this, &EditorState::saveMap);
-    main_menu->menuLoadMapClicked.connect_member(this, &EditorState::openMap);
-    main_menu->menuQuitMapClicked.connect_member(this, &EditorState::quit);
-
-    main_menu->menuShowObjectsClicked.connect([this](const bool selected) {
-        _showObjects = selected;
-    });
-    main_menu->menuShowCrittersClicked.connect([this](const bool selected) {
-        _showCritters = selected;
-    });
-    main_menu->menuShowWallsClicked.connect([this](const bool selected) {
-        _showWalls = selected;
-    });
-    main_menu->menuShowRoofsClicked.connect([this](const bool selected) {
-        _showRoof = selected;
-    });
-    main_menu->menuShowScrollBlkClicked.connect([this](const bool selected) {
-        _showScrollBlk = selected;
-    });
-
-    main_menu->menuElevationClicked.connect([this](int elevation) {
-        _currentElevation = elevation;
-        spdlog::info("Loading elevation " + std::to_string(_currentElevation));
-
-        auto loading_state = std::make_unique<LoadingState>(_appData);
-        loading_state->addLoader(std::make_unique<MapLoader>(_map->path(), _currentElevation, [&](std::unique_ptr<Map> map) {
-            _map = std::move(map);
-            init();
-            _appData->stateMachine->pop();
-        }));
-
-        _appData->stateMachine->push(std::move(loading_state));
-    });
-
-    _panels.emplace_back(std::move(main_menu));
-
+void geck::EditorState::setUpPanels() {
     auto tile_selection_panel = std::make_shared<TileSelectionPanel>();
 
     tile_selection_panel->tileClicked.connect([this](int newTileId) {
@@ -166,6 +132,46 @@ void geck::EditorState::setUpSignals() {
     auto selected_object_panel = std::make_shared<SelectedObjectPanel>();
     objectSelected.connect_member(selected_object_panel.get(), &SelectedObjectPanel::selectObject);
     _panels.push_back(std::move(selected_object_panel));
+}
+
+void geck::EditorState::setUpMainMenu() {
+    auto main_menu = std::make_shared<MainMenuPanel>(_map.get(), _currentElevation);
+    main_menu->menuNewMapClicked.connect_member(this, &EditorState::createNewMap);
+    main_menu->menuSaveMapClicked.connect_member(this, &EditorState::saveMap);
+    main_menu->menuLoadMapClicked.connect_member(this, &EditorState::openMap);
+    main_menu->menuQuitMapClicked.connect_member(this, &EditorState::quit);
+
+    main_menu->menuShowObjectsClicked.connect([this](const bool selected) {
+        _showObjects = selected;
+    });
+    main_menu->menuShowCrittersClicked.connect([this](const bool selected) {
+        _showCritters = selected;
+    });
+    main_menu->menuShowWallsClicked.connect([this](const bool selected) {
+        _showWalls = selected;
+    });
+    main_menu->menuShowRoofsClicked.connect([this](const bool selected) {
+        _showRoof = selected;
+    });
+    main_menu->menuShowScrollBlkClicked.connect([this](const bool selected) {
+        _showScrollBlk = selected;
+    });
+
+    main_menu->menuElevationClicked.connect([this](int elevation) {
+        _currentElevation = elevation;
+        spdlog::info("Loading elevation " + std::to_string(_currentElevation));
+
+        auto loading_state = std::make_unique<LoadingState>(_appData);
+        loading_state->addLoader(std::make_unique<MapLoader>(_map->path(), _currentElevation, [&](std::unique_ptr<Map> map) {
+            _map = std::move(map);
+            init();
+            _appData->stateMachine->pop();
+        }));
+
+        _appData->stateMachine->push(std::move(loading_state));
+    });
+
+    _panels.emplace_back(std::move(main_menu));
 }
 
 void EditorState::init() {

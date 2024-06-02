@@ -70,8 +70,6 @@ add_executable (${PROJECT_NAME}
 ###################################
 add_library(vault STATIC
 
-    util/io.h
-
     #
     # FILE FORMATS
     #
