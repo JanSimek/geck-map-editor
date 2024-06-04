@@ -73,9 +73,14 @@ void MapInfoPanel::render(float dt) {
 void MapInfoPanel::loadScriptVars() {
 
     auto gam_filename = _map->filename().substr(0, _map->filename().find(".")) + ".gam";
+    auto gam_filepath = std::filesystem::path("maps") / gam_filename;
+
+    if (!std::filesystem::exists(gam_filepath)) {
+        return;
+    }
 
     GamReader gam_reader{};
-    auto gam_file = ResourceManager::getInstance().loadResource(std::filesystem::path("maps") / gam_filename, gam_reader);
+    auto gam_file = ResourceManager::getInstance().loadResource(gam_filepath, gam_reader);
 
     // Global variables
     for (int index = 0; index < _map->getMapFile().header.num_global_vars; index++) {

@@ -17,7 +17,7 @@ public:
         this->_path = path;
 
         if (!_stream.is_open()) {
-            throw std::runtime_error{ "Could not read dat file {}" };
+            throw std::runtime_error{ "Could not read dat file " + path.string() };
         }
 
         return read();
