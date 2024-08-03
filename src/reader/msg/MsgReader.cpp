@@ -9,7 +9,7 @@ std::unique_ptr<Msg> MsgReader::read() {
     std::map<int, Msg::Message> _messages;
 
     // load entire file content into string
-    std::string s((std::istreambuf_iterator<char>(_stream)), std::istreambuf_iterator<char>());
+    std::string s = _stream.readString(_stream.size());
 
     // FIXME: 1. multiline strings
     //        2. bug in CMBATAI2.MSG in messages #1382 and #32020 where we need to handle missing '}'

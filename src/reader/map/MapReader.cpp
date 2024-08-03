@@ -6,10 +6,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
-#include "../../util/FileHelper.h"
 #include "../../format/map/Map.h"
 #include "../../format/msg/Msg.h"
 #include "../../format/map/Tile.h"

@@ -3,6 +3,8 @@
 #include <string>
 #include <cstdint>
 
+#include "Dat.h"
+
 namespace geck {
 
 class DatEntry {

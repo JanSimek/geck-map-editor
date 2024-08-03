@@ -38,9 +38,9 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read() {
 
     uint32_t size_of_frame_data = read_be_u32();
 
-    auto data_start = _stream.tellg();
-    _stream.seekg(size_of_frame_data, std::ios_base::cur);
-    auto data_end = _stream.tellg();
+    auto data_start = _stream.position();
+    _stream.setPosition(data_start + size_of_frame_data);
+    auto data_end = _stream.position();
 
     if (data_end - data_start < size_of_frame_data) {
         throw std::runtime_error{
@@ -53,7 +53,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read() {
         // jump to frames data at frames area
         std::streamoff frame_data_offset = data_start + static_cast<std::streamoff>(direction.dataOffset());
 
-        _stream.seekg(frame_data_offset, std::ios_base::beg);
+        _stream.setPosition(frame_data_offset);
 
         // read all frames
         std::vector<Frame> frames;
@@ -73,7 +73,7 @@ std::unique_ptr<geck::Frm> geck::FrmReader::read() {
             frame.setOffsetY(read_be_u16());
 
             // Pixels data
-            _stream.read((char*)frame.data(), frame.width() * frame.height());
+            _stream.read(frame.data(), frame.width() * frame.height());
 
             frames.emplace_back(frame);
         }

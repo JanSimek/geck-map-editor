@@ -20,7 +20,9 @@ std::unique_ptr<Gam> GamReader::read() {
     bool parsingMvars = false;
     bool parsingGvars = false;
 
-    for (std::string line; std::getline(_stream, line);) {
+    std::string contents = _stream.readString(_stream.size());
+    std::stringstream stream(contents);
+    for (std::string line; std::getline(stream, line);) {
 
         // GAME_GLOBAL_VARS section start
         if (std::regex_search(line, regex_gvars_start)) {

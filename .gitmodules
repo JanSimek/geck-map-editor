@@ -15,3 +15,8 @@
 [submodule "external/imgui-sfml"]
 	path = external/imgui-sfml
 	url = https://github.com/eliasdaler/imgui-sfml.git
+	branch = 2.6.x
+[submodule "external/vfspp"]
+	path = external/vfspp
+	url = https://github.com/JanSimek/vfspp.git
+	branch = improve-performance

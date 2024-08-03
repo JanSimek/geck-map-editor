@@ -10,12 +10,12 @@
 #include "state/LoadingState.h"
 #include "state/StateMachine.h"
 #include "state/loader/MapLoader.h"
+#include "util/ResourceManager.h"
 #include "ui/util.h"
-#include "util/FileHelper.h"
 
 namespace geck {
 
-Application::Application(const std::filesystem::path& dataPath, const std::filesystem::path& mapPath)
+Application::Application(const std::filesystem::path& resourcePath, const std::filesystem::path& mapPath)
     : _running(false)
     , _window(std::make_unique<sf::RenderWindow>(sf::VideoMode(1280, 960), "Gecko"))
     , _stateMachine(std::make_shared<StateMachine>())
@@ -23,12 +23,15 @@ Application::Application(const std::filesystem::path& dataPath, const std::files
 
     _window->setVerticalSyncEnabled(true);
 
-    // sf::Image icon;
-    // icon.loadFromFile((FileHelper::getInstance().resourcesPath() / "icon.png").string());
+    ResourceManager::getInstance().addDataPath(resourcePath);
+
+    //sf::Image icon;
+    // VSF -> loadFromMemory icon.loadFromFile(data_path / "icon.png");
     //_window->setIcon(600, 600, icon.getPixelsPtr());
 
     initUI();
 
+    // TODO: show configuration window if no map is selected
     loadMap(mapPath);
 }
 
@@ -57,16 +60,13 @@ void Application::initUI() {
     ImGui::GetStyle().ScaleAllSizes(scale_factor);
 
     ImGuiIO& io = ImGui::GetIO();
-
     io.FontGlobalScale = scale_factor;
-
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
-                                                      //    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-                                                      //    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-
+/*
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+*/
     io.Fonts->Clear();
-
-    const std::filesystem::path resources_path = FileHelper::getInstance().resourcesPath();
 
     constexpr float font_size = 20.0f;
     constexpr float icon_size = 16.0f;
@@ -80,11 +80,13 @@ void Application::initUI() {
     icons_config.GlyphMinAdvanceX = 13.0f; // to make the icon monospaced
 
     // default UI font
-    std::filesystem::path main_font = resources_path / FONT_MAIN;
+    std::filesystem::path main_font = RESOURCES_DIR / FONT_MAIN;
     io.Fonts->AddFontFromFileTTF(main_font.string().c_str(), font_size);
+    // TODO: VFS io.Fonts->AddFontFromMemoryTTF();
 
-    std::filesystem::path icon_font = resources_path / FONT_ICON;
+    std::filesystem::path icon_font = RESOURCES_DIR / FONT_ICON;
     io.Fonts->AddFontFromFileTTF(icon_font.string().c_str(), icon_size, &icons_config, icons_ranges);
+    // TODO: VFS io.Fonts->AddFontFromMemoryTTF();
 
     io.Fonts->Build();
 
@@ -96,7 +98,7 @@ void Application::initUI() {
 }
 
 void Application::update(float dt) {
-    sf::Event event;
+    sf::Event event{};
     while (_window->pollEvent(event)) {
         ImGui::SFML::ProcessEvent(*_window, event);
 

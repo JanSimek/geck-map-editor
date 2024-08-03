@@ -14,7 +14,6 @@
 #include "../../format/frm/Direction.h"
 #include "../../format/frm/Direction.h"
 
-#include "../../util/FileHelper.h"
 #include "../../util/ProHelper.h"
 #include "../../util/ResourceManager.h"
 #include "portable-file-dialogs.h"
@@ -29,13 +28,8 @@ MapLoader::MapLoader(const std::filesystem::path& mapFile, int elevation, std::f
 
 void MapLoader::load() {
 
-    // TODO: open from resource manager
-
-    ResourceManager::getInstance().setDataPath(FileHelper::getInstance().fallout2DataPath()); // FIXME: move
-    const auto data_path = FileHelper::getInstance().fallout2DataPath();
-
     if (_mapPath.empty()) {
-        _mapPath = pfd::open_file("Choose Fallout 2 map to load", data_path.string(),
+        _mapPath = pfd::open_file("Choose Fallout 2 map to load", "",
             { "Fallout 2 map (.map)", "*.map" },
             pfd::opt::none)
                        .result()
@@ -70,7 +64,7 @@ void MapLoader::load() {
 
     if (_elevation == -1) { // TODO: no magic numbers
         uint32_t default_elevation = _map->getMapFile().header.player_default_elevation;
-        spdlog::info("Using defaul map elevation {}", default_elevation);
+        spdlog::info("Using default map elevation {}", default_elevation);
         _elevation = default_elevation;
     }
 
@@ -78,8 +72,7 @@ void MapLoader::load() {
     stopwatch_chunk.reset();
 
     // Tiles
-
-    auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
+    auto lst= ResourceManager::getInstance().loadResource("art/tiles/tiles.lst", lst_reader);
 
     //    auto tiles = _map->tiles().at(_elevation);
     //    for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; tileNumber++) {

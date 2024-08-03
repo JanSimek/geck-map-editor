@@ -1,21 +1,30 @@
 #include "ResourceManager.h"
 
 #include <filesystem>
+#include <memory>
 #include <stdexcept>
 
-#include "../reader/frm/FrmReader.h"
-#include "../reader/pal/PalReader.h"
-#include "../reader/lst/LstReader.h"
+#include <vfspp/NativeFileSystem.hpp>
+#include "vfs/Dat2FileSystem.hpp"
 
-#include "../format/frm/Direction.h"
-#include "../format/frm/Frame.h"
-#include "../format/lst/Lst.h"
-#include "../format/pro/Pro.h"
+#include "reader/frm/FrmReader.h"
+#include "reader/pal/PalReader.h"
+
+#include "format/frm/Direction.h"
+#include "format/frm/Frame.h"
+#include "format/lst/Lst.h"
+#include "format/pro/Pro.h"
 
 namespace geck {
 
+ResourceManager::ResourceManager()
+    : _vfs(new vfspp::VirtualFileSystem())
+{
+}
+
 bool ResourceManager::exists(const std::string& filename) {
-    return _textures.find(filename) != _textures.end() || _resources.find(filename) != _resources.end();
+    return _textures.find(filename) != _textures.end()
+        || _resources.find(filename) != _resources.end();
 }
 
 void ResourceManager::insertTexture(const std::string& filename) {
@@ -31,13 +40,12 @@ void ResourceManager::insertTexture(const std::string& filename) {
     }();
 
     if (extension.rfind(".frm", 0) == 0) { // frm, frm0, frmX..
-
         FrmReader frm_reader;
         loadResource(filename, frm_reader);
     } else {
         auto texture = std::make_unique<sf::Texture>();
-        if (!texture->loadFromFile((_dataPath / filename).string())) { // default to SFML's implementation
-            throw std::runtime_error{ "Failed to load texture " + _dataPath.string() + "/" + filename + ", extension: " + extension };
+        if (!texture->loadFromFile(filename)) { // default to SFML's implementation
+            throw std::runtime_error{ "Failed to load texture " + filename + ", extension: " + extension };
         }
         _textures.insert(std::make_pair(filename, std::move(texture)));
     }
@@ -50,7 +58,7 @@ const sf::Texture& ResourceManager::texture(const std::string& filename) {
         auto frm = getResource<Frm>(filename); // TODO: check extension?
 
         if (frm == nullptr) {
-            throw std::runtime_error{ "Texture " + _dataPath.string() + "/" + filename + " does not exist" };
+            throw std::runtime_error{ "Texture " + filename + " does not exist" };
         }
 
         auto texture = std::make_unique<sf::Texture>();
@@ -67,15 +75,42 @@ const sf::Texture& ResourceManager::texture(const std::string& filename) {
         if (loaded.second) {
             return *loaded.first->second; // uh huh
         } else {
-            throw std::runtime_error{ "Couldn't load " + _dataPath.string() + "/" + filename + " from image" };
+            throw std::runtime_error{ "Couldn't load " + filename + " from image" };
         }
     }
-
     return *found->second;
 }
 
-void ResourceManager::setDataPath(const std::filesystem::path& path) {
-    _dataPath = path;
+void ResourceManager::addDataPath(const std::filesystem::path& path) {
+        vfspp::IFileSystemPtr vfsPtr;
+
+        if (std::filesystem::is_directory(path)) {
+            vfsPtr = std::make_shared<vfspp::NativeFileSystem>(path.string());
+
+            std::filesystem::path masterDat = path / "master.dat";
+            if (std::filesystem::exists(masterDat) && std::filesystem::is_regular_file(masterDat)) {
+                addDataPath(masterDat);
+            }
+
+            std::filesystem::path critterDat = path / "critter.dat";
+            if (std::filesystem::exists(critterDat) && std::filesystem::is_regular_file(critterDat)) {
+                addDataPath(critterDat);
+            }
+        } else if (path.extension() == ".dat") {
+            vfsPtr = std::make_shared<vfspp::Dat2FileSystem>(path.string());
+        } else {
+            spdlog::error("Unsupported data location: {}", path.string());
+            return;
+        }
+
+        vfsPtr->Initialize();
+        if (!vfsPtr->IsInitialized()) {
+            spdlog::error("Failed to initialize Dat2FileSystem: {}", path.string());
+            return;
+        }
+
+        _vfs->AddFileSystem("/", vfsPtr);
+        spdlog::info("Location '{}' was added to the data path", path.string());
 }
 
 template <class T, typename Key>

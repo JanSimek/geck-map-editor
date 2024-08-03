@@ -12,15 +12,12 @@ class Pro;
 
 class MapWriter : public FileWriter<Map::MapFile> {
 public:
-    MapWriter(const std::filesystem::path& dataPath, std::function<Pro*(int32_t PID)> loadProCallback)
-        : _dataPath(dataPath)
-        , _loadProCallback(loadProCallback) { }
+    MapWriter(std::function<Pro*(int32_t PID)> loadProCallback)
+        : _loadProCallback(loadProCallback) { }
 
     [[nodiscard]] bool write(const Map::MapFile& map);
 
 private:
-    std::filesystem::path _dataPath;
-
     void writeScript(const MapScript& script);
     void writeObject(const MapObject& object);
 
