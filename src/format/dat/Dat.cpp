@@ -1,14 +1,16 @@
+#include <filesystem>
+
 #include "Dat.h"
 #include "DatEntry.h"
 
 namespace geck {
 
-std::vector<std::unique_ptr<DatEntry>> const& Dat::getEntries() const {
+std::unordered_map<std::filesystem::path, std::shared_ptr<DatEntry>> const& Dat::getEntries() const {
     return this->entries;
 }
 
-void Dat::addEntry(std::unique_ptr<DatEntry> entry) {
-    this->entries.push_back(std::move(entry));
+void Dat::addEntry(const std::filesystem::path filename, std::shared_ptr<DatEntry> entry) {
+    this->entries.emplace(filename, entry);
 }
 
 } // namespace geck

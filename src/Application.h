@@ -20,11 +20,12 @@ struct AppData {
 
 class Application {
 public:
-    inline static const std::string FONT_DIR = "fonts/";
-    inline static const std::string FONT_MAIN = FONT_DIR + "SourceSansPro-SemiBold.ttf";
-    inline static const std::string FONT_ICON = FONT_DIR + FONT_ICON_FILE_NAME_FAS;
+    inline static const std::filesystem::path RESOURCES_DIR = "resources";
+    inline static const std::filesystem::path FONT_DIR = "fonts";
+    inline static const std::filesystem::path FONT_MAIN = FONT_DIR / + "SourceSansPro-SemiBold.ttf";
+    inline static const std::filesystem::path FONT_ICON = FONT_DIR / + FONT_ICON_FILE_NAME_FAS;
 
-    Application(const std::filesystem::path& dataPath, const std::filesystem::path& mapPath);
+    Application(const std::filesystem::path& resourcePath, const std::filesystem::path& mapPath);
     ~Application();
 
     bool isRunning() const;

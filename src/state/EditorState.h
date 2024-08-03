@@ -66,7 +66,6 @@ private:
 
     std::shared_ptr<AppData> _appData;
     sf::View _view;
-    std::filesystem::path _dataPath;
 
     int _currentElevation = 0;
     std::unique_ptr<Map> _map;

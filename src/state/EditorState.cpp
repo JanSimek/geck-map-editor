@@ -38,7 +38,6 @@
 
 #include "loader/MapLoader.h"
 
-#include "../util/FileHelper.h"
 #include "../util/ProHelper.h"
 
 #include "LoadingState.h"
@@ -50,7 +49,6 @@ namespace geck {
 EditorState::EditorState(const std::shared_ptr<AppData>& appData, std::unique_ptr<Map> map)
     : _appData(appData)
     , _view({ 0.f, 0.f }, sf::Vector2f(appData->window->getSize()))
-    , _dataPath(FileHelper::getInstance().fallout2DataPath())
     , _map(std::move(map))
     , _fakeTileSprite(ResourceManager::getInstance().texture("art/tiles/blank.frm")) {
     centerViewOnMap();
@@ -175,33 +173,26 @@ void geck::EditorState::setUpMainMenu() {
 }
 
 void EditorState::init() {
-    std::filesystem::path map_directory = _dataPath / "maps";
-
-    if (!std::filesystem::is_directory(map_directory)) {
-        pfd::message("Invalid Fallout 2 directory",
-            "The map directory does not exist: " + map_directory.string(),
-            pfd::choice::ok,
-            pfd::icon::error);
-        quit();
-        return;
-    }
-
     loadSprites();
-
     setUpSignals();
 }
 
 void EditorState::saveMap() {
-    MapWriter map_writer{ _dataPath, [](int32_t PID) {
+
+    auto destination = pfd::save_file("Select a file", ".",
+        { "Map Files", "*.map" },
+        pfd::opt::force_overwrite).result();
+
+    MapWriter map_writer{ [](int32_t PID) {
                              ProReader pro_reader{};
                              return ResourceManager::getInstance().loadResource(ProHelper::basePath(PID), pro_reader);
                          } };
-    // TODO: show file dialog
-    map_writer.openFile("test.map");
+
+    map_writer.openFile(destination);
     if (map_writer.write(_map->getMapFile())) {
-        spdlog::info("Saved map test.map");
+        spdlog::info("Saved map {}", destination);
     } else {
-        spdlog::error("Failed to save map test.map");
+        spdlog::error("Failed to save map {}", destination);
     }
 }
 
@@ -641,8 +632,7 @@ void EditorState::createNewMap() {
     _map->setMapFile(std::move(map_file));
 
     LstReader lst_reader;
-    std::filesystem::path data_path = FileHelper::getInstance().fallout2DataPath();
-    auto lst = lst_reader.openFile(data_path / "art/tiles/tiles.lst");
+    auto lst = ResourceManager::getInstance().loadResource("art/tiles/tiles.lst", lst_reader);
 
     std::string texture_path = "art/tiles/" + lst->at(floorTileIndex);
     ResourceManager::getInstance().insertTexture(texture_path);

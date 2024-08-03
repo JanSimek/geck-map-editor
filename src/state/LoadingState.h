@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Application.h"
-#include "../util/FileHelper.h"
 #include "State.h"
 #include "loader/Loader.h"
 
@@ -27,7 +26,7 @@ public:
     LoadingState(const std::shared_ptr<AppData>& appData)
         : _appData(appData) {
 
-        const std::filesystem::path font_path = FileHelper::getInstance().resourcesPath() / Application::FONT_MAIN;
+        const std::filesystem::path font_path = Application::RESOURCES_DIR / Application::FONT_MAIN;
 
         if (!font.loadFromFile(font_path.string())) {
             spdlog::error("Could not open font {}", font_path.string());

@@ -2,7 +2,8 @@
 
 #include <memory>
 #include <string>
-#include <vector>
+#include <unordered_map>
+#include <filesystem>
 
 namespace geck {
 
@@ -18,13 +19,13 @@ private:
     uint32_t treeSize;
     uint32_t fileSize;
 
-    std::vector<std::unique_ptr<DatEntry>> entries;
+    std::unordered_map<std::filesystem::path, std::shared_ptr<DatEntry>> entries;
 
 public:
     virtual ~Dat() = default;
 
-    const std::vector<std::unique_ptr<DatEntry>>& getEntries() const;
-    void addEntry(std::unique_ptr<DatEntry> entry);
+    [[nodiscard]] const std::unordered_map<std::filesystem::path, std::shared_ptr<DatEntry>>& getEntries() const;
+    void addEntry(std::filesystem::path filename, std::shared_ptr<DatEntry> entry);
 };
 
 } // namespace geck

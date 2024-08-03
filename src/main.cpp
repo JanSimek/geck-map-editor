@@ -2,52 +2,52 @@
 #include <spdlog/spdlog.h>
 
 #include "Application.h"
-#include "util/FileHelper.h"
+#include "util/ResourceManager.h"
 
 #include <portable-file-dialogs.h>
 
 int main(int argc, char** argv) {
     cxxopts::Options options{ "GECK::Mapper", "Fallout 2 map editor" };
 
-    spdlog::set_pattern("[%^%l%$] [thread %t] %v");
+    spdlog::set_pattern("[%^%l%$] %v");
 
-    std::string data_path = std::filesystem::current_path().string();
+    // TODO: get real path to the binary
+    //std::filesystem::path resources_path = std::filesystem::weakly_canonical(argv[0]).parent_path() / geck::Application::RESOURCES_DIR;
+    std::filesystem::path resources_path = std::filesystem::current_path() / geck::Application::RESOURCES_DIR;
 
     options.add_options()(
-        "d,data", "path to the directory where master.dat was extracted", cxxopts::value<std::string>()->default_value(data_path))(
+        "d,data", "path to the Fallout 2 directory or individual data files, e.g. master.dat and critter.dat", cxxopts::value<std::vector<std::string>>()->default_value(resources_path))(
         "m,map", "path to the map file to load", cxxopts::value<std::string>())(
         "debug", "show debug messages")(
         "h,help", "print usage");
 
     auto result = options.parse(argc, argv);
 
+    for (const auto& unknownOption : result.unmatched()) {
+        spdlog::warn("Unrecognized command line argument: {}", unknownOption);
+    }
+
     if (result.count("help")) {
         std::cout << options.help() << std::endl;
         exit(0);
     }
     if (result.count("debug")) {
+        spdlog::set_pattern("[%^%l%$] [thread %t] %v");
         spdlog::set_level(spdlog::level::debug);
     }
     if (result.count("data")) {
-        FileHelper::getInstance().setFallout2DataPath(result["data"].as<std::string>());
+        for (const auto& data : result["data"].as<std::vector<std::string>>()) {
+            geck::ResourceManager::getInstance().addDataPath(data);
+        }
     } else {
-        auto dir = pfd::select_folder("Select Fallout 2 \"data\" directory which contains maps", data_path).result();
+        auto dir = pfd::select_folder("Select Fallout 2 \"data\" directory which contains maps", resources_path).result();
         spdlog::info("User selected data directory: {}", dir);
-        FileHelper::getInstance().setFallout2DataPath(dir);
+        geck::ResourceManager::getInstance().addDataPath(dir);
     }
-
-    // TODO: get real path to the binary
-    std::filesystem::path resources_path = std::filesystem::weakly_canonical(argv[0]).parent_path();
-    resources_path /= "resources";
-
-    spdlog::info("{:<20} {}", "Fallout 2 data path:", FileHelper::getInstance().fallout2DataPath().string());
-    spdlog::info("{:<20} {}", "Resources path:", resources_path.string());
-
-    FileHelper::getInstance().setResourcesPath(resources_path);
 
     std::string map = !result.count("map") ? std::string() : result["map"].as<std::string>();
 
-    geck::Application app{ data_path, map };
+    geck::Application app{ resources_path, map };
 
     app.run();
 

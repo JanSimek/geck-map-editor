@@ -7,96 +7,57 @@
 
 namespace geck {
 
-std::unique_ptr<Lst> LstReader::read() {
-    enum class State {
-        start,
-        content,
-        ws,
-        comment,
-    };
-
-    std::array<char, 1 << 16> buf;
-    std::string ws;
-    std::string cur;
-    State st{ State::start };
-
-    std::vector<std::string> list;
-
-    // Parsing as a streaming state machine. Reads are done into a 2^16
-    // byte buffer to reduce IO overhead.
-    //
-    // LST files can contain line comments (start with ';') and
-    // leading/trailing whitespace around each entry. This parser tries
-    // to skip all of that so that the output contains clean, trimmed
-    // entries.
-    while (!_stream.eof()) {
-        _stream.read(buf.data(), buf.size());
-        auto avail = _stream.gcount();
-
-        for (int i = 0; i < avail; ++i) {
-            char c = buf[i];
-
-            switch (c) {
-                case '\r':
-                    break;
-                case '\n':
-                    std::transform(cur.begin(), cur.end(), cur.begin(), ::tolower);
-                    list.emplace_back(std::move(cur));
-                    cur.clear();
-                    ws.clear();
-                    st = State::start;
-                    break;
-                case ';':
-                    ws.clear();
-                    st = State::comment;
-                    break;
-                case ' ':
-                case '\t':
-                    switch (st) {
-                        case State::start:
-                            break;
-                        case State::content:
-                            ws += c;
-                            st = State::ws;
-                            break;
-                        case State::ws:
-                            ws += c;
-                            break;
-                        case State::comment:
-                            break;
-                    }
-                    break;
-                default: // normal char
-                    switch (st) {
-                        case State::start:
-                            cur += c;
-                            st = State::content;
-                            break;
-                        case State::content:
-                            cur += c;
-                            break;
-                        case State::ws:
-                            cur += ws;
-                            cur += c;
-                            ws.clear();
-                            st = State::content;
-                            break;
-                        case State::comment:
-                            break;
-                    }
-                    break;
-            }
-        }
+std::string parseLine(std::string line)
+{
+    // strip comments
+    if (auto pos = line.find(';')) {
+        line = line.substr(0, pos);
     }
 
-    // trailing newline is not specified
-    if (!cur.empty()) {
-        std::transform(cur.begin(), cur.end(), cur.begin(), ::tolower);
-        list.emplace_back(std::move(cur));
+    // rtrim
+    line.erase(std::find_if(line.rbegin(), line.rend(), [](unsigned char c) {
+        return !std::isspace(c);
+    }).base(), line.end());
+
+    // replace slashes
+    std::replace(line.begin(),line.end(),'\\','/');
+
+    // to lower
+    std::transform(line.begin(),line.end(),line.begin(), ::tolower);
+
+    return line;
+}
+
+std::unique_ptr<Lst> LstReader::read() {
+    _stream.setPosition(0);
+
+    std::vector<std::string> list;
+    std::string line;
+    unsigned char ch = 0;
+    for (unsigned int i = 0; i != _stream.size(); ++i)
+    {
+        _stream >> ch;
+        if (ch == 0x0D) // \r
+        {
+            // do nothing
+        }
+        else if (ch == 0x0A) // \n
+        {
+            list.push_back(parseLine(line));
+            line.clear();
+        }
+        else
+        {
+            line += ch;
+        }
+    }
+    if (line.size() != 0)
+    {
+        list.push_back(parseLine(line));
     }
 
     auto lst = std::make_unique<Lst>(_path);
-    lst->setList(std::move(list));
+    lst->setList(list);
     return lst;
 }
 

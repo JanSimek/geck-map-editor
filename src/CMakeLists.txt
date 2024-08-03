@@ -12,9 +12,6 @@ add_executable (${PROJECT_NAME}
     util/ResourceManager.h
     util/ResourceManager.cpp
 
-    util/FileHelper.h
-    util/FileHelper.cpp
-
     util/ProHelper.h
     util/ProHelper.cpp
 
@@ -63,6 +60,9 @@ add_executable (${PROJECT_NAME}
     editor/Hex.h
     editor/Hex.cpp
 
+    # vfspp plugin
+    vfs/Dat2File.hpp
+    vfs/Dat2FileSystem.hpp
 )
 
 ###################################
@@ -75,7 +75,6 @@ add_library(vault STATIC
     #
 
     format/IFile.h
-    format/IFile.cpp
 
     # DAT
     format/dat/Dat.h
@@ -162,14 +161,22 @@ add_library(vault STATIC
 
     reader/gam/GamReader.h
     reader/gam/GamReader.cpp
+
+    reader/StreamBuffer.cpp
+    reader/StreamBuffer.h
 )
 
 target_include_directories(vault PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+target_include_directories(${PROJECT_NAME} PUBLIC
+    "${CMAKE_SOURCE_DIR}/external/vfspp/include"
+)
+
 target_link_libraries(vault PRIVATE
     spdlog::spdlog_header_only
+    ZLIB::ZLIB
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -179,6 +186,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     portable_file_dialogs
     cxxopts
     spdlog::spdlog_header_only
+    vfspp
     vault
 )
 

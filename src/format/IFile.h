@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <string>
 
+namespace geck {
+
 class IFile {
 public:
     IFile(const std::filesystem::path& path)
@@ -17,3 +19,5 @@ protected:
     std::string _filename;
     std::filesystem::path _path;
 };
+
+} // geck
