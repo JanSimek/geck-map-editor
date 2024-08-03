@@ -5,10 +5,12 @@ on:
     paths:
       - "CMakeLists.txt"
       - "src/**"
+      - ".github/**"
   pull_request:
     paths:
       - "CMakeLists.txt"
       - "src/**"
+      - ".github/**"
 
 jobs:
   build:
@@ -38,7 +40,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: "recursive"
 
@@ -46,9 +48,9 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            vcpkg install --triplet x64-windows sfml
+            vcpkg install --triplet x64-windows sfml zlib
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install sfml
+            brew install sfml zlib
           else
             set -e
             sudo apt-get update

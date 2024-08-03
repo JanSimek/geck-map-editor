@@ -48,3 +48,6 @@ Makefile
 cmake_install.cmake
 src/Makefile
 src/cmake_install.cmake
+cmake-build-debug/
+
+.idea/
