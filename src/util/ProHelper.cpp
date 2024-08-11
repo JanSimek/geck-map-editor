@@ -70,28 +70,28 @@ Lst* ProHelper::lstFile(uint32_t PID) {
     return ResourceManager::getInstance().loadResource(filename, lst_reader);
 }
 
-const std::filesystem::path ProHelper::basePath(uint32_t PID) {
-    std::filesystem::path pro_basepath = "proto";
+const std::string ProHelper::basePath(uint32_t PID) {
+    std::string pro_basepath = "proto/";
 
     unsigned int typeId = PID >> 24;
     switch (static_cast<Pro::OBJECT_TYPE>(typeId)) {
         case Pro::OBJECT_TYPE::ITEM:
-            pro_basepath /= "items";
+            pro_basepath += "items";
             break;
         case Pro::OBJECT_TYPE::CRITTER:
-            pro_basepath /= "critters";
+            pro_basepath += "critters";
             break;
         case Pro::OBJECT_TYPE::SCENERY:
-            pro_basepath /= "scenery";
+            pro_basepath += "scenery";
             break;
         case Pro::OBJECT_TYPE::WALL:
-            pro_basepath /= "walls";
+            pro_basepath += "walls";
             break;
         case Pro::OBJECT_TYPE::TILE:
-            pro_basepath /= "tiles";
+            pro_basepath += "tiles";
             break;
         case Pro::OBJECT_TYPE::MISC:
-            pro_basepath /= "misc";
+            pro_basepath += "misc";
             break;
         default:
             throw std::runtime_error{ "PID out of range: " + std::to_string(PID) };
@@ -107,7 +107,7 @@ const std::filesystem::path ProHelper::basePath(uint32_t PID) {
 
     std::string pro_filename = lst->list().at(index - 1);
 
-    return pro_basepath / pro_filename;
+    return pro_basepath + "/" + pro_filename;
 }
 
 } // namespace geck

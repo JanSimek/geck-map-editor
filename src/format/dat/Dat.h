@@ -19,12 +19,13 @@ private:
     uint32_t treeSize;
     uint32_t fileSize;
 
-    std::unordered_map<std::filesystem::path, std::shared_ptr<DatEntry>> entries;
+    std::unordered_map<std::string, std::shared_ptr<DatEntry>> entries;
 
 public:
     virtual ~Dat() = default;
 
-    [[nodiscard]] const std::unordered_map<std::filesystem::path, std::shared_ptr<DatEntry>>& getEntries() const;
+    // NOTE: MSVC does not support std::filesystem::path as a key in std::unordered_map
+    [[nodiscard]] const std::unordered_map<std::string, std::shared_ptr<DatEntry>>& getEntries() const;
     void addEntry(std::filesystem::path filename, std::shared_ptr<DatEntry> entry);
 };
 

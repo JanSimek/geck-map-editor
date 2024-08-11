@@ -54,13 +54,13 @@ EditorState::EditorState(const std::shared_ptr<AppData>& appData, std::unique_pt
     centerViewOnMap();
 }
 
-void geck::EditorState::setUpSignals() {
+void EditorState::setUpSignals() {
     _panels.clear();
     setUpMainMenu();
     setUpPanels();
 }
 
-void geck::EditorState::setUpPanels() {
+void EditorState::setUpPanels() {
     auto tile_selection_panel = std::make_shared<TileSelectionPanel>();
 
     tile_selection_panel->tileClicked.connect([this](int newTileId) {
@@ -132,7 +132,7 @@ void geck::EditorState::setUpPanels() {
     _panels.push_back(std::move(selected_object_panel));
 }
 
-void geck::EditorState::setUpMainMenu() {
+void EditorState::setUpMainMenu() {
     auto main_menu = std::make_shared<MainMenuPanel>(_map.get(), _currentElevation);
     main_menu->menuNewMapClicked.connect_member(this, &EditorState::createNewMap);
     main_menu->menuSaveMapClicked.connect_member(this, &EditorState::saveMap);
@@ -237,7 +237,7 @@ void EditorState::loadObjectSprites() {
 void EditorState::loadTileSprites() {
     const auto& lst = ResourceManager::getInstance().getResource<Lst, std::string>("art/tiles/tiles.lst");
 
-    for (auto tileNumber = 0U; tileNumber < geck::Map::TILES_PER_ELEVATION; ++tileNumber) {
+    for (auto tileNumber = 0U; tileNumber < Map::TILES_PER_ELEVATION; ++tileNumber) {
         auto tile = _map->getMapFile().tiles.at(_currentElevation).at(tileNumber);
 
         // Positioning
@@ -277,16 +277,16 @@ void EditorState::loadSprites() {
 
     spdlog::stopwatch sw;
 
-    _appData->window->setTitle(_map->filename() + " - GECK::Mapper");
+    _appData->window->setTitle(_map->filename() + " - Gecko");
 
     _objects.clear();
-    _floorSprites = {};
-    _roofSprites = {};
+
+    // FIXME: causes stack overflow on Windows ?! It is probably not needed anyway because all elements get overwritten on map-reload
+    //_floorSprites = {};
+    //_roofSprites = {};
 
     // Data
-
     loadTileSprites();
-
     loadObjectSprites();
 
     spdlog::info("Map sprites loaded in {:.3} seconds", sw);

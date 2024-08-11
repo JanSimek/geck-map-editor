@@ -170,10 +170,6 @@ target_include_directories(vault PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC
-    "${CMAKE_SOURCE_DIR}/external/vfspp/include"
-)
-
 target_link_libraries(vault PRIVATE
     spdlog::spdlog_header_only
     ZLIB::ZLIB
@@ -190,7 +186,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     vault
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${imgui_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE
+        ${imgui_SOURCE_DIR}
+        "${CMAKE_SOURCE_DIR}/external/vfspp/include")
 
 # copy shared external libraries to the build directory for Windows builds
 if(WIN32)

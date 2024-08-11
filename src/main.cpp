@@ -16,7 +16,8 @@ int main(int argc, char** argv) {
     std::filesystem::path resources_path = std::filesystem::current_path() / geck::Application::RESOURCES_DIR;
 
     options.add_options()(
-        "d,data", "path to the Fallout 2 directory or individual data files, e.g. master.dat and critter.dat", cxxopts::value<std::vector<std::string>>()->default_value(resources_path))(
+        "d,data", "path to the Fallout 2 directory or individual data files, e.g. master.dat and critter.dat",
+        cxxopts::value<std::vector<std::string>>()->default_value(resources_path.string()))(
         "m,map", "path to the map file to load", cxxopts::value<std::string>())(
         "debug", "show debug messages")(
         "h,help", "print usage");
@@ -40,9 +41,11 @@ int main(int argc, char** argv) {
             geck::ResourceManager::getInstance().addDataPath(data);
         }
     } else {
-        auto dir = pfd::select_folder("Select Fallout 2 \"data\" directory which contains maps", resources_path).result();
-        spdlog::info("User selected data directory: {}", dir);
-        geck::ResourceManager::getInstance().addDataPath(dir);
+        auto dir = pfd::select_folder("Select Fallout 2 \"data\" directory which contains maps", resources_path.string()).result();
+        if (!dir.empty()) {
+            spdlog::info("User selected data directory: {}", dir);
+            geck::ResourceManager::getInstance().addDataPath(dir);
+        }
     }
 
     std::string map = !result.count("map") ? std::string() : result["map"].as<std::string>();

@@ -46,7 +46,9 @@ brew install sfml
 
 ## Usage
 
-It's currently not possible to load assets directly from master.dat and critter.dat. You must extract these archives using [dat-unpacker](https://github.com/falltergeist/dat-unpacker) and convert all files to _lowercase_ using the `--transform` option. By default GECK::Mapper will load files from the `resources` subdirectory.
+Copy `master.dat` and `critter.dat` from your Fallout 2 installation to the `resources` subdirectory.
+
+If you want to extract data files from these archives use [dat-unpacker](https://github.com/falltergeist/dat-unpacker) and convert all files to _lowercase_ using the `--transform` option. By default, GECK::Mapper will load files from the `resources` subdirectory.
 
 Use arrow keys or right-click and drag to pan the view.
 

@@ -13,7 +13,7 @@ public:
 
     static Lst* lstFile(uint32_t PID);
 
-    static const std::filesystem::path basePath(uint32_t PID);
+    static const std::string basePath(uint32_t PID);
 };
 
 }
