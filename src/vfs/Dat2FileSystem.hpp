@@ -257,7 +257,7 @@ private:
         for (const auto& datEntry : datArchive->getEntries()) {
             // TODO: add directories !!!!
             FileInfo fileInfo(BasePathST(), datEntry.first, false);
-            IFilePtr file(new Dat2File(fileInfo, std::move(datEntry.second), m_datReader));
+            IFilePtr file(new Dat2File(fileInfo, datEntry.second, m_datReader));
             outFileList.insert(std::pair(file->GetFileInfo().AbsolutePath(), file));
         }
     }

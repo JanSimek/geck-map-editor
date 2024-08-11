@@ -60,6 +60,10 @@ add_compile_options(
   $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic>
 )
 
+if (MSVC)
+    add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
+endif() # MSVC
+
 ##################################################
 # show build configuration overview
 

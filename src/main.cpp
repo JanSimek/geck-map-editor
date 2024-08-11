@@ -42,8 +42,10 @@ int main(int argc, char** argv) {
         }
     } else {
         auto dir = pfd::select_folder("Select Fallout 2 \"data\" directory which contains maps", resources_path.string()).result();
-        spdlog::info("User selected data directory: {}", dir);
-        geck::ResourceManager::getInstance().addDataPath(dir);
+        if (!dir.empty()) {
+            spdlog::info("User selected data directory: {}", dir);
+            geck::ResourceManager::getInstance().addDataPath(dir);
+        }
     }
 
     std::string map = !result.count("map") ? std::string() : result["map"].as<std::string>();
